@@ -1,0 +1,16 @@
+{
+  "name": "super-insect-battle",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:run": "pnpm -r test:run",
+    "demo": "pnpm --filter @insect-battle/engine demo",
+    "play": "pnpm --filter @insect-battle/cli dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  }
+}
