@@ -7,3 +7,14 @@ export {
   getInMemoryUnitOfWork,
   resetInMemoryUnitOfWork,
 } from './repositories'
+
+export {
+  SqlitePlayerRepository,
+  SqliteOwnedInsectRepository,
+  SqliteMatchRepository,
+  SqliteMatchLogRepository,
+  SqliteUnitOfWork,
+  createSqliteUnitOfWork,
+  createLocalSqliteUnitOfWork,
+  type SqliteConfig,
+} from './sqlite'
