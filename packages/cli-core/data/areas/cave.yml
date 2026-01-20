@@ -1,0 +1,14 @@
+id: cave
+name: 동굴
+
+rooms:
+  - id: cave_entrance
+    name: 동굴 입구
+    description: |
+      어두운 동굴 입구다. 안에서 이상한 소리가 들린다.
+      여기에는 특별한 곤충이 있다는 소문이 있다.
+    exits:
+      서: deep_forest
+    hasWildEncounters: true
+    wildInsects:
+      - scorpion

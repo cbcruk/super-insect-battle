@@ -1,0 +1,42 @@
+id: village
+name: 마을
+
+rooms:
+  - id: training_grounds
+    name: 훈련장
+    description: |
+      넓은 훈련장이다. 여러 트레이너들이 곤충과 함께 훈련하고 있다.
+      북쪽에 마을 광장이 보이고, 동쪽에 상점이 있다. 남쪽으로 가면 숲이 나온다.
+    exits:
+      북: village_square
+      동: shop
+      남: forest_entrance
+    hasWildEncounters: false
+
+  - id: village_square
+    name: 마을 광장
+    description: |
+      마을의 중심 광장이다. 분수대 주변으로 사람들이 모여 있다.
+      곤충 센터가 보인다. 이곳에서 곤충을 회복시킬 수 있다.
+    exits:
+      남: training_grounds
+      동: insect_center
+    hasWildEncounters: false
+
+  - id: insect_center
+    name: 곤충 센터
+    description: |
+      곤충들을 치료해주는 센터다.
+      "heal" 명령어로 팀을 회복시킬 수 있다.
+    exits:
+      서: village_square
+    hasWildEncounters: false
+
+  - id: shop
+    name: 곤충 상점
+    description: |
+      다양한 아이템을 파는 상점이다.
+      (아직 상점 기능은 구현되지 않았다.)
+    exits:
+      서: training_grounds
+    hasWildEncounters: false
