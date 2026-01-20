@@ -1,14 +1,17 @@
 import * as readline from 'readline'
-import { createInitialGameState, getGameMode } from './game/state'
-import { parseCommand, isEmptyInput } from './parser'
-import { executeCommand } from './commands'
-import { lookCommand } from './commands/explore'
-import { welcomeMessage, getPrompt, formatExploreHints } from './ui/display'
-import type { GameState } from './game/types'
+import {
+  createInitialGameState,
+  getGameMode,
+  parseCommand,
+  isEmptyInput,
+  executeCommand,
+  lookCommand,
+  welcomeMessage,
+  getPrompt,
+  formatExploreHints,
+} from '@insect-battle/cli-core'
+import type { GameState } from '@insect-battle/cli-core'
 
-/**
- * readline 인터페이스 생성
- */
 function createReadlineInterface(): readline.Interface {
   return readline.createInterface({
     input: process.stdin,
@@ -16,9 +19,6 @@ function createReadlineInterface(): readline.Interface {
   })
 }
 
-/**
- * 플레이어 이름 입력 받기
- */
 async function askPlayerName(rl: readline.Interface): Promise<string> {
   return new Promise((resolve) => {
     rl.question('트레이너 이름을 입력하세요: ', (answer: string) => {
@@ -28,9 +28,6 @@ async function askPlayerName(rl: readline.Interface): Promise<string> {
   })
 }
 
-/**
- * 한 줄 입력 받기
- */
 async function prompt(
   rl: readline.Interface,
   promptText: string
@@ -42,9 +39,6 @@ async function prompt(
   })
 }
 
-/**
- * 힌트 표시
- */
 function showHints(state: GameState): void {
   const mode = getGameMode(state)
 
@@ -54,9 +48,6 @@ function showHints(state: GameState): void {
   }
 }
 
-/**
- * 게임 루프
- */
 async function gameLoop(
   rl: readline.Interface,
   state: GameState
@@ -88,9 +79,6 @@ async function gameLoop(
   }
 }
 
-/**
- * 메인 함수
- */
 async function main(): Promise<void> {
   const rl = createReadlineInterface()
 

@@ -11,13 +11,6 @@ import { getRoom } from '../world/rooms'
 import { syncTeamHpFromBattle, getActiveInsect } from '../game/state'
 import { formatBattleScreen, line } from '../ui/display'
 
-/**
- * battle 명령어 - 야생 곤충과 배틀 시작
- * 야생 곤충이 출현하는 지역에서만 사용 가능
- * @param _args - 사용하지 않음
- * @param state - 게임 상태
- * @returns 배틀 시작 화면 또는 에러 메시지
- */
 export function battleCommand(
   _args: string[],
   state: GameState
@@ -92,12 +85,6 @@ export function battleCommand(
   }
 }
 
-/**
- * use 명령어 - 배틀 중 스킬 사용
- * @param args - [스킬번호 또는 스킬명]
- * @param state - 게임 상태
- * @returns 턴 실행 결과
- */
 export function useCommand(args: string[], state: GameState): CommandResult {
   if (!state.battle) {
     return {
@@ -179,13 +166,6 @@ export function useCommand(args: string[], state: GameState): CommandResult {
   }
 }
 
-/**
- * run 명령어 - 배틀에서 도망
- * 50% 확률로 성공, 실패시 상대만 공격
- * @param _args - 사용하지 않음
- * @param state - 게임 상태
- * @returns 도망 결과
- */
 export function runCommand(_args: string[], state: GameState): CommandResult {
   if (!state.battle) {
     return {
@@ -232,12 +212,6 @@ export function runCommand(_args: string[], state: GameState): CommandResult {
   }
 }
 
-/**
- * 배틀 종료 처리
- * 승패 메시지 표시 및 HP 동기화
- * @param state - 게임 상태
- * @returns 배틀 결과 메시지
- */
 function finishBattle(state: GameState): CommandResult {
   if (!state.battle) {
     return { output: '', stateChanged: false }

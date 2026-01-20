@@ -14,7 +14,6 @@ import {
 
 import { battleCommand, useCommand, runCommand } from './battle'
 
-/** 탐색 모드에서 사용 가능한 명령어 */
 const exploreCommands: Record<string, CommandHandler> = {
   look: lookCommand,
   go: goCommand,
@@ -25,7 +24,6 @@ const exploreCommands: Record<string, CommandHandler> = {
   quit: quitCommand,
 }
 
-/** 배틀 모드에서 사용 가능한 명령어 */
 const battleCommands: Record<string, CommandHandler> = {
   use: useCommand,
   run: runCommand,
@@ -34,13 +32,6 @@ const battleCommands: Record<string, CommandHandler> = {
   quit: quitCommand,
 }
 
-/**
- * 탐색 모드 숫자 단축키 처리
- * 숫자로 출구 선택 (1, 2, 3...)
- * @param num - 입력된 숫자
- * @param state - 게임 상태
- * @returns 이동 결과
- */
 function handleExploreNumeric(num: number, state: GameState): CommandResult {
   const room = getRoom(state.player.location)
 
@@ -63,13 +54,6 @@ function handleExploreNumeric(num: number, state: GameState): CommandResult {
   return goCommand([direction], state)
 }
 
-/**
- * 배틀 모드 숫자 단축키 처리
- * 0: 도망, 1-4: 스킬 선택
- * @param num - 입력된 숫자
- * @param state - 게임 상태
- * @returns 턴 결과
- */
 function handleBattleNumeric(num: number, state: GameState): CommandResult {
   if (!state.battle) {
     return { output: '배틀 중이 아닙니다.', stateChanged: false }
@@ -82,15 +66,6 @@ function handleBattleNumeric(num: number, state: GameState): CommandResult {
   return useCommand([num.toString()], state)
 }
 
-/**
- * 명령어 실행 라우터
- * 게임 모드에 따라 적절한 핸들러로 분기
- * @param command - 명령어
- * @param args - 인자 배열
- * @param state - 게임 상태
- * @param parsed - 파싱된 명령어 (숫자 단축키 정보 포함)
- * @returns 명령어 실행 결과
- */
 export function executeCommand(
   command: string,
   args: string[],
@@ -128,4 +103,16 @@ export function executeCommand(
   }
 
   return handler(args, state)
+}
+
+export {
+  lookCommand,
+  goCommand,
+  teamCommand,
+  healCommand,
+  helpCommand,
+  quitCommand,
+  battleCommand,
+  useCommand,
+  runCommand,
 }
