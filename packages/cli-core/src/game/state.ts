@@ -1,5 +1,6 @@
 import { insects } from '@insect-battle/engine'
 import type { GameState, PlayerInsect } from './types'
+import { eventBus } from '../events'
 
 function createStarterInsect(): PlayerInsect {
   const species = insects.rhinoceros_beetle
@@ -48,7 +49,13 @@ export function addInsectToTeam(
 }
 
 export function movePlayer(state: GameState, roomId: string): void {
+  const previousRoomId = state.player.location
+
+  eventBus.emit('playerLeave', { roomId: previousRoomId, nextRoomId: roomId })
+
   state.player.location = roomId
+
+  eventBus.emit('playerEnter', { roomId, previousRoomId })
 }
 
 export function syncTeamHpFromBattle(state: GameState): void {

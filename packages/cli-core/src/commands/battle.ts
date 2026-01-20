@@ -10,6 +10,7 @@ import type { CommandResult, GameState } from '../game/types'
 import { getRoom } from '../world/rooms'
 import { syncTeamHpFromBattle, getActiveInsect } from '../game/state'
 import { formatBattleScreen, line } from '../ui/display'
+import { eventBus } from '../events'
 
 export function battleCommand(
   _args: string[],
@@ -73,6 +74,11 @@ export function battleCommand(
     availableMoves: getMovesByIds(activeInsect.species.moves),
   }
 
+  eventBus.emit('battleStart', {
+    opponent: state.battle.opponent,
+    playerInsect: activeInsect,
+  })
+
   const lines: string[] = []
   lines.push('')
   lines.push(`🌿 야생 ${wildInsect.nameKo}이(가) 나타났다!`)
@@ -134,6 +140,15 @@ export function useCommand(args: string[], state: GameState): CommandResult {
     selectedMove,
     opponentMove
   )
+
+  const activeInsect = getActiveInsect(state)
+  if (activeInsect && state.battle.state.status === 'running') {
+    eventBus.emit('turnStart', {
+      turn: state.battle.state.turn,
+      playerInsect: activeInsect,
+      opponentName: state.battle.opponent.name,
+    })
+  }
 
   const turnLogs = state.battle.state.log.filter(
     (log) => log.turn === state.battle!.state.turn
@@ -233,6 +248,11 @@ function finishBattle(state: GameState): CommandResult {
   }
 
   lines.push(line('═'))
+
+  eventBus.emit('battleEnd', {
+    winner: winner ?? 'draw',
+    opponent: state.battle.opponent,
+  })
 
   syncTeamHpFromBattle(state)
   state.battle = null

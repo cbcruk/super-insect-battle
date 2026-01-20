@@ -37,6 +37,8 @@ export {
 
 export { rooms, directionAliases, getRoom, normalizeDirection } from './world/rooms'
 
+export { eventBus, type GameEvents } from './events'
+
 export {
   line,
   titleBox,
