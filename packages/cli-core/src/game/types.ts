@@ -1,10 +1,12 @@
 import type { BattleState, Insect, Move } from '@insect-battle/engine'
+import type { IndividualValues } from '../random'
 
 export interface PlayerInsect {
   species: Insect
   nickname: string | null
   currentHp: number
   maxHp: number
+  ivs: IndividualValues
 }
 
 export interface Player {
@@ -31,6 +33,7 @@ export interface Room {
   exits: Record<string, string>
   hasWildEncounters: boolean
   wildInsects?: string[]
+  encounterRate?: number
 }
 
 export interface GameState {
@@ -45,6 +48,7 @@ export interface CommandResult {
   output: string
   stateChanged: boolean
   shouldQuit?: boolean
+  shouldTriggerBattle?: boolean
 }
 
 export type CommandHandler = (args: string[], state: GameState) => CommandResult

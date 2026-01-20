@@ -12,3 +12,4 @@ rooms:
     hasWildEncounters: true
     wildInsects:
       - scorpion
+    encounterRate: 40

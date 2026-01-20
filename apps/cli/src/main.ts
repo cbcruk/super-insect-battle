@@ -6,6 +6,7 @@ import {
   isEmptyInput,
   executeCommand,
   lookCommand,
+  battleCommand,
   welcomeMessage,
   getPrompt,
   formatExploreHints,
@@ -67,6 +68,13 @@ async function gameLoop(
 
     if (result.output) {
       console.log(result.output)
+    }
+
+    if (result.shouldTriggerBattle) {
+      const battleResult = battleCommand([], state)
+      if (battleResult.output) {
+        console.log(battleResult.output)
+      }
     }
 
     if (result.stateChanged && getGameMode(state) === 'explore') {

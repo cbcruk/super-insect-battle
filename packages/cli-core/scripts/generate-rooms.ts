@@ -10,6 +10,7 @@ interface RoomYaml {
   exits: Record<string, string>
   hasWildEncounters: boolean
   wildInsects?: string[]
+  encounterRate?: number
 }
 
 interface AreaYaml {
@@ -50,6 +51,7 @@ function generateTypeScript(areas: AreaYaml[]): string {
       const wildInsects = room.wildInsects
         ? JSON.stringify(room.wildInsects)
         : 'undefined'
+      const encounterRate = room.encounterRate ?? (room.hasWildEncounters ? 25 : 0)
 
       return `  ${id}: {
     id: '${id}',
@@ -58,6 +60,7 @@ function generateTypeScript(areas: AreaYaml[]): string {
     exits: ${exits},
     hasWildEncounters: ${room.hasWildEncounters},
     wildInsects: ${wildInsects},
+    encounterRate: ${encounterRate},
   }`
     })
     .join(',\n\n')

@@ -13,6 +13,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: true,
     wildInsects: ["scorpion"],
+    encounterRate: 40,
   },
 
   forest_entrance: {
@@ -25,6 +26,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: true,
     wildInsects: ["grasshopper","stag_beetle"],
+    encounterRate: 20,
   },
 
   deep_forest: {
@@ -37,6 +39,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: true,
     wildInsects: ["scorpion","rhinoceros_beetle"],
+    encounterRate: 35,
   },
 
   training_grounds: {
@@ -50,6 +53,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: false,
     wildInsects: undefined,
+    encounterRate: 0,
   },
 
   village_square: {
@@ -62,6 +66,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: false,
     wildInsects: undefined,
+    encounterRate: 0,
   },
 
   insect_center: {
@@ -73,6 +78,7 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: false,
     wildInsects: undefined,
+    encounterRate: 0,
   },
 
   shop: {
@@ -84,5 +90,6 @@ export const generatedRooms: Record<string, Room> = {
     },
     hasWildEncounters: false,
     wildInsects: undefined,
+    encounterRate: 0,
   },
 }

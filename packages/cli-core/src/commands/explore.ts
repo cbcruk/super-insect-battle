@@ -1,7 +1,8 @@
 import type { CommandResult, GameState } from '../game/types'
 import { getRoom, normalizeDirection } from '../world/rooms'
-import { movePlayer, healTeam } from '../game/state'
+import { movePlayer, healTeam, getActiveInsect } from '../game/state'
 import { formatTeam, line } from '../ui/display'
+import { rollEncounter } from '../random'
 
 export function lookCommand(_args: string[], state: GameState): CommandResult {
   const room = getRoom(state.player.location)
@@ -85,9 +86,23 @@ export function goCommand(args: string[], state: GameState): CommandResult {
   movePlayer(state, nextRoomId)
 
   const lookResult = lookCommand([], state)
+  const lines: string[] = [`${direction}쪽으로 이동했습니다.`, lookResult.output]
+
+  if (nextRoom.hasWildEncounters && nextRoom.encounterRate) {
+    const activeInsect = getActiveInsect(state)
+    if (activeInsect && activeInsect.currentHp > 0 && rollEncounter(nextRoom.encounterRate)) {
+      lines.push('')
+      lines.push('🌿 풀숲에서 야생 곤충이 뛰쳐나왔다!')
+      return {
+        output: lines.join('\n'),
+        stateChanged: true,
+        shouldTriggerBattle: true,
+      }
+    }
+  }
 
   return {
-    output: `${direction}쪽으로 이동했습니다.\n${lookResult.output}`,
+    output: lines.join('\n'),
     stateChanged: true,
   }
 }

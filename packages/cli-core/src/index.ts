@@ -40,6 +40,16 @@ export { rooms, directionAliases, getRoom, normalizeDirection } from './world/ro
 export { eventBus, type GameEvents } from './events'
 
 export {
+  rollEncounter,
+  generateIVs,
+  selectWeightedInsect,
+  selectRandomInsect,
+  applyIVsToStats,
+  type IndividualValues,
+  type WeightedInsect,
+} from './random'
+
+export {
   line,
   titleBox,
   hpBar,

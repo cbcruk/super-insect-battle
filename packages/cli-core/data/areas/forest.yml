@@ -14,6 +14,7 @@ rooms:
     wildInsects:
       - grasshopper
       - stag_beetle
+    encounterRate: 20
 
   - id: deep_forest
     name: 깊은 숲
@@ -27,3 +28,4 @@ rooms:
     wildInsects:
       - scorpion
       - rhinoceros_beetle
+    encounterRate: 35

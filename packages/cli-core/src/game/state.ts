@@ -1,16 +1,19 @@
 import { insects } from '@insect-battle/engine'
 import type { GameState, PlayerInsect } from './types'
 import { eventBus } from '../events'
+import { generateIVs, applyIVsToStats } from '../random'
 
 function createStarterInsect(): PlayerInsect {
   const species = insects.rhinoceros_beetle
-  const maxHp = species.baseStats.hp * 2 + 110
+  const ivs = generateIVs()
+  const stats = applyIVsToStats(species.baseStats, ivs)
 
   return {
     species,
     nickname: null,
-    currentHp: maxHp,
-    maxHp,
+    currentHp: stats.hp,
+    maxHp: stats.hp,
+    ivs,
   }
 }
 
