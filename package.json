@@ -8,6 +8,7 @@
     "demo": "pnpm --filter @insect-battle/engine demo",
     "play": "pnpm --filter @insect-battle/cli dev",
     "play:web": "pnpm --filter @insect-battle/web dev",
+    "play:game": "pnpm --filter @insect-battle/web-game dev",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
