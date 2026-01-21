@@ -38,6 +38,21 @@ export const npcs: Record<string, Npc> = {
       { text: '상대의 타입을 잘 파악해서 싸워봐!' },
     ],
   },
+
+  shopkeeper: {
+    id: 'shopkeeper',
+    name: '상점 주인',
+    type: 'shopkeeper',
+    description: '마을 상점을 운영하는 주인',
+    dialogue: [
+      { text: '어서오세요! 무엇을 도와드릴까요?' },
+      { text: '좋은 물건 많이 있습니다!' },
+      { text: '배틀에 필요한 건 다 있어요~' },
+    ],
+    actions: [
+      { id: 'buy', label: '물건 사기', type: 'shop' },
+    ],
+  },
 }
 
 export function getNpc(id: string): Npc | undefined {

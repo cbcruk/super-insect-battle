@@ -2,6 +2,7 @@ import { insects } from '@insect-battle/engine'
 import type { GameState, PlayerInsect } from './types'
 import { eventBus } from '../events'
 import { generateIVs, applyIVsToStats } from '../random'
+import { createInventory } from '../items'
 
 function createStarterInsect(): PlayerInsect {
   const species = insects.rhinoceros_beetle
@@ -25,6 +26,7 @@ export function createInitialGameState(playerName: string): GameState {
       team: [createStarterInsect()],
       activeIndex: 0,
     },
+    inventory: createInventory(),
     battle: null,
     isRunning: true,
   }

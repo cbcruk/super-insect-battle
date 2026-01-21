@@ -90,13 +90,13 @@ export const generatedRooms: Record<string, Room> = {
   shop: {
     id: 'shop',
     name: '곤충 상점',
-    description: "다양한 아이템을 파는 상점이다.\n(아직 상점 기능은 구현되지 않았다.)",
+    description: "다양한 아이템을 파는 상점이다.\n상점 주인에게 말을 걸어 아이템을 구매할 수 있다.",
     exits: {
       "서": "training_grounds"
     },
     hasWildEncounters: false,
     wildInsects: undefined,
     encounterRate: 0,
-    npcs: undefined,
+    npcs: ["shopkeeper"],
   },
 }

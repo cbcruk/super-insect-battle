@@ -1,5 +1,6 @@
 import type { BattleState, Insect, Move } from '@insect-battle/engine'
 import type { IndividualValues } from '../random'
+import type { Inventory } from '../items'
 
 export interface PlayerInsect {
   species: Insect
@@ -40,6 +41,7 @@ export interface Room {
 
 export interface GameState {
   player: Player
+  inventory: Inventory
   battle: BattleSession | null
   isRunning: boolean
 }

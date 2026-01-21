@@ -3,6 +3,7 @@ import { getRoom } from '../world/rooms'
 import { getNpc, getNpcDialogue } from '../npc'
 import { healTeam } from '../game/state'
 import { line } from '../ui/display'
+import { getAllItems, buyItem } from '../items'
 
 export function talkCommand(args: string[], state: GameState): CommandResult {
   const room = getRoom(state.player.location)
@@ -138,6 +139,8 @@ export function doCommand(args: string[], state: GameState): CommandResult {
   switch (action.type) {
     case 'heal':
       return performHeal(state, npcWithActions.name)
+    case 'shop':
+      return showShop(state, npcWithActions.name)
     case 'info':
       return {
         output: `${npcWithActions.name}: "${getNpcDialogue(npcWithActions)}"`,
@@ -168,6 +171,96 @@ function performHeal(state: GameState, npcName: string): CommandResult {
   lines.push(`${npcName}: "곤충들을 치료했습니다!"`)
   lines.push('')
   lines.push('🎵 띠링~ 팀이 완전히 회복되었습니다!')
+  lines.push('')
+
+  return {
+    output: lines.join('\n'),
+    stateChanged: true,
+  }
+}
+
+function showShop(state: GameState, npcName: string): CommandResult {
+  const allItems = getAllItems()
+  const lines: string[] = []
+
+  lines.push('')
+  lines.push(`🏪 ${npcName}의 상점`)
+  lines.push(line('─'))
+  lines.push(`💰 소지금: ${state.inventory.money} G`)
+  lines.push('')
+
+  allItems.forEach((item, i) => {
+    lines.push(`  ${i + 1}. ${item.nameKo} - ${item.price} G`)
+    lines.push(`     ${item.description}`)
+  })
+
+  lines.push('')
+  lines.push('구매: buy <번호|이름>')
+  lines.push(line('─'))
+
+  return {
+    output: lines.join('\n'),
+    stateChanged: false,
+  }
+}
+
+export function buyCommand(args: string[], state: GameState): CommandResult {
+  const room = getRoom(state.player.location)
+
+  const hasShopkeeper = room?.npcs?.some((id) => {
+    const npc = getNpc(id)
+    return npc?.type === 'shopkeeper'
+  })
+
+  if (!hasShopkeeper) {
+    return {
+      output: '이 장소에는 상점이 없습니다.',
+      stateChanged: false,
+    }
+  }
+
+  if (args.length === 0) {
+    return {
+      output: '무엇을 구매할까요? (예: buy 1, buy 포션)',
+      stateChanged: false,
+    }
+  }
+
+  const allItems = getAllItems()
+  const input = args.join(' ').toLowerCase()
+  const num = parseInt(input)
+
+  let targetItem = null
+
+  if (!isNaN(num) && num >= 1 && num <= allItems.length) {
+    targetItem = allItems[num - 1]
+  } else {
+    targetItem = allItems.find(
+      (item) =>
+        item.nameKo.toLowerCase() === input ||
+        item.name.toLowerCase() === input ||
+        item.id === input
+    )
+  }
+
+  if (!targetItem) {
+    return {
+      output: '해당 아이템을 찾을 수 없습니다.',
+      stateChanged: false,
+    }
+  }
+
+  if (!buyItem(state.inventory, targetItem.id)) {
+    return {
+      output: `소지금이 부족합니다. (필요: ${targetItem.price} G, 소지: ${state.inventory.money} G)`,
+      stateChanged: false,
+    }
+  }
+
+  const lines: string[] = []
+  lines.push('')
+  lines.push(`${targetItem.nameKo}을(를) 구매했습니다!`)
+  lines.push(`💰 남은 소지금: ${state.inventory.money} G`)
   lines.push('')
 
   return {
