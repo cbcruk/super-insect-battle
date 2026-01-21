@@ -12,6 +12,8 @@ rooms:
       동: shop
       남: forest_entrance
     hasWildEncounters: false
+    npcs:
+      - trainer_kim
 
   - id: village_square
     name: 마을 광장
@@ -22,15 +24,19 @@ rooms:
       남: training_grounds
       동: insect_center
     hasWildEncounters: false
+    npcs:
+      - old_man
 
   - id: insect_center
     name: 곤충 센터
     description: |
       곤충들을 치료해주는 센터다.
-      "heal" 명령어로 팀을 회복시킬 수 있다.
+      NPC와 대화하여 팀을 회복시킬 수 있다.
     exits:
       서: village_square
     hasWildEncounters: false
+    npcs:
+      - nurse_joy
 
   - id: shop
     name: 곤충 상점

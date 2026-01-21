@@ -13,6 +13,7 @@ import {
 } from './explore'
 
 import { battleCommand, useCommand, runCommand } from './battle'
+import { talkCommand, doCommand } from './npc'
 
 const exploreCommands: Record<string, CommandHandler> = {
   look: lookCommand,
@@ -20,6 +21,8 @@ const exploreCommands: Record<string, CommandHandler> = {
   team: teamCommand,
   heal: healCommand,
   battle: battleCommand,
+  talk: talkCommand,
+  do: doCommand,
   help: helpCommand,
   quit: quitCommand,
 }
@@ -115,4 +118,6 @@ export {
   battleCommand,
   useCommand,
   runCommand,
+  talkCommand,
+  doCommand,
 }

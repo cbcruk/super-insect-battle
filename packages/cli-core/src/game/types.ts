@@ -35,6 +35,7 @@ export interface Room {
   hasWildEncounters: boolean
   wildInsects?: string[]
   encounterRate?: number
+  npcs?: string[]
 }
 
 export interface GameState {

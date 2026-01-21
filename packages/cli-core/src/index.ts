@@ -33,7 +33,20 @@ export {
   battleCommand,
   useCommand,
   runCommand,
+  talkCommand,
+  doCommand,
 } from './commands'
+
+export {
+  npcs,
+  getNpc,
+  getNpcDialogue,
+  type Npc,
+  type NpcType,
+  type NpcAction,
+  type DialogueLine,
+  type RoomNpc,
+} from './npc'
 
 export { rooms, directionAliases, getRoom, normalizeDirection } from './world/rooms'
 

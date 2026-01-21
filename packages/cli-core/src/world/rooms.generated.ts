@@ -14,6 +14,7 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: true,
     wildInsects: ["scorpion"],
     encounterRate: 40,
+    npcs: undefined,
   },
 
   forest_entrance: {
@@ -27,6 +28,7 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: true,
     wildInsects: ["grasshopper","stag_beetle"],
     encounterRate: 20,
+    npcs: undefined,
   },
 
   deep_forest: {
@@ -40,6 +42,7 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: true,
     wildInsects: ["scorpion","rhinoceros_beetle"],
     encounterRate: 35,
+    npcs: undefined,
   },
 
   training_grounds: {
@@ -54,6 +57,7 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: false,
     wildInsects: undefined,
     encounterRate: 0,
+    npcs: ["trainer_kim"],
   },
 
   village_square: {
@@ -67,18 +71,20 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: false,
     wildInsects: undefined,
     encounterRate: 0,
+    npcs: ["old_man"],
   },
 
   insect_center: {
     id: 'insect_center',
     name: '곤충 센터',
-    description: "곤충들을 치료해주는 센터다.\n\"heal\" 명령어로 팀을 회복시킬 수 있다.",
+    description: "곤충들을 치료해주는 센터다.\nNPC와 대화하여 팀을 회복시킬 수 있다.",
     exits: {
       "서": "village_square"
     },
     hasWildEncounters: false,
     wildInsects: undefined,
     encounterRate: 0,
+    npcs: ["nurse_joy"],
   },
 
   shop: {
@@ -91,5 +97,6 @@ export const generatedRooms: Record<string, Room> = {
     hasWildEncounters: false,
     wildInsects: undefined,
     encounterRate: 0,
+    npcs: undefined,
   },
 }

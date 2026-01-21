@@ -3,6 +3,7 @@ import { getRoom, normalizeDirection } from '../world/rooms'
 import { movePlayer, healTeam, getActiveInsect } from '../game/state'
 import { formatTeam, line } from '../ui/display'
 import { rollEncounter } from '../random'
+import { getNpc } from '../npc'
 
 export function lookCommand(_args: string[], state: GameState): CommandResult {
   const room = getRoom(state.player.location)
@@ -20,6 +21,16 @@ export function lookCommand(_args: string[], state: GameState): CommandResult {
   lines.push(line('─'))
   lines.push(room.description)
   lines.push('')
+
+  if (room.npcs && room.npcs.length > 0) {
+    const npcNames = room.npcs
+      .map((id) => getNpc(id))
+      .filter(Boolean)
+      .map((npc) => `👤 ${npc!.name}`)
+    if (npcNames.length > 0) {
+      lines.push(npcNames.join('  '))
+    }
+  }
 
   const exits = Object.keys(room.exits)
 
@@ -150,7 +161,8 @@ export function helpCommand(_args: string[], state: GameState): CommandResult {
     lines.push('  go <방향>        - 이동 (북/남/동/서)')
     lines.push('  team (t)         - 팀 확인')
     lines.push('  battle (b)       - 야생 곤충과 배틀')
-    lines.push('  heal             - 팀 회복 (곤충 센터)')
+    lines.push('  talk             - NPC와 대화')
+    lines.push('  do <번호>        - NPC 행동 실행')
   }
 
   lines.push('')
