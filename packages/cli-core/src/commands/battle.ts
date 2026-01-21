@@ -1,7 +1,6 @@
 import {
   createBattleInsect,
   executeTurn,
-  selectAIMove,
   getInsectById,
   getMovesByIds,
 } from '@insect-battle/engine'
@@ -11,6 +10,13 @@ import { getRoom } from '../world/rooms'
 import { syncTeamHpFromBattle, getActiveInsect } from '../game/state'
 import { formatBattleScreen, line } from '../ui/display'
 import { eventBus } from '../events'
+import { selectMoveWithBehavior } from '../behaviors'
+
+const BEHAVIOR_IDS = ['aggressive', 'defensive', 'balanced']
+
+function getRandomBehavior(): string {
+  return BEHAVIOR_IDS[Math.floor(Math.random() * BEHAVIOR_IDS.length)]
+}
 
 export function battleCommand(
   _args: string[],
@@ -64,11 +70,14 @@ export function battleCommand(
     winner: null,
   }
 
+  const behaviorId = getRandomBehavior()
+
   state.battle = {
     state: battleState,
     opponent: {
       name: `야생 ${wildInsect.nameKo}`,
       isWild: true,
+      behaviorId,
     },
     awaitingInput: true,
     availableMoves: getMovesByIds(activeInsect.species.moves),
@@ -130,7 +139,8 @@ export function useCommand(args: string[], state: GameState): CommandResult {
     }
   }
 
-  const opponentMove = selectAIMove(
+  const opponentMove = selectMoveWithBehavior(
+    state.battle.opponent.behaviorId,
     state.battle.state.opponent,
     state.battle.state.player
   )
@@ -200,7 +210,8 @@ export function runCommand(_args: string[], state: GameState): CommandResult {
     }
   }
 
-  const opponentMove = selectAIMove(
+  const opponentMove = selectMoveWithBehavior(
+    state.battle.opponent.behaviorId,
     state.battle.state.opponent,
     state.battle.state.player
   )

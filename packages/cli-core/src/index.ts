@@ -40,6 +40,16 @@ export { rooms, directionAliases, getRoom, normalizeDirection } from './world/ro
 export { eventBus, type GameEvents } from './events'
 
 export {
+  behaviors,
+  getBehavior,
+  selectMoveWithBehavior,
+  aggressiveBehavior,
+  defensiveBehavior,
+  balancedBehavior,
+  type InsectBehavior,
+} from './behaviors'
+
+export {
   rollEncounter,
   generateIVs,
   selectWeightedInsect,

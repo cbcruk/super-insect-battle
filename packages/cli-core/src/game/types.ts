@@ -21,6 +21,7 @@ export interface BattleSession {
   opponent: {
     name: string
     isWild: boolean
+    behaviorId: string
   }
   awaitingInput: boolean
   availableMoves: Move[]
