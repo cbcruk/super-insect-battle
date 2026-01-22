@@ -1,5 +1,6 @@
 import * as ex from 'excalibur'
 import { BattleScene } from './scenes/battle-scene'
+import { VillageScene } from './scenes/village-scene'
 import { GAME_WIDTH, GAME_HEIGHT } from './constants'
 
 export { GAME_WIDTH, GAME_HEIGHT }
@@ -20,6 +21,7 @@ export function createGame(canvas: HTMLCanvasElement): ex.Engine {
     antialiasing: false,
   })
 
+  game.addScene('village', new VillageScene())
   game.addScene('battle', new BattleScene())
 
   gameInstance = game

@@ -11,6 +11,7 @@ export function BattleUI(): React.ReactNode {
     selectMove,
     battleResult,
     startNewBattle,
+    returnToVillage,
   } = useBattleStore()
 
   if (!playerInsect || !opponentInsect) {
@@ -48,12 +49,20 @@ export function BattleUI(): React.ReactNode {
             {battleResult === 'opponent' && 'Defeat...'}
             {battleResult === 'draw' && 'Draw!'}
           </div>
-          <button
-            onClick={startNewBattle}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded font-medium"
-          >
-            New Battle
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={returnToVillage}
+              className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded font-medium"
+            >
+              Return to Village
+            </button>
+            <button
+              onClick={startNewBattle}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded font-medium"
+            >
+              New Battle
+            </button>
+          </div>
         </div>
       )}
 

@@ -88,6 +88,9 @@ importers:
 
   apps/web-game:
     dependencies:
+      '@insect-battle/cli-core':
+        specifier: workspace:*
+        version: link:../../packages/cli-core
       '@insect-battle/engine':
         specifier: workspace:*
         version: link:../../packages/engine

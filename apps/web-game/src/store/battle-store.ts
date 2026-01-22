@@ -8,6 +8,7 @@ import {
 } from '@insect-battle/engine'
 import { getGame } from '../game/game'
 import { BattleScene } from '../game/scenes/battle-scene'
+import { useGameStore } from './game-store'
 
 type BattlePhase = 'idle' | 'selecting' | 'animating' | 'ended'
 
@@ -26,6 +27,7 @@ interface BattleStore {
   startBattle: (playerId: string, opponentId: string) => void
   selectMove: (move: Move) => void
   startNewBattle: () => void
+  returnToVillage: () => void
 }
 
 export const useBattleStore = create<BattleStore>((set, get) => ({
@@ -145,6 +147,28 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
 
     get().startBattle('rhinoceros_beetle', 'stag_beetle')
   },
+
+  returnToVillage: () => {
+    const game = getGame()
+    if (game) {
+      const scene = game.currentScene as BattleScene
+      if (scene.resetBattle) {
+        scene.resetBattle()
+      }
+    }
+
+    set({
+      playerInsect: null,
+      opponentInsect: null,
+      battleState: null,
+      phase: 'idle',
+      animationQueue: [],
+      battleResult: null,
+    })
+
+    useGameStore.getState().setScene('village')
+    game?.goToScene('village')
+  },
 }))
 
 async function playAnimations(animations: AnimationAction[]): Promise<void> {
@@ -171,8 +195,3 @@ async function playAnimations(animations: AnimationAction[]): Promise<void> {
   }
 }
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    useBattleStore.getState().startBattle('rhinoceros_beetle', 'stag_beetle')
-  }, 100)
-}

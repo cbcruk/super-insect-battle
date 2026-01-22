@@ -12,7 +12,7 @@ export function GameCanvas(): React.ReactNode {
     const game = createGame(canvasRef.current)
 
     game.start().then(() => {
-      game.goToScene('battle')
+      game.goToScene('village')
     })
 
     return () => {
