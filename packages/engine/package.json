@@ -1,6 +1,6 @@
 {
-  "name": "@insect-battle/engine",
-  "version": "0.1.0",
+  "name": "@super-insect-battle/engine",
+  "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,16 +11,12 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest",
-    "test:run": "vitest run",
-    "demo": "node --import tsx src/demo.ts"
+    "test:run": "vitest run"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "tsx": "^4.19.0",
-    "typescript": "~5.9.3",
-    "vitest": "^4.0.16"
-  },
-  "dependencies": {
-    "@libsql/client": "^0.15.15"
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.0"
   }
 }

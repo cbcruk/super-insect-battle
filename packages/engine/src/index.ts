@@ -1,103 +1,49 @@
 export type {
-  InsectType,
-  Stats,
-  StatModifiers,
+  WeaponType,
+  BehaviorStyle,
+  PhysicalStats,
+  WeaponStats,
+  BehaviorStats,
+  DefenseStats,
+  Arthropod,
   StatusCondition,
-  MoveEffect,
-  Move,
-  Insect,
-  BattleInsect,
-  BattleLogEntry,
-  BattleState,
-  SimulationResult,
-  TypeChart,
-} from './types'
+  BattleArthropod,
+} from './types/arthropod'
 
-export type {
-  Player,
-  OwnedInsect,
-  Match,
-  MatchLog,
-  BattleSnapshot,
-  BattleInsectSnapshot,
-  BattleAction,
-  BattleActionType,
-  BattleActionData,
-  MoveSelectData,
-  MoveExecuteData,
-  DamageData,
-  StatusAppliedData,
-  StatChangedData,
-  StatusDamageData,
-  FaintData,
-  TurnMarkerData,
-} from './domain'
+export type { ActionCategory, ActionEffect, Action } from './types/action'
 
-export type {
-  Repository,
-  PlayerRepository,
-  OwnedInsectRepository,
-  MatchRepository,
-  MatchLogRepository,
-  UnitOfWork,
-} from './ports'
+export { arthropods, arthropodList, getArthropodById } from './data/arthropods'
+export {
+  actions,
+  actionList,
+  getActionById,
+  getActionsByIds,
+} from './data/actions'
+export {
+  getStyleMatchup,
+  getWeightBonus,
+  getWeaponVsArmorBonus,
+  calculateTotalMultiplier,
+  type DamageFactors,
+} from './data/matchup'
 
 export {
-  InMemoryPlayerRepository,
-  InMemoryOwnedInsectRepository,
-  InMemoryMatchRepository,
-  InMemoryMatchLogRepository,
-  InMemoryUnitOfWork,
-  getInMemoryUnitOfWork,
-  resetInMemoryUnitOfWork,
-} from './infrastructure'
-
-export { insects, insectList, getInsectById } from './data/insects'
-export { moves, moveList, getMoveById, getMovesByIds } from './data/moves'
-export {
-  typeChart,
-  typeNames,
-  typeEmoji,
-  getTypeEffectiveness,
-  getEffectivenessText,
-  getEffectivenessLevel,
-} from './data/type-chart'
-
-export {
-  createBattleInsect,
-  getEffectiveStat,
+  createBattleArthropod,
   calculateDamage,
   checkAccuracy,
   determineFirstAttacker,
-  applyStatChange,
+  applyActionEffect,
   executeTurn,
-  selectAIMove,
+  selectAIAction,
   simulateBattle,
-  simulateBattleWithReplay,
   simulateMultipleBattles,
+  type BattleLogEntry,
+  type BattleState,
 } from './engine/battle-engine'
-
-export {
-  createBattleRecorder,
-  createBattleSnapshot,
-  createInsectSnapshot,
-  recordTurnStart,
-  recordMoveSelect,
-  recordMoveExecute,
-  recordDamage,
-  recordStatusApplied,
-  recordStatChanged,
-  recordStatusDamage,
-  recordFaint,
-  recordTurnEnd,
-  type BattleRecorder,
-} from './engine/battle-recorder'
 
 export {
   statusConditionNames,
   applyStatusCondition,
   checkCanMove,
   processEndOfTurnStatus,
-  getBurnAttackMultiplier,
-  getParalysisSpeedMultiplier,
 } from './engine/status-condition'
