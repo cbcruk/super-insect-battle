@@ -9,6 +9,7 @@ pnpm install    # 의존성 설치
 pnpm build      # 모든 패키지 빌드
 pnpm test:run   # 모든 패키지 테스트
 pnpm simulator  # 터미널 시뮬레이터 실행
+pnpm dev:web    # 웹 시뮬레이터 실행 (xterm)
 ```
 
 ## 프로젝트 구조
@@ -22,6 +23,10 @@ packages/engine/           # 배틀 엔진 코어
 apps/simulator/            # 터미널 UI 앱
 ├── src/ui/                # 메뉴, 렌더러
 └── src/simulation/        # 배틀 실행
+
+apps/web/                  # 웹 UI 앱 (xterm)
+├── src/hooks/             # React hooks (useTerminal, useGame)
+└── src/components/        # React 컴포넌트
 ```
 
 ## 데이터 모델

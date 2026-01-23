@@ -6,6 +6,7 @@
     "test": "pnpm -r test",
     "test:run": "pnpm -r test:run",
     "simulator": "pnpm --filter @super-insect-battle/simulator start",
+    "dev:web": "pnpm --filter @super-insect-battle/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
