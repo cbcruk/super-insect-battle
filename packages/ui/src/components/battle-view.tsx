@@ -1,0 +1,137 @@
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import type { BattleState, BattleLogEntry } from '@super-insect-battle/engine'
+import { HpBar } from './hp-bar.js'
+
+interface BattleViewProps {
+  battleState: BattleState
+  onFinish: () => void
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function BattleView({
+  battleState,
+  onFinish,
+}: BattleViewProps): React.ReactNode {
+  const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
+  const [isAnimating, setIsAnimating] = useState(true)
+  const [finished, setFinished] = useState(false)
+
+  useEffect(() => {
+    const animate = async (): Promise<void> => {
+      for (const entry of battleState.log) {
+        setDisplayedLogs((prev) => [...prev, entry])
+        await sleep(300)
+      }
+      setIsAnimating(false)
+      setFinished(true)
+    }
+
+    animate()
+  }, [battleState])
+
+  useInput((_input, key) => {
+    if (finished && (key.return || key.escape)) {
+      onFinish()
+    }
+  })
+
+  const currentPlayerHp =
+    displayedLogs.length > 0
+      ? (displayedLogs[displayedLogs.length - 1].remainingHp?.player ??
+        battleState.player.currentHp)
+      : battleState.player.maxHp
+
+  const currentOpponentHp =
+    displayedLogs.length > 0
+      ? (displayedLogs[displayedLogs.length - 1].remainingHp?.opponent ??
+        battleState.opponent.currentHp)
+      : battleState.opponent.maxHp
+
+  return (
+    <Box flexDirection="column">
+      <Box
+        borderStyle="double"
+        borderColor="yellow"
+        paddingX={2}
+        justifyContent="center"
+      >
+        <Text color="cyan">{battleState.player.base.nameKo}</Text>
+        <Text> vs </Text>
+        <Text color="magenta">{battleState.opponent.base.nameKo}</Text>
+      </Box>
+
+      <Box marginY={1} flexDirection="column">
+        <Box>
+          <Text color="cyan">{battleState.player.base.nameKo}: </Text>
+          <HpBar current={currentPlayerHp} max={battleState.player.maxHp} />
+        </Box>
+        <Box>
+          <Text color="magenta">{battleState.opponent.base.nameKo}: </Text>
+          <HpBar current={currentOpponentHp} max={battleState.opponent.maxHp} />
+        </Box>
+      </Box>
+
+      <Box flexDirection="column" marginY={1}>
+        {displayedLogs.map((entry, index) => {
+          const isPlayer = entry.actor === 'player'
+          const color = isPlayer ? 'cyan' : 'magenta'
+          const prefix = isPlayer ? '▶' : '◀'
+
+          return (
+            <Box key={index} flexDirection="column">
+              {index === 0 || displayedLogs[index - 1].turn !== entry.turn ? (
+                <Text color="yellow">[턴 {entry.turn}]</Text>
+              ) : null}
+              <Box>
+                <Text color={color}>{prefix} </Text>
+                <Text>{entry.action}</Text>
+              </Box>
+              {entry.damage !== undefined && entry.damage > 0 && (
+                <Text color="red"> → {entry.damage} 데미지!</Text>
+              )}
+            </Box>
+          )
+        })}
+      </Box>
+
+      {finished && (
+        <Box flexDirection="column" marginTop={1}>
+          <Box
+            borderStyle="double"
+            borderColor="yellow"
+            paddingX={2}
+            flexDirection="column"
+          >
+            {battleState.winner === 'draw' ? (
+              <Text color="yellow" bold>
+                무승부!
+              </Text>
+            ) : (
+              <Text color="green" bold>
+                승자:{' '}
+                {battleState.winner === 'player'
+                  ? battleState.player.base.nameKo
+                  : battleState.opponent.base.nameKo}
+                !
+              </Text>
+            )}
+            <Text>총 {battleState.turn}턴 소요</Text>
+          </Box>
+          <Box marginTop={1}>
+            <Text color="gray">Enter를 눌러 계속</Text>
+          </Box>
+        </Box>
+      )}
+
+      {isAnimating && (
+        <Box marginTop={1}>
+          <Text color="gray">배틀 진행 중...</Text>
+        </Box>
+      )}
+    </Box>
+  )
+}

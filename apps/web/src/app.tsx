@@ -9,7 +9,9 @@ export default function App(): React.ReactNode {
           <div className="h-3 w-3 rounded-full bg-red-500" />
           <div className="h-3 w-3 rounded-full bg-yellow-500" />
           <div className="h-3 w-3 rounded-full bg-green-500" />
-          <span className="ml-2 text-sm text-gray-400">Super Insect Battle</span>
+          <span className="ml-2 text-sm text-gray-400">
+            Super Insect Battle
+          </span>
         </div>
         <Terminal />
       </div>

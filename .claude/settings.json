@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter @super-insect-battle/ui build:*)"
+    ]
+  }
+}
