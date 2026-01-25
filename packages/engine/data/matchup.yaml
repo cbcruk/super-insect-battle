@@ -3,21 +3,21 @@ styleMatchup:
     grappler: 1.0
     striker: 1.2
     venomous: 0.8
-    defensive: 1.0
+    defensive: 0.9
   striker:
     grappler: 0.8
     striker: 1.0
     venomous: 1.2
-    defensive: 1.0
+    defensive: 1.1
   venomous:
     grappler: 1.2
     striker: 0.8
     venomous: 1.0
-    defensive: 1.0
+    defensive: 0.8
   defensive:
-    grappler: 1.0
-    striker: 1.0
-    venomous: 1.0
+    grappler: 1.1
+    striker: 0.9
+    venomous: 1.2
     defensive: 1.0
 
 weaponVsArmor:

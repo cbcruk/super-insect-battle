@@ -297,3 +297,91 @@ brace:
   accuracy: 100
   priority: 0
   description: Reduce damage taken for 3 turns. Cannot attack while bracing.
+
+dig_in:
+  id: dig_in
+  name: Dig In
+  nameKo: 땅파기
+  category: defense
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: defense
+      stages: 2
+  description: Digs into the ground to increase defense greatly.
+
+shell_roll:
+  id: shell_roll
+  name: Shell Roll
+  nameKo: 구르기
+  category: defense
+  power: 40
+  accuracy: 90
+  priority: 1
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: evasion
+      stages: 1
+  description: Rolls into a ball and charges. Increases evasion.
+
+rage:
+  id: rage
+  name: Rage
+  nameKo: 분노
+  category: special
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: strength
+      stages: 2
+  description: Enters a rage, greatly increasing attack power.
+
+intimidate:
+  id: intimidate
+  name: Intimidate
+  nameKo: 위협
+  category: special
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: debuff
+    target: opponent
+    statChange:
+      stat: strength
+      stages: -1
+  description: Intimidates opponent to lower their attack.
+
+mega_horn:
+  id: mega_horn
+  name: Mega Horn
+  nameKo: 초강력 뿔치기
+  category: attack
+  power: 120
+  accuracy: 70
+  priority: 0
+  description: Massive horn attack. Very powerful but hard to land.
+
+assassin_strike:
+  id: assassin_strike
+  name: Assassin Strike
+  nameKo: 암살 일격
+  category: attack
+  power: 95
+  accuracy: 85
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: poison
+  description: Deadly precision strike with venomous proboscis.

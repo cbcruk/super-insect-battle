@@ -168,3 +168,88 @@ centipede:
     - leg_swarm
     - venom_inject
   description: Venomous forcipules deliver painful bites. Many legs for wrapping prey.
+
+dung_beetle:
+  id: dung_beetle
+  name: Dung Beetle
+  nameKo: 쇠똥구리
+  physical:
+    weightG: 25
+    lengthMm: 40
+    strengthIndex: 70
+  weapon:
+    type: horn
+    power: 50
+    venomous: false
+  behavior:
+    aggression: 30
+    style: defensive
+  defense:
+    armorRating: 95
+    evasion: 15
+  habitat:
+    preferred_terrains: [forest, wetland]
+    preferred_time: night
+  actions:
+    - dig_in
+    - shell_roll
+    - shell_guard
+    - grapple
+  description: Incredibly tough shell and digging ability. Masters of defense and endurance.
+
+assassin_bug:
+  id: assassin_bug
+  name: Assassin Bug
+  nameKo: 침노린재
+  physical:
+    weightG: 2
+    lengthMm: 25
+    strengthIndex: 40
+  weapon:
+    type: stinger
+    power: 85
+    venomous: true
+    venomPotency: 95
+  behavior:
+    aggression: 75
+    style: venomous
+  defense:
+    armorRating: 20
+    evasion: 65
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
+  actions:
+    - assassin_strike
+    - venom_inject
+    - toxic_sting
+    - ambush
+  description: Lethal venomous proboscis delivers one of the most potent toxins. Glass cannon.
+
+hercules_beetle:
+  id: hercules_beetle
+  name: Hercules Beetle
+  nameKo: 헤라클레스장수풍뎅이
+  physical:
+    weightG: 85
+    lengthMm: 170
+    strengthIndex: 100
+  weapon:
+    type: horn
+    power: 95
+    venomous: false
+  behavior:
+    aggression: 60
+    style: grappler
+  defense:
+    armorRating: 85
+    evasion: 10
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
+  actions:
+    - mega_horn
+    - horn_lift
+    - grapple
+    - rage
+  description: The strongest beetle in the world. Massive horns can lift incredible weight.
