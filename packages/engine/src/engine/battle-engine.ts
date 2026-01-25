@@ -111,12 +111,11 @@ export function calculateDamage(
   }
 }
 
-export function checkAccuracy(action: Action): boolean {
-  if (action.accuracy >= 100) {
-    return true
-  }
+export function checkAccuracy(action: Action, defenderEvasion: number): boolean {
+  const hitChance = action.accuracy - defenderEvasion * 0.5
+  const finalHitChance = Math.max(10, hitChance)
 
-  return Math.random() * 100 < action.accuracy
+  return Math.random() * 100 < finalHitChance
 }
 
 export function determineFirstAttacker(
@@ -239,7 +238,7 @@ export function executeTurn(
       actionId: action.id,
     }
 
-    if (!checkAccuracy(action)) {
+    if (!checkAccuracy(action, defender.base.defense.evasion)) {
       logEntry.action += ' 그러나 빗나갔다!'
       newState.log.push(logEntry)
       continue
