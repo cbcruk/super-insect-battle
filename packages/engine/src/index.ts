@@ -18,10 +18,11 @@ export type { ActionCategory, ActionEffect, Action } from './types/action'
 export type {
   Terrain,
   TimeOfDay,
+  Weather,
   Environment,
   HabitatPreference,
 } from './types/environment'
-export { TERRAINS, TIMES_OF_DAY } from './types/environment'
+export { TERRAINS, TIMES_OF_DAY, WEATHERS, TERRAIN_WEATHERS } from './types/environment'
 
 export { arthropods, arthropodList, getArthropodById } from './data/arthropods'
 export {
@@ -80,9 +81,12 @@ export { selectStrategicAIAction } from './engine/ai-strategy'
 export {
   terrainNames,
   timeOfDayNames,
+  weatherNames,
+  getWeatherBonus,
   getEnvironmentBonus,
   getRandomTerrain,
   getRandomTimeOfDay,
+  getRandomWeatherForTerrain,
   getRandomEnvironment,
   formatEnvironment,
   formatEnvironmentBonus,
