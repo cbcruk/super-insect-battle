@@ -385,3 +385,233 @@ assassin_strike:
     target: opponent
     condition: poison
   description: Deadly precision strike with venomous proboscis.
+
+jump_kick:
+  id: jump_kick
+  name: Jump Kick
+  nameKo: 점프 킥
+  category: attack
+  power: 80
+  accuracy: 90
+  priority: 1
+  description: Powerful kick using strong hind legs. Strikes first.
+
+sonic_chirp:
+  id: sonic_chirp
+  name: Sonic Chirp
+  nameKo: 초음파 울음
+  category: special
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: debuff
+    target: opponent
+    statChange:
+      stat: evasion
+      stages: -2
+  description: Loud chirping sound confuses and disorients opponent.
+
+sting_fury:
+  id: sting_fury
+  name: Sting Fury
+  nameKo: 연속 독침
+  category: attack
+  power: 70
+  accuracy: 95
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: poison
+  description: Rapid stinging attacks with venomous stinger.
+
+toxic_spray:
+  id: toxic_spray
+  name: Toxic Spray
+  nameKo: 독액 분사
+  category: defense
+  power: 50
+  accuracy: 100
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: poison
+  description: Sprays toxic chemicals at opponent.
+
+acid_spray:
+  id: acid_spray
+  name: Acid Spray
+  nameKo: 산성 분사
+  category: special
+  power: 75
+  accuracy: 90
+  priority: 0
+  effect:
+    type: debuff
+    target: opponent
+    statChange:
+      stat: defense
+      stages: -2
+  description: Sprays corrosive acid that melts armor.
+
+claw_strike:
+  id: claw_strike
+  name: Claw Strike
+  nameKo: 발톱 공격
+  category: attack
+  power: 75
+  accuracy: 95
+  priority: 0
+  description: Strikes with sharp front claws.
+
+dive_attack:
+  id: dive_attack
+  name: Dive Attack
+  nameKo: 급강하 공격
+  category: attack
+  power: 90
+  accuracy: 85
+  priority: 0
+  description: Diving attack from above with great force.
+
+cerci_pinch:
+  id: cerci_pinch
+  name: Cerci Pinch
+  nameKo: 꼬리집게 조이기
+  category: attack
+  power: 65
+  accuracy: 95
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: bind
+  description: Grabs with tail pincers. May bind.
+
+burrow:
+  id: burrow
+  name: Burrow
+  nameKo: 땅속으로
+  category: defense
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: evasion
+      stages: 2
+  description: Burrows underground to avoid attacks.
+
+sand_pit:
+  id: sand_pit
+  name: Sand Pit
+  nameKo: 모래 함정
+  category: special
+  power: 0
+  accuracy: 90
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: bind
+  description: Creates a sand pit trap to immobilize opponent.
+
+mandible_crush:
+  id: mandible_crush
+  name: Mandible Crush
+  nameKo: 큰턱 분쇄
+  category: attack
+  power: 95
+  accuracy: 85
+  priority: 0
+  description: Crushes opponent with massive mandibles.
+
+speed_boost:
+  id: speed_boost
+  name: Speed Boost
+  nameKo: 가속
+  category: special
+  power: 0
+  accuracy: 100
+  priority: 2
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: evasion
+      stages: 2
+  description: Dramatically increases speed and evasion.
+
+pounce:
+  id: pounce
+  name: Pounce
+  nameKo: 급습
+  category: attack
+  power: 85
+  accuracy: 90
+  priority: 1
+  description: Leaps onto prey with surprising speed. Strikes first.
+
+triple_horn:
+  id: triple_horn
+  name: Triple Horn
+  nameKo: 삼중 뿔치기
+  category: attack
+  power: 100
+  accuracy: 80
+  priority: 0
+  description: Attacks with three horns simultaneously.
+
+chemical_bomb:
+  id: chemical_bomb
+  name: Chemical Bomb
+  nameKo: 화학 폭탄
+  category: special
+  power: 85
+  accuracy: 100
+  priority: 0
+  description: Explosive chemical reaction burns opponent.
+
+wing_slash:
+  id: wing_slash
+  name: Wing Slash
+  nameKo: 날개 베기
+  category: attack
+  power: 60
+  accuracy: 100
+  priority: 1
+  description: Quick slashing attack with sharp wing edges.
+
+paralyze_sting:
+  id: paralyze_sting
+  name: Paralyze Sting
+  nameKo: 마비침
+  category: special
+  power: 60
+  accuracy: 90
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: bind
+  description: Venomous sting that paralyzes the target.
+
+survivor:
+  id: survivor
+  name: Survivor
+  nameKo: 생존 본능
+  category: defense
+  power: 0
+  accuracy: 100
+  priority: 0
+  effect:
+    type: buff
+    target: self
+    statChange:
+      stat: defense
+      stages: 1
+  description: Cockroach survival instincts kick in, increasing defense.

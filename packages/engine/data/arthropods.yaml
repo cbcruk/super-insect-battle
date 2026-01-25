@@ -253,3 +253,430 @@ hercules_beetle:
     - grapple
     - rage
   description: The strongest beetle in the world. Massive horns can lift incredible weight.
+
+giant_hornet:
+  id: giant_hornet
+  name: Asian Giant Hornet
+  nameKo: 장수말벌
+  physical:
+    weightG: 4
+    lengthMm: 50
+    strengthIndex: 55
+  weapon:
+    type: stinger
+    power: 80
+    venomous: true
+    venomPotency: 90
+  behavior:
+    aggression: 95
+    style: venomous
+  defense:
+    armorRating: 35
+    evasion: 75
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: day
+  actions:
+    - sting_fury
+    - venom_strike
+    - wing_slash
+    - dive_attack
+  description: Extremely aggressive hornet with potent venom. Known as murder hornet.
+
+water_bug:
+  id: water_bug
+  name: Giant Water Bug
+  nameKo: 물장군
+  physical:
+    weightG: 20
+    lengthMm: 80
+    strengthIndex: 70
+  weapon:
+    type: foreleg
+    power: 80
+    venomous: true
+    venomPotency: 60
+  behavior:
+    aggression: 80
+    style: striker
+  defense:
+    armorRating: 50
+    evasion: 45
+  habitat:
+    preferred_terrains: [wetland]
+    preferred_time: both
+  actions:
+    - claw_strike
+    - death_grip
+    - venom_inject
+    - ambush
+  description: Aquatic ambush predator with powerful forelegs. Can prey on small fish.
+
+millipede:
+  id: millipede
+  name: Giant African Millipede
+  nameKo: 노래기
+  physical:
+    weightG: 35
+    lengthMm: 280
+    strengthIndex: 40
+  weapon:
+    type: leg
+    power: 40
+    venomous: true
+    venomPotency: 50
+  behavior:
+    aggression: 20
+    style: defensive
+  defense:
+    armorRating: 75
+    evasion: 20
+  habitat:
+    preferred_terrains: [forest, wetland]
+    preferred_time: night
+  actions:
+    - toxic_spray
+    - coil_crush
+    - shell_guard
+    - burrow
+  description: Massive millipede with toxic defensive secretions. Rolls into a spiral when threatened.
+
+grasshopper:
+  id: grasshopper
+  name: Migratory Locust
+  nameKo: 메뚜기
+  physical:
+    weightG: 3
+    lengthMm: 60
+    strengthIndex: 50
+  weapon:
+    type: leg
+    power: 70
+    venomous: false
+  behavior:
+    aggression: 40
+    style: striker
+  defense:
+    armorRating: 30
+    evasion: 80
+  habitat:
+    preferred_terrains: [forest, desert]
+    preferred_time: day
+  actions:
+    - jump_kick
+    - rapid_slash
+    - flee
+    - sonic_chirp
+  description: Powerful hind legs can deliver devastating kicks. Incredibly agile jumper.
+
+earwig:
+  id: earwig
+  name: Giant Earwig
+  nameKo: 집게벌레
+  physical:
+    weightG: 2
+    lengthMm: 50
+    strengthIndex: 45
+  weapon:
+    type: mandible
+    power: 55
+    venomous: false
+  behavior:
+    aggression: 55
+    style: grappler
+  defense:
+    armorRating: 40
+    evasion: 60
+  habitat:
+    preferred_terrains: [forest, wetland]
+    preferred_time: night
+  actions:
+    - cerci_pinch
+    - pincer_grip
+    - grapple
+    - burrow
+  description: Uses distinctive cerci pincers to grip and defend. Nocturnal scavenger.
+
+black_widow:
+  id: black_widow
+  name: Black Widow Spider
+  nameKo: 검은과부거미
+  physical:
+    weightG: 1
+    lengthMm: 15
+    strengthIndex: 35
+  weapon:
+    type: fang
+    power: 60
+    venomous: true
+    venomPotency: 95
+  behavior:
+    aggression: 50
+    style: venomous
+  defense:
+    armorRating: 20
+    evasion: 70
+  habitat:
+    preferred_terrains: [forest, cave]
+    preferred_time: night
+  actions:
+    - fang_bite
+    - web_trap
+    - toxic_sting
+    - ambush
+  description: Small but extremely venomous spider. Neurotoxic venom is deadly.
+
+titan_beetle:
+  id: titan_beetle
+  name: Titan Beetle
+  nameKo: 타이탄하늘소
+  physical:
+    weightG: 35
+    lengthMm: 170
+    strengthIndex: 80
+  weapon:
+    type: mandible
+    power: 90
+    venomous: false
+  behavior:
+    aggression: 65
+    style: grappler
+  defense:
+    armorRating: 75
+    evasion: 15
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
+  actions:
+    - mandible_crush
+    - pincer_crush
+    - grapple
+    - intimidate
+  description: One of the largest beetles. Mandibles can snap a pencil in half.
+
+cockroach:
+  id: cockroach
+  name: Madagascar Hissing Cockroach
+  nameKo: 바퀴벌레
+  physical:
+    weightG: 25
+    lengthMm: 75
+    strengthIndex: 45
+  weapon:
+    type: leg
+    power: 45
+    venomous: false
+  behavior:
+    aggression: 25
+    style: defensive
+  defense:
+    armorRating: 55
+    evasion: 75
+  habitat:
+    preferred_terrains: [forest, cave]
+    preferred_time: night
+  actions:
+    - leg_swarm
+    - survivor
+    - speed_boost
+    - flee
+  description: Ultimate survivor. Incredibly fast and nearly indestructible.
+
+antlion:
+  id: antlion
+  name: Antlion Larva
+  nameKo: 개미귀신
+  physical:
+    weightG: 1
+    lengthMm: 15
+    strengthIndex: 40
+  weapon:
+    type: mandible
+    power: 70
+    venomous: true
+    venomPotency: 40
+  behavior:
+    aggression: 70
+    style: striker
+  defense:
+    armorRating: 25
+    evasion: 40
+  habitat:
+    preferred_terrains: [desert]
+    preferred_time: both
+  actions:
+    - sand_pit
+    - pincer_crush
+    - ambush
+    - burrow
+  description: Creates deadly pit traps in sand. Patient ambush predator.
+
+vinegaroon:
+  id: vinegaroon
+  name: Vinegaroon
+  nameKo: 채찍전갈
+  physical:
+    weightG: 12
+    lengthMm: 85
+    strengthIndex: 50
+  weapon:
+    type: mandible
+    power: 60
+    venomous: false
+  behavior:
+    aggression: 45
+    style: defensive
+  defense:
+    armorRating: 60
+    evasion: 40
+  habitat:
+    preferred_terrains: [desert, cave]
+    preferred_time: night
+  actions:
+    - acid_spray
+    - pincer_grab
+    - tail_whip
+    - shell_guard
+  description: Sprays acetic acid when threatened. Also called whip scorpion.
+
+jewel_wasp:
+  id: jewel_wasp
+  name: Jewel Wasp
+  nameKo: 보석말벌
+  physical:
+    weightG: 0.5
+    lengthMm: 20
+    strengthIndex: 30
+  weapon:
+    type: stinger
+    power: 50
+    venomous: true
+    venomPotency: 100
+  behavior:
+    aggression: 70
+    style: venomous
+  defense:
+    armorRating: 20
+    evasion: 90
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: day
+  actions:
+    - paralyze_sting
+    - venom_inject
+    - wing_slash
+    - flee
+  description: Mind-controlling venom turns victims into zombies. Tiny but terrifying.
+
+cricket:
+  id: cricket
+  name: Field Cricket
+  nameKo: 귀뚜라미
+  physical:
+    weightG: 1
+    lengthMm: 25
+    strengthIndex: 35
+  weapon:
+    type: leg
+    power: 55
+    venomous: false
+  behavior:
+    aggression: 35
+    style: striker
+  defense:
+    armorRating: 25
+    evasion: 75
+  habitat:
+    preferred_terrains: [forest, wetland]
+    preferred_time: night
+  actions:
+    - jump_kick
+    - sonic_chirp
+    - rapid_slash
+    - flee
+  description: Powerful jumper with loud chirping abilities. Quick and evasive.
+
+bombardier_beetle:
+  id: bombardier_beetle
+  name: Bombardier Beetle
+  nameKo: 폭탄먼지벌레
+  physical:
+    weightG: 1
+    lengthMm: 25
+    strengthIndex: 35
+  weapon:
+    type: leg
+    power: 40
+    venomous: false
+  behavior:
+    aggression: 40
+    style: defensive
+  defense:
+    armorRating: 50
+    evasion: 55
+  habitat:
+    preferred_terrains: [forest, wetland]
+    preferred_time: night
+  actions:
+    - chemical_bomb
+    - acid_spray
+    - shell_guard
+    - flee
+  description: Explosive chemical defense. Sprays boiling hot chemicals at attackers.
+
+wolf_spider:
+  id: wolf_spider
+  name: Wolf Spider
+  nameKo: 늑대거미
+  physical:
+    weightG: 3
+    lengthMm: 35
+    strengthIndex: 50
+  weapon:
+    type: fang
+    power: 65
+    venomous: true
+    venomPotency: 55
+  behavior:
+    aggression: 75
+    style: striker
+  defense:
+    armorRating: 35
+    evasion: 70
+  habitat:
+    preferred_terrains: [forest, desert]
+    preferred_time: night
+  actions:
+    - pounce
+    - fang_bite
+    - rapid_slash
+    - ambush
+  description: Active hunter that chases down prey. Does not use webs.
+
+atlas_beetle:
+  id: atlas_beetle
+  name: Atlas Beetle
+  nameKo: 아틀라스장수풍뎅이
+  physical:
+    weightG: 25
+    lengthMm: 130
+    strengthIndex: 80
+  weapon:
+    type: horn
+    power: 80
+    venomous: false
+  behavior:
+    aggression: 70
+    style: grappler
+  defense:
+    armorRating: 75
+    evasion: 20
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
+  actions:
+    - triple_horn
+    - horn_lift
+    - grapple
+    - shell_guard
+  description: Three-horned beetle from Southeast Asia. Extremely strong fighter.
