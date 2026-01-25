@@ -6,7 +6,7 @@ import {
   getEnvironmentBonus,
   formatEnvironmentBonus,
 } from '@super-insect-battle/engine'
-import { HpBar } from './hp-bar.js'
+import { StatusPanel } from './status-panel.js'
 
 interface BattleViewProps {
   battleState: BattleState
@@ -93,15 +93,17 @@ export function BattleView({
         </Text>
       </Box>
 
-      <Box marginY={1} flexDirection="column">
-        <Box>
-          <Text color="cyan">{battleState.player.base.nameKo}: </Text>
-          <HpBar current={currentPlayerHp} max={battleState.player.maxHp} />
-        </Box>
-        <Box>
-          <Text color="magenta">{battleState.opponent.base.nameKo}: </Text>
-          <HpBar current={currentOpponentHp} max={battleState.opponent.maxHp} />
-        </Box>
+      <Box marginY={1} flexDirection="column" gap={1}>
+        <StatusPanel
+          arthropod={battleState.player}
+          currentHp={currentPlayerHp}
+          color="cyan"
+        />
+        <StatusPanel
+          arthropod={battleState.opponent}
+          currentHp={currentOpponentHp}
+          color="magenta"
+        />
       </Box>
 
       <Box flexDirection="column" marginY={1}>
@@ -120,7 +122,32 @@ export function BattleView({
                 <Text>{entry.action}</Text>
               </Box>
               {entry.damage !== undefined && entry.damage > 0 && (
-                <Text color="red"> → {entry.damage} 데미지!</Text>
+                <Box flexDirection="column">
+                  <Text color="red"> → {entry.damage} 데미지!</Text>
+                  {entry.factors && (
+                    <Text color="gray">
+                      {'   '}
+                      {entry.factors.styleMatchup !== 1 && (
+                        <Text color={entry.factors.styleMatchup > 1 ? 'green' : 'red'}>
+                          [style:{entry.factors.styleMatchup.toFixed(1)}x]{' '}
+                        </Text>
+                      )}
+                      {entry.factors.weightBonus !== 1 && (
+                        <Text color={entry.factors.weightBonus > 1 ? 'green' : 'red'}>
+                          [weight:{entry.factors.weightBonus.toFixed(2)}x]{' '}
+                        </Text>
+                      )}
+                      {entry.factors.attackerEnvBonus && entry.factors.attackerEnvBonus !== 1 && (
+                        <Text color={entry.factors.attackerEnvBonus > 1 ? 'green' : 'red'}>
+                          [env:{entry.factors.attackerEnvBonus.toFixed(2)}x]{' '}
+                        </Text>
+                      )}
+                      {entry.factors.critical && (
+                        <Text color="yellow">[CRITICAL!]</Text>
+                      )}
+                    </Text>
+                  )}
+                </Box>
               )}
             </Box>
           )
