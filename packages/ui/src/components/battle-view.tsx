@@ -44,17 +44,22 @@ export function BattleView({
     }
   })
 
+  const getLastKnownHp = (
+    logs: BattleLogEntry[],
+    side: 'player' | 'opponent'
+  ): number | undefined => {
+    for (let i = logs.length - 1; i >= 0; i--) {
+      const hp = logs[i].remainingHp?.[side]
+      if (hp !== undefined) return hp
+    }
+    return undefined
+  }
+
   const currentPlayerHp =
-    displayedLogs.length > 0
-      ? (displayedLogs[displayedLogs.length - 1].remainingHp?.player ??
-        battleState.player.currentHp)
-      : battleState.player.maxHp
+    getLastKnownHp(displayedLogs, 'player') ?? battleState.player.maxHp
 
   const currentOpponentHp =
-    displayedLogs.length > 0
-      ? (displayedLogs[displayedLogs.length - 1].remainingHp?.opponent ??
-        battleState.opponent.currentHp)
-      : battleState.opponent.maxHp
+    getLastKnownHp(displayedLogs, 'opponent') ?? battleState.opponent.maxHp
 
   const playerEnvBonus = getEnvironmentBonus(
     battleState.player.base,
