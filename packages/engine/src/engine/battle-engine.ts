@@ -47,6 +47,7 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
     maxHp,
     statusCondition: null,
     bindTurns: 0,
+    appliedVenomPotency: 0,
     actions: arthropod.actions,
   }
 }
@@ -161,7 +162,12 @@ export function applyActionEffect(
   const effectTarget = action.effect.target === 'self' ? attacker : defender
 
   if (action.effect.type === 'status' && action.effect.condition) {
-    const applied = applyStatusCondition(effectTarget, action.effect.condition)
+    const venomPotency = attacker.base.weapon.venomPotency ?? 50
+    const applied = applyStatusCondition(
+      effectTarget,
+      action.effect.condition,
+      venomPotency
+    )
 
     if (applied) {
       const conditionName = statusConditionNames[action.effect.condition]

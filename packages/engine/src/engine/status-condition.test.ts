@@ -78,9 +78,10 @@ describe('status-condition', () => {
   })
 
   describe('processEndOfTurnStatus', () => {
-    it('deals 1/8 max HP damage for poison', () => {
+    it('deals poison damage based on venomPotency', () => {
       const arthropod = createBattleArthropod(arthropods.rhinoceros_beetle)
       arthropod.statusCondition = 'poison'
+      arthropod.appliedVenomPotency = 50
       const initialHp = arthropod.currentHp
       const expectedDamage = Math.floor(arthropod.maxHp / 8)
 
@@ -89,6 +90,17 @@ describe('status-condition', () => {
       expect(result.damage).toBe(expectedDamage)
       expect(arthropod.currentHp).toBe(initialHp - expectedDamage)
       expect(result.message).toContain('독 데미지')
+    })
+
+    it('deals more damage with higher venomPotency', () => {
+      const arthropod = createBattleArthropod(arthropods.rhinoceros_beetle)
+      arthropod.statusCondition = 'poison'
+      arthropod.appliedVenomPotency = 80
+      const expectedDamage = Math.floor((arthropod.maxHp / 8) * (80 / 50))
+
+      const result = processEndOfTurnStatus(arthropod)
+
+      expect(result.damage).toBe(expectedDamage)
     })
 
     it('no damage for bind status', () => {

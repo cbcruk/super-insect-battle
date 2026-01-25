@@ -7,7 +7,8 @@ export const statusConditionNames: Record<StatusCondition, string> = {
 
 export function applyStatusCondition(
   target: BattleArthropod,
-  condition: StatusCondition
+  condition: StatusCondition,
+  venomPotency: number = 50
 ): boolean {
   if (target.statusCondition !== null) {
     return false
@@ -17,6 +18,10 @@ export function applyStatusCondition(
 
   if (condition === 'bind') {
     target.bindTurns = Math.floor(Math.random() * 3) + 2
+  }
+
+  if (condition === 'poison') {
+    target.appliedVenomPotency = venomPotency
   }
 
   return true
@@ -55,7 +60,8 @@ export function processEndOfTurnStatus(arthropod: BattleArthropod): {
   message: string | null
 } {
   if (arthropod.statusCondition === 'poison') {
-    const damage = Math.max(1, Math.floor(arthropod.maxHp / 8))
+    const potencyMultiplier = arthropod.appliedVenomPotency / 50
+    const damage = Math.max(1, Math.floor((arthropod.maxHp / 8) * potencyMultiplier))
     arthropod.currentHp = Math.max(0, arthropod.currentHp - damage)
 
     return {

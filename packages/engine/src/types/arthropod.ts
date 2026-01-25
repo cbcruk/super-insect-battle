@@ -51,5 +51,6 @@ export interface BattleArthropod {
   maxHp: number
   statusCondition: StatusCondition | null
   bindTurns: number
+  appliedVenomPotency: number
   actions: string[]
 }
