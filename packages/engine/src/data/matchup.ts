@@ -1,43 +1,5 @@
 import type { BehaviorStyle, WeaponType } from '../types/arthropod'
-
-const STYLE_MATCHUP: Record<BehaviorStyle, Record<BehaviorStyle, number>> = {
-  grappler: {
-    grappler: 1.0,
-    striker: 1.2,
-    venomous: 0.8,
-    defensive: 1.0,
-  },
-  striker: {
-    grappler: 0.8,
-    striker: 1.0,
-    venomous: 1.2,
-    defensive: 1.0,
-  },
-  venomous: {
-    grappler: 1.2,
-    striker: 0.8,
-    venomous: 1.0,
-    defensive: 1.0,
-  },
-  defensive: {
-    grappler: 1.0,
-    striker: 1.0,
-    venomous: 1.0,
-    defensive: 1.0,
-  },
-}
-
-const WEAPON_VS_ARMOR: Record<
-  WeaponType,
-  { softBonus: number; hardPenalty: number }
-> = {
-  horn: { softBonus: 1.1, hardPenalty: 0.9 },
-  mandible: { softBonus: 1.0, hardPenalty: 1.0 },
-  stinger: { softBonus: 1.3, hardPenalty: 0.7 },
-  fang: { softBonus: 1.2, hardPenalty: 0.8 },
-  foreleg: { softBonus: 1.1, hardPenalty: 0.85 },
-  leg: { softBonus: 1.0, hardPenalty: 0.95 },
-}
+import { STYLE_MATCHUP, WEAPON_VS_ARMOR } from './generated/matchup.gen'
 
 export function getStyleMatchup(
   attackerStyle: BehaviorStyle,

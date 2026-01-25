@@ -8,15 +8,21 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build:data": "tsx scripts/build-data.ts",
+    "build": "pnpm build:data && tsc",
     "dev": "tsc --watch",
     "test": "vitest",
     "test:run": "vitest run"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.2",
+    "js-yaml": "^4.1.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }
