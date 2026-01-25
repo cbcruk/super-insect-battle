@@ -28,7 +28,7 @@ stag_beetle:
   name: Stag Beetle
   nameKo: 사슴벌레
   physical:
-    weightG: 8
+    weightG: 15
     lengthMm: 70
     strengthIndex: 75
   weapon:
@@ -53,8 +53,8 @@ scorpion:
   name: Emperor Scorpion
   nameKo: 전갈
   physical:
-    weightG: 15
-    lengthMm: 120
+    weightG: 30
+    lengthMm: 150
     strengthIndex: 60
   weapon:
     type: stinger
@@ -79,7 +79,7 @@ tarantula:
   name: Goliath Birdeater
   nameKo: 타란튤라
   physical:
-    weightG: 30
+    weightG: 120
     lengthMm: 130
     strengthIndex: 50
   weapon:
