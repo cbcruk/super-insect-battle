@@ -45,6 +45,8 @@ export interface Arthropod {
 
 export type StatusCondition = 'poison' | 'bind'
 
+export type BattleMode = 'flee' | 'brace'
+
 export interface BattleArthropod {
   base: Arthropod
   currentHp: number
@@ -52,5 +54,7 @@ export interface BattleArthropod {
   statusCondition: StatusCondition | null
   bindTurns: number
   appliedVenomPotency: number
+  battleMode: BattleMode | null
+  modeTurns: number
   actions: string[]
 }

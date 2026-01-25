@@ -277,3 +277,23 @@ leg_swarm:
   accuracy: 100
   priority: 0
   description: Attacks with a flurry of many legs.
+
+flee:
+  id: flee
+  name: Flee
+  nameKo: 도망
+  category: special
+  power: 0
+  accuracy: 100
+  priority: 2
+  description: Evade attacks for 2 turns. Attack power reduced while fleeing.
+
+brace:
+  id: brace
+  name: Brace
+  nameKo: 움츠림
+  category: defense
+  power: 0
+  accuracy: 100
+  priority: 0
+  description: Reduce damage taken for 3 turns. Cannot attack while bracing.

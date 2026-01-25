@@ -14,6 +14,15 @@ import {
   processEndOfTurnStatus,
   statusConditionNames,
 } from './status-condition'
+import {
+  applyBattleMode,
+  battleModeNames,
+  canAttackInMode,
+  getAttackPenalty,
+  getBraceDamageReduction,
+  getFleeEvasionBonus,
+  processBattleModeEndOfTurn,
+} from './battle-mode'
 
 export interface BattleLogEntry {
   turn: number
@@ -48,6 +57,8 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
     statusCondition: null,
     bindTurns: 0,
     appliedVenomPotency: 0,
+    battleMode: null,
+    modeTurns: 0,
     actions: arthropod.actions,
   }
 }
@@ -103,7 +114,13 @@ export function calculateDamage(
   }
 
   const totalMultiplier = calculateTotalMultiplier(factors)
-  const finalDamage = Math.floor(baseDamage * totalMultiplier)
+
+  const attackPenalty = getAttackPenalty(attacker)
+  const damageReduction = getBraceDamageReduction(defender)
+
+  const finalDamage = Math.floor(
+    baseDamage * totalMultiplier * attackPenalty * damageReduction
+  )
 
   return {
     damage: Math.max(1, finalDamage),
@@ -114,14 +131,16 @@ export function calculateDamage(
 
 export function checkAccuracy(
   action: Action,
-  defenderEvasion: number,
-  attackerLength: number,
-  defenderLength: number
+  defender: BattleArthropod,
+  attackerLength: number
 ): boolean {
-  const lengthRatio = attackerLength / defenderLength
+  const defenderEvasion = defender.base.defense.evasion
+  const fleeBonus = getFleeEvasionBonus(defender)
+  const lengthRatio = attackerLength / defender.base.physical.lengthMm
   const lengthBonus = (lengthRatio - 1) * 10
 
-  const hitChance = action.accuracy - defenderEvasion * 0.5 + lengthBonus
+  const hitChance =
+    action.accuracy - (defenderEvasion + fleeBonus) * 0.5 + lengthBonus
   const finalHitChance = Math.max(10, Math.min(95, hitChance))
 
   return Math.random() * 100 < finalHitChance
@@ -245,6 +264,38 @@ export function executeTurn(
       continue
     }
 
+    if (action.id === 'flee' || action.id === 'brace') {
+      const mode = action.id as 'flee' | 'brace'
+      const applied = applyBattleMode(attacker, mode)
+      const modeName = battleModeNames[mode]
+
+      if (applied) {
+        newState.log.push({
+          turn: newState.turn,
+          actor,
+          action: `${attacker.base.nameKo}은(는) ${modeName} 상태가 되었다!`,
+          actionId: action.id,
+        })
+      } else {
+        newState.log.push({
+          turn: newState.turn,
+          actor,
+          action: `${attacker.base.nameKo}은(는) 이미 특수 상태이다!`,
+          actionId: action.id,
+        })
+      }
+      continue
+    }
+
+    if (!canAttackInMode(attacker)) {
+      newState.log.push({
+        turn: newState.turn,
+        actor,
+        action: `${attacker.base.nameKo}은(는) 움츠리고 있어 공격할 수 없다!`,
+      })
+      continue
+    }
+
     const logEntry: BattleLogEntry = {
       turn: newState.turn,
       actor,
@@ -253,12 +304,7 @@ export function executeTurn(
     }
 
     if (
-      !checkAccuracy(
-        action,
-        defender.base.defense.evasion,
-        attacker.base.physical.lengthMm,
-        defender.base.physical.lengthMm
-      )
+      !checkAccuracy(action, defender, attacker.base.physical.lengthMm)
     ) {
       logEntry.action += ' 그러나 빗나갔다!'
       newState.log.push(logEntry)
@@ -336,6 +382,16 @@ export function executeTurn(
           })
           break
         }
+      }
+
+      const modeResult = processBattleModeEndOfTurn(arthropod)
+
+      if (modeResult.message) {
+        newState.log.push({
+          turn: newState.turn,
+          actor,
+          action: modeResult.message,
+        })
       }
     }
   }

@@ -7,6 +7,7 @@ export type {
   DefenseStats,
   Arthropod,
   StatusCondition,
+  BattleMode,
   BattleArthropod,
 } from './types/arthropod'
 
@@ -47,3 +48,13 @@ export {
   checkCanMove,
   processEndOfTurnStatus,
 } from './engine/status-condition'
+
+export {
+  battleModeNames,
+  applyBattleMode,
+  getFleeEvasionBonus,
+  getBraceDamageReduction,
+  canAttackInMode,
+  getAttackPenalty,
+  processBattleModeEndOfTurn,
+} from './engine/battle-mode'
