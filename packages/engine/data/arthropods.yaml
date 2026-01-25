@@ -16,6 +16,9 @@ rhinoceros_beetle:
   defense:
     armorRating: 90
     evasion: 20
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
   actions:
     - horn_lift
     - horn_thrust
@@ -41,6 +44,9 @@ stag_beetle:
   defense:
     armorRating: 70
     evasion: 40
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: night
   actions:
     - pincer_crush
     - pincer_grip
@@ -67,6 +73,9 @@ scorpion:
   defense:
     armorRating: 65
     evasion: 35
+  habitat:
+    preferred_terrains: [desert, cave]
+    preferred_time: night
   actions:
     - venom_strike
     - pincer_grab
@@ -93,6 +102,9 @@ tarantula:
   defense:
     armorRating: 40
     evasion: 50
+  habitat:
+    preferred_terrains: [cave, forest]
+    preferred_time: night
   actions:
     - fang_bite
     - web_trap
@@ -118,6 +130,9 @@ mantis:
   defense:
     armorRating: 30
     evasion: 70
+  habitat:
+    preferred_terrains: [forest]
+    preferred_time: day
   actions:
     - scythe_strike
     - rapid_slash
@@ -144,6 +159,9 @@ centipede:
   defense:
     armorRating: 45
     evasion: 55
+  habitat:
+    preferred_terrains: [wetland, cave]
+    preferred_time: night
   actions:
     - forcipule_bite
     - coil_crush

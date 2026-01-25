@@ -26,6 +26,17 @@ function writeGeneratedFile(filename: string, content: string): void {
   console.log(`Generated: ${filepath}`)
 }
 
+function snakeToCamel(str: string): string {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
+function transformHabitat(habitat: Record<string, unknown>): Record<string, unknown> {
+  return {
+    preferredTerrains: habitat['preferred_terrains'],
+    preferredTime: habitat['preferred_time'],
+  }
+}
+
 function formatValue(value: unknown, indent: number = 0): string {
   const spaces = '  '.repeat(indent)
 
@@ -63,11 +74,15 @@ function formatValue(value: unknown, indent: number = 0): string {
 }
 
 function generateArthropods(): void {
-  const data = readYamlFile('arthropods.yaml') as Record<string, unknown>
+  const data = readYamlFile('arthropods.yaml') as Record<string, Record<string, unknown>>
 
   const entries = Object.entries(data)
     .map(([key, value]) => {
-      const formatted = formatValue(value, 1)
+      const transformed = {
+        ...value,
+        habitat: transformHabitat(value.habitat as Record<string, unknown>),
+      }
+      const formatted = formatValue(transformed, 1)
       return `  ${key}: ${formatted},`
     })
     .join('\n')

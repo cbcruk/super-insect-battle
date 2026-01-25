@@ -1,5 +1,14 @@
 import { z } from 'zod'
 
+export const TerrainSchema = z.enum(['forest', 'desert', 'wetland', 'cave'])
+
+export const TimeOfDaySchema = z.enum(['day', 'night'])
+
+export const HabitatPreferenceSchema = z.object({
+  preferredTerrains: z.array(TerrainSchema),
+  preferredTime: z.enum(['day', 'night', 'both']),
+})
+
 export const WeaponTypeSchema = z.enum([
   'horn',
   'mandible',
@@ -47,6 +56,7 @@ export const ArthropodSchema = z.object({
   weapon: WeaponStatsSchema,
   behavior: BehaviorStatsSchema,
   defense: DefenseStatsSchema,
+  habitat: HabitatPreferenceSchema,
   actions: z.array(z.string()),
   description: z.string(),
 })

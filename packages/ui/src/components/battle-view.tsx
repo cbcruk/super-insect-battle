@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
 import type { BattleState, BattleLogEntry } from '@super-insect-battle/engine'
+import {
+  formatEnvironment,
+  getEnvironmentBonus,
+  formatEnvironmentBonus,
+} from '@super-insect-battle/engine'
 import { HpBar } from './hp-bar.js'
 
 interface BattleViewProps {
@@ -51,6 +56,15 @@ export function BattleView({
         battleState.opponent.currentHp)
       : battleState.opponent.maxHp
 
+  const playerEnvBonus = getEnvironmentBonus(
+    battleState.player.base,
+    battleState.environment
+  )
+  const opponentEnvBonus = getEnvironmentBonus(
+    battleState.opponent.base,
+    battleState.environment
+  )
+
   return (
     <Box flexDirection="column">
       <Box
@@ -62,6 +76,21 @@ export function BattleView({
         <Text color="cyan">{battleState.player.base.nameKo}</Text>
         <Text> vs </Text>
         <Text color="magenta">{battleState.opponent.base.nameKo}</Text>
+      </Box>
+
+      <Box marginY={1} justifyContent="center">
+        <Text color="gray">
+          환경: {formatEnvironment(battleState.environment)}
+        </Text>
+      </Box>
+
+      <Box justifyContent="space-between" paddingX={2}>
+        <Text color={playerEnvBonus >= 1 ? 'green' : 'red'}>
+          {battleState.player.base.nameKo}: {formatEnvironmentBonus(playerEnvBonus)}
+        </Text>
+        <Text color={opponentEnvBonus >= 1 ? 'green' : 'red'}>
+          {battleState.opponent.base.nameKo}: {formatEnvironmentBonus(opponentEnvBonus)}
+        </Text>
       </Box>
 
       <Box marginY={1} flexDirection="column">

@@ -15,6 +15,14 @@ export type {
 
 export type { ActionCategory, ActionEffect, Action } from './types/action'
 
+export type {
+  Terrain,
+  TimeOfDay,
+  Environment,
+  HabitatPreference,
+} from './types/environment'
+export { TERRAINS, TIMES_OF_DAY } from './types/environment'
+
 export { arthropods, arthropodList, getArthropodById } from './data/arthropods'
 export {
   actions,
@@ -68,3 +76,14 @@ export {
 } from './engine/stat-stages'
 
 export { selectStrategicAIAction } from './engine/ai-strategy'
+
+export {
+  terrainNames,
+  timeOfDayNames,
+  getEnvironmentBonus,
+  getRandomTerrain,
+  getRandomTimeOfDay,
+  getRandomEnvironment,
+  formatEnvironment,
+  formatEnvironmentBonus,
+} from './engine/environment'

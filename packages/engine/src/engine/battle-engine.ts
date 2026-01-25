@@ -1,5 +1,6 @@
 import type { Arthropod, BattleArthropod } from '../types/arthropod'
 import type { Action } from '../types/action'
+import type { Environment } from '../types/environment'
 import {
   getStyleMatchup,
   getWeightBonus,
@@ -24,6 +25,7 @@ import {
 } from './battle-mode'
 import { createStatStages, applyStatStageChange, getStatMultiplier } from './stat-stages'
 import { selectStrategicAIAction } from './ai-strategy'
+import { getEnvironmentBonus, getRandomEnvironment } from './environment'
 
 export interface BattleLogEntry {
   turn: number
@@ -40,6 +42,7 @@ export interface BattleState {
   turn: number
   player: BattleArthropod
   opponent: BattleArthropod
+  environment: Environment
   log: BattleLogEntry[]
   status: 'idle' | 'ready' | 'running' | 'finished'
   winner: 'player' | 'opponent' | 'draw' | null
@@ -68,7 +71,8 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
 export function calculateDamage(
   attacker: BattleArthropod,
   defender: BattleArthropod,
-  action: Action
+  action: Action,
+  environment?: Environment
 ): { damage: number; critical: boolean; factors: DamageFactors } {
   if (action.category === 'defense' && action.power === 0) {
     return {
@@ -107,12 +111,21 @@ export function calculateDamage(
   const critical = Math.random() < 0.1
   const random = 0.85 + Math.random() * 0.15
 
+  const attackerEnvBonus = environment
+    ? getEnvironmentBonus(attacker.base, environment)
+    : undefined
+  const defenderEnvBonus = environment
+    ? getEnvironmentBonus(defender.base, environment)
+    : undefined
+
   const factors: DamageFactors = {
     styleMatchup,
     weightBonus,
     weaponVsArmor,
     critical,
     random,
+    attackerEnvBonus,
+    defenderEnvBonus,
   }
 
   const totalMultiplier = calculateTotalMultiplier(factors)
@@ -331,7 +344,8 @@ export function executeTurn(
       const { damage, critical, factors } = calculateDamage(
         attacker,
         defender,
-        action
+        action,
+        newState.environment
       )
 
       defender.currentHp = Math.max(0, defender.currentHp - damage)
@@ -424,12 +438,16 @@ export function selectAIAction(
 
 export function simulateBattle(
   arthropod1: Arthropod,
-  arthropod2: Arthropod
+  arthropod2: Arthropod,
+  environment?: Environment
 ): BattleState {
+  const env = environment ?? getRandomEnvironment()
+
   let state: BattleState = {
     turn: 0,
     player: createBattleArthropod(arthropod1),
     opponent: createBattleArthropod(arthropod2),
+    environment: env,
     log: [],
     status: 'running',
     winner: null,
@@ -463,7 +481,8 @@ export function simulateBattle(
 export function simulateMultipleBattles(
   arthropod1: Arthropod,
   arthropod2: Arthropod,
-  count: number
+  count: number,
+  environment?: Environment
 ): {
   playerWins: number
   opponentWins: number
@@ -477,7 +496,7 @@ export function simulateMultipleBattles(
   let totalTurns = 0
 
   for (let i = 0; i < count; i++) {
-    const result = simulateBattle(arthropod1, arthropod2)
+    const result = simulateBattle(arthropod1, arthropod2, environment)
 
     totalTurns += result.turn
 

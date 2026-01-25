@@ -49,15 +49,21 @@ export interface DamageFactors {
   weaponVsArmor: number
   critical: boolean
   random: number
+  attackerEnvBonus?: number
+  defenderEnvBonus?: number
 }
 
 export function calculateTotalMultiplier(factors: DamageFactors): number {
   const critMultiplier = factors.critical ? 1.5 : 1
+  const attackerEnvBonus = factors.attackerEnvBonus ?? 1
+  const defenderEnvBonus = factors.defenderEnvBonus ?? 1
+  const envFactor = attackerEnvBonus / defenderEnvBonus
   return (
     factors.styleMatchup *
     factors.weightBonus *
     factors.weaponVsArmor *
     critMultiplier *
-    factors.random
+    factors.random *
+    envFactor
   )
 }

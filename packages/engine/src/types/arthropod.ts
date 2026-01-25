@@ -1,3 +1,5 @@
+import type { HabitatPreference } from './environment'
+
 export type WeaponType =
   | 'horn'
   | 'mandible'
@@ -39,6 +41,7 @@ export interface Arthropod {
   weapon: WeaponStats
   behavior: BehaviorStats
   defense: DefenseStats
+  habitat: HabitatPreference
   actions: string[]
   description: string
 }

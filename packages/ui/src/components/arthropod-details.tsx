@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Text, useInput } from 'ink'
 import type { Arthropod } from '@super-insect-battle/engine'
+import { terrainNames, timeOfDayNames } from '@super-insect-battle/engine'
 
 interface ArthropodDetailsProps {
   arthropod: Arthropod
@@ -83,6 +84,26 @@ export function ArthropodDetails({
       </Box>
       <Text> 갑각 강도: {arthropod.defense.armorRating}</Text>
       <Text> 회피력: {arthropod.defense.evasion}</Text>
+
+      <Box marginTop={1}>
+        <Text color="cyan" bold>
+          서식지:
+        </Text>
+      </Box>
+      <Text>
+        {' '}
+        선호 지형:{' '}
+        {arthropod.habitat.preferredTerrains
+          .map((t) => terrainNames[t])
+          .join(', ')}
+      </Text>
+      <Text>
+        {' '}
+        활동 시간:{' '}
+        {arthropod.habitat.preferredTime === 'both'
+          ? '주야 모두'
+          : timeOfDayNames[arthropod.habitat.preferredTime]}
+      </Text>
 
       <Box marginTop={2}>
         <Text color="gray">Enter 또는 Esc로 돌아가기</Text>
