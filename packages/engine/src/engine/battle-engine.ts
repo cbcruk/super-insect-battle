@@ -111,9 +111,17 @@ export function calculateDamage(
   }
 }
 
-export function checkAccuracy(action: Action, defenderEvasion: number): boolean {
-  const hitChance = action.accuracy - defenderEvasion * 0.5
-  const finalHitChance = Math.max(10, hitChance)
+export function checkAccuracy(
+  action: Action,
+  defenderEvasion: number,
+  attackerLength: number,
+  defenderLength: number
+): boolean {
+  const lengthRatio = attackerLength / defenderLength
+  const lengthBonus = (lengthRatio - 1) * 10
+
+  const hitChance = action.accuracy - defenderEvasion * 0.5 + lengthBonus
+  const finalHitChance = Math.max(10, Math.min(95, hitChance))
 
   return Math.random() * 100 < finalHitChance
 }
@@ -238,7 +246,14 @@ export function executeTurn(
       actionId: action.id,
     }
 
-    if (!checkAccuracy(action, defender.base.defense.evasion)) {
+    if (
+      !checkAccuracy(
+        action,
+        defender.base.defense.evasion,
+        attacker.base.physical.lengthMm,
+        defender.base.physical.lengthMm
+      )
+    ) {
       logEntry.action += ' 그러나 빗나갔다!'
       newState.log.push(logEntry)
       continue
