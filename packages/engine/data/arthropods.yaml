@@ -90,18 +90,18 @@ tarantula:
   physical:
     weightG: 120
     lengthMm: 130
-    strengthIndex: 50
+    strengthIndex: 55
   weapon:
     type: fang
-    power: 65
+    power: 70
     venomous: true
-    venomPotency: 60
+    venomPotency: 70
   behavior:
     aggression: 45
     style: venomous
   defense:
-    armorRating: 40
-    evasion: 50
+    armorRating: 45
+    evasion: 55
   habitat:
     preferred_terrains: [cave, forest]
     preferred_time: night
@@ -117,19 +117,19 @@ mantis:
   name: Giant Asian Mantis
   nameKo: 사마귀
   physical:
-    weightG: 5
-    lengthMm: 100
-    strengthIndex: 45
+    weightG: 10
+    lengthMm: 110
+    strengthIndex: 65
   weapon:
     type: foreleg
-    power: 75
+    power: 85
     venomous: false
   behavior:
     aggression: 85
     style: striker
   defense:
-    armorRating: 30
-    evasion: 70
+    armorRating: 35
+    evasion: 85
   habitat:
     preferred_terrains: [forest]
     preferred_time: day
@@ -185,7 +185,7 @@ dung_beetle:
     aggression: 30
     style: defensive
   defense:
-    armorRating: 95
+    armorRating: 85
     evasion: 15
   habitat:
     preferred_terrains: [forest, wetland]
@@ -202,20 +202,20 @@ assassin_bug:
   name: Assassin Bug
   nameKo: 침노린재
   physical:
-    weightG: 2
-    lengthMm: 25
-    strengthIndex: 40
+    weightG: 8
+    lengthMm: 35
+    strengthIndex: 60
   weapon:
     type: stinger
-    power: 85
+    power: 95
     venomous: true
-    venomPotency: 95
+    venomPotency: 100
   behavior:
-    aggression: 75
+    aggression: 80
     style: venomous
   defense:
-    armorRating: 20
-    evasion: 65
+    armorRating: 30
+    evasion: 85
   habitat:
     preferred_terrains: [forest]
     preferred_time: night
@@ -233,16 +233,16 @@ hercules_beetle:
   physical:
     weightG: 85
     lengthMm: 170
-    strengthIndex: 100
+    strengthIndex: 85
   weapon:
     type: horn
-    power: 95
+    power: 85
     venomous: false
   behavior:
     aggression: 60
     style: grappler
   defense:
-    armorRating: 85
+    armorRating: 80
     evasion: 10
   habitat:
     preferred_terrains: [forest]

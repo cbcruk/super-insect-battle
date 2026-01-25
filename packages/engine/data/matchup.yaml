@@ -13,7 +13,7 @@ styleMatchup:
     grappler: 1.2
     striker: 0.8
     venomous: 1.0
-    defensive: 0.8
+    defensive: 0.95
   defensive:
     grappler: 1.1
     striker: 0.9
@@ -29,13 +29,13 @@ weaponVsArmor:
     hardPenalty: 1.0
   stinger:
     softBonus: 1.3
-    hardPenalty: 0.7
+    hardPenalty: 0.8
   fang:
     softBonus: 1.2
-    hardPenalty: 0.8
+    hardPenalty: 0.85
   foreleg:
     softBonus: 1.1
-    hardPenalty: 0.85
+    hardPenalty: 0.9
   leg:
     softBonus: 1.0
     hardPenalty: 0.95
