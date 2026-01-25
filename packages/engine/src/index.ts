@@ -8,6 +8,8 @@ export type {
   Arthropod,
   StatusCondition,
   BattleMode,
+  StatType,
+  StatStages,
   BattleArthropod,
 } from './types/arthropod'
 
@@ -58,3 +60,11 @@ export {
   getAttackPenalty,
   processBattleModeEndOfTurn,
 } from './engine/battle-mode'
+
+export {
+  createStatStages,
+  applyStatStageChange,
+  getStatMultiplier,
+} from './engine/stat-stages'
+
+export { selectStrategicAIAction } from './engine/ai-strategy'

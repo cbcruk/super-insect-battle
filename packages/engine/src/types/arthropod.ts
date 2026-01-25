@@ -47,6 +47,14 @@ export type StatusCondition = 'poison' | 'bind'
 
 export type BattleMode = 'flee' | 'brace'
 
+export type StatType = 'strength' | 'defense' | 'evasion'
+
+export interface StatStages {
+  strength: number
+  defense: number
+  evasion: number
+}
+
 export interface BattleArthropod {
   base: Arthropod
   currentHp: number
@@ -57,4 +65,5 @@ export interface BattleArthropod {
   battleMode: BattleMode | null
   modeTurns: number
   actions: string[]
+  statStages: StatStages
 }

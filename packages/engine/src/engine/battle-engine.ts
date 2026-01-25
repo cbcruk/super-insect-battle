@@ -1,6 +1,5 @@
 import type { Arthropod, BattleArthropod } from '../types/arthropod'
 import type { Action } from '../types/action'
-import { getActionsByIds } from '../data/actions'
 import {
   getStyleMatchup,
   getWeightBonus,
@@ -23,6 +22,8 @@ import {
   getFleeEvasionBonus,
   processBattleModeEndOfTurn,
 } from './battle-mode'
+import { createStatStages, applyStatStageChange, getStatMultiplier } from './stat-stages'
+import { selectStrategicAIAction } from './ai-strategy'
 
 export interface BattleLogEntry {
   turn: number
@@ -60,6 +61,7 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
     battleMode: null,
     modeTurns: 0,
     actions: arthropod.actions,
+    statStages: createStatStages(),
   }
 }
 
@@ -118,8 +120,12 @@ export function calculateDamage(
   const attackPenalty = getAttackPenalty(attacker)
   const damageReduction = getBraceDamageReduction(defender)
 
+  const strengthMultiplier = getStatMultiplier(attacker.statStages.strength)
+  const defenseMultiplier = getStatMultiplier(defender.statStages.defense)
+  const stageFactor = strengthMultiplier / defenseMultiplier
+
   const finalDamage = Math.floor(
-    baseDamage * totalMultiplier * attackPenalty * damageReduction
+    baseDamage * totalMultiplier * attackPenalty * damageReduction * stageFactor
   )
 
   return {
@@ -134,7 +140,8 @@ export function checkAccuracy(
   defender: BattleArthropod,
   attackerLength: number
 ): boolean {
-  const defenderEvasion = defender.base.defense.evasion
+  const evasionMultiplier = getStatMultiplier(defender.statStages.evasion)
+  const defenderEvasion = defender.base.defense.evasion * evasionMultiplier
   const fleeBonus = getFleeEvasionBonus(defender)
   const lengthRatio = attackerLength / defender.base.physical.lengthMm
   const lengthBonus = (lengthRatio - 1) * 10
@@ -192,6 +199,15 @@ export function applyActionEffect(
       const conditionName = statusConditionNames[action.effect.condition]
       logEntry.action += ` ${effectTarget.base.nameKo}은(는) ${conditionName} 상태가 되었다!`
     }
+  }
+
+  if (
+    (action.effect.type === 'buff' || action.effect.type === 'debuff') &&
+    action.effect.statChange
+  ) {
+    const { stat, stages } = action.effect.statChange
+    const result = applyStatStageChange(effectTarget, stat, stages)
+    logEntry.action += ` ${result.message}`
   }
 }
 
@@ -403,31 +419,7 @@ export function selectAIAction(
   attacker: BattleArthropod,
   defender: BattleArthropod
 ): Action {
-  const availableActions = getActionsByIds(attacker.actions)
-
-  if (availableActions.length === 0) {
-    throw new Error('No actions available')
-  }
-
-  const attackActions = availableActions.filter((a) => a.power > 0)
-
-  if (attackActions.length === 0) {
-    return availableActions[0]
-  }
-
-  const styleAdvantage = getStyleMatchup(
-    attacker.base.behavior.style,
-    defender.base.behavior.style
-  )
-
-  if (styleAdvantage > 1) {
-    const strongestAction = attackActions.reduce((best, current) =>
-      current.power > best.power ? current : best
-    )
-    return strongestAction
-  }
-
-  return attackActions[Math.floor(Math.random() * attackActions.length)]
+  return selectStrategicAIAction(attacker, defender)
 }
 
 export function simulateBattle(
