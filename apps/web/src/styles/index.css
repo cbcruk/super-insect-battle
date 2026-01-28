@@ -1,6 +1,22 @@
+@layer base, utils, components;
+@import '@webtui/css';
+@import '@webtui/css/utils/box.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --tui-cyan: #00bcd4;
+  --tui-magenta: #e91e63;
+  --tui-yellow: #ffc107;
+  --tui-yellow-bright: #ffeb3b;
+  --tui-green: #4caf50;
+  --tui-red: #f44336;
+  --tui-blue: #2196f3;
+  --tui-gray: #9e9e9e;
+  --tui-white: #ffffff;
+}
 
 body {
   margin: 0;
@@ -12,4 +28,14 @@ body {
 #root {
   width: 100%;
   height: 100vh;
+}
+
+.tui-container {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--tui-white);
+  background-color: #0d1117;
+  padding: 1rem;
+  min-height: 100%;
 }

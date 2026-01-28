@@ -1,5 +1,5 @@
 import React from 'react'
-import { Terminal } from './components/terminal/terminal'
+import { GameApp } from './components/game-app'
 
 export default function App(): React.ReactNode {
   return (
@@ -13,7 +13,7 @@ export default function App(): React.ReactNode {
             Super Insect Battle
           </span>
         </div>
-        <Terminal />
+        <GameApp />
       </div>
     </div>
   )
