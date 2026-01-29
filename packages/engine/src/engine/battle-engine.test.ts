@@ -5,9 +5,11 @@ import {
   determineFirstAttacker,
   simulateBattle,
   simulateMultipleBattles,
+  runInteractiveBattle,
 } from './battle-engine'
 import { arthropods } from '../data/arthropods'
 import { actions } from '../data/actions'
+import { createAIPlayer } from './ai-player'
 
 describe('BattleEngine', () => {
   describe('createBattleArthropod', () => {
@@ -140,6 +142,63 @@ describe('BattleEngine', () => {
       expect(result.winRate).toBeGreaterThanOrEqual(0)
       expect(result.winRate).toBeLessThanOrEqual(100)
       expect(result.avgTurns).toBeGreaterThan(0)
+    })
+  })
+
+  describe('runInteractiveBattle', () => {
+    it('completes battle with two AI players', async () => {
+      const player1 = createAIPlayer('medium')
+      const player2 = createAIPlayer('medium')
+
+      const result = await runInteractiveBattle(
+        arthropods.rhinoceros_beetle,
+        arthropods.mantis,
+        player1,
+        player2
+      )
+
+      expect(result.status).toBe('finished')
+      expect(['player', 'opponent', 'draw']).toContain(result.winner)
+      expect(result.turn).toBeGreaterThan(0)
+      expect(result.log.length).toBeGreaterThan(0)
+    })
+
+    it('calls onTurnStart and onTurnEnd callbacks', async () => {
+      const player1 = createAIPlayer('easy')
+      const player2 = createAIPlayer('easy')
+      const onTurnStart = vi.fn()
+      const onTurnEnd = vi.fn()
+
+      await runInteractiveBattle(
+        arthropods.rhinoceros_beetle,
+        arthropods.stag_beetle,
+        player1,
+        player2,
+        undefined,
+        { onTurnStart, onTurnEnd }
+      )
+
+      expect(onTurnStart).toHaveBeenCalled()
+      expect(onTurnEnd).toHaveBeenCalled()
+      expect(onTurnStart.mock.calls.length).toBe(onTurnEnd.mock.calls.length)
+    })
+
+    it('accepts a custom Player implementation', async () => {
+      const customPlayer = {
+        type: 'human' as const,
+        selectAction: vi.fn(async (ctx) => ctx.availableActions[0]),
+      }
+      const aiPlayer = createAIPlayer('medium')
+
+      const result = await runInteractiveBattle(
+        arthropods.rhinoceros_beetle,
+        arthropods.mantis,
+        customPlayer,
+        aiPlayer
+      )
+
+      expect(result.status).toBe('finished')
+      expect(customPlayer.selectAction).toHaveBeenCalled()
     })
   })
 })

@@ -1,6 +1,7 @@
 import type { Arthropod, BattleArthropod } from '../types/arthropod'
 import type { Action } from '../types/action'
 import type { Environment } from '../types/environment'
+import type { Player } from '../types/player'
 import {
   getStyleMatchup,
   getWeightBonus,
@@ -8,6 +9,7 @@ import {
   calculateTotalMultiplier,
   type DamageFactors,
 } from '../data/matchup'
+import { getActionsByIds } from '../data/actions'
 import {
   applyStatusCondition,
   checkCanMove,
@@ -512,4 +514,76 @@ export function simulateMultipleBattles(
     winRate: (playerWins / count) * 100,
     avgTurns: totalTurns / count,
   }
+}
+
+export interface InteractiveBattleCallbacks {
+  onTurnStart?: (state: BattleState) => void
+  onTurnEnd?: (state: BattleState) => void
+}
+
+export async function runInteractiveBattle(
+  arthropod1: Arthropod,
+  arthropod2: Arthropod,
+  player1: Player,
+  player2: Player,
+  environment?: Environment,
+  callbacks?: InteractiveBattleCallbacks
+): Promise<BattleState> {
+  const env = environment ?? getRandomEnvironment()
+
+  let state: BattleState = {
+    turn: 0,
+    player: createBattleArthropod(arthropod1),
+    opponent: createBattleArthropod(arthropod2),
+    environment: env,
+    log: [],
+    status: 'running',
+    winner: null,
+  }
+
+  const maxTurns = 50
+
+  while (state.status !== 'finished' && state.turn < maxTurns) {
+    callbacks?.onTurnStart?.(state)
+
+    const playerActions = getActionsByIds(state.player.actions)
+    const opponentActions = getActionsByIds(state.opponent.actions)
+
+    const [playerAction, opponentAction] = await Promise.all([
+      player1.selectAction({
+        self: state.player,
+        opponent: state.opponent,
+        environment: env,
+        turn: state.turn,
+        availableActions: playerActions,
+      }),
+      player2.selectAction({
+        self: state.opponent,
+        opponent: state.player,
+        environment: env,
+        turn: state.turn,
+        availableActions: opponentActions,
+      }),
+    ])
+
+    state = executeTurn(state, playerAction, opponentAction)
+
+    callbacks?.onTurnEnd?.(state)
+  }
+
+  if (state.status !== 'finished') {
+    const playerRatio = state.player.currentHp / state.player.maxHp
+    const opponentRatio = state.opponent.currentHp / state.opponent.maxHp
+
+    if (playerRatio > opponentRatio) {
+      state.winner = 'player'
+    } else if (opponentRatio > playerRatio) {
+      state.winner = 'opponent'
+    } else {
+      state.winner = 'draw'
+    }
+    state.status = 'finished'
+  }
+
+  return state
 }

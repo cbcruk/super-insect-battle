@@ -49,8 +49,10 @@ export {
   selectAIAction,
   simulateBattle,
   simulateMultipleBattles,
+  runInteractiveBattle,
   type BattleLogEntry,
   type BattleState,
+  type InteractiveBattleCallbacks,
 } from './engine/battle-engine'
 
 export {
@@ -77,6 +79,12 @@ export {
 } from './engine/stat-stages'
 
 export { selectStrategicAIAction } from './engine/ai-strategy'
+
+export { createAIPlayer } from './engine/ai-player'
+
+export type { Player, PlayerType, AIDifficulty, BattleContext } from './types/player'
+
+export { resolveActionOrder, type QueuedAction } from './engine/battle-queue'
 
 export {
   terrainNames,
