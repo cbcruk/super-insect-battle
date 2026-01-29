@@ -343,6 +343,7 @@ export function executeTurn(
       !checkAccuracy(action, defender, attacker.base.physical.lengthMm)
     ) {
       logEntry.action += ' 그러나 빗나갔다!'
+      startCooldown(attacker, action)
       newState.log.push(logEntry)
       continue
     }
