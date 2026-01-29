@@ -3,6 +3,7 @@ import { Box, Text, useInput } from 'ink'
 
 export type MenuScreen =
   | 'battle'
+  | 'interactive-battle'
   | 'encyclopedia'
   | 'statistics'
   | 'server-battle'
@@ -29,17 +30,18 @@ export function MainMenu({
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const menuItems: MenuItem[] = [
-    { key: '1', label: '배틀 시작', screen: 'battle' },
-    { key: '2', label: '도감', screen: 'encyclopedia' },
-    { key: '3', label: '통계 시뮬레이션', screen: 'statistics' },
+    { key: '1', label: '배틀 시작 (AI vs AI)', screen: 'battle' },
+    { key: '2', label: '대전 모드 (Player vs AI)', screen: 'interactive-battle' },
+    { key: '3', label: '도감', screen: 'encyclopedia' },
+    { key: '4', label: '통계 시뮬레이션', screen: 'statistics' },
     {
-      key: '4',
+      key: '5',
       label: serverConnected ? '서버 배틀 (SSE)' : '서버 배틀 (연결 안됨)',
       screen: 'server-battle',
       disabled: !serverConnected,
     },
     {
-      key: '5',
+      key: '6',
       label: serverConnected ? '서버 통계' : '서버 통계 (연결 안됨)',
       screen: 'server-stats',
       disabled: !serverConnected,
@@ -59,7 +61,7 @@ export function MainMenu({
       } else if (item.screen && !item.disabled) {
         onSelect(item.screen)
       }
-    } else if (input >= '0' && input <= '5') {
+    } else if (input >= '0' && input <= '6') {
       const item = menuItems.find((m) => m.key === input)
       if (item) {
         if (item.key === '0') {

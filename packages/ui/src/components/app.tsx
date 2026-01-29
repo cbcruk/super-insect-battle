@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'ink'
-import type { Arthropod, BattleState } from '@super-insect-battle/engine'
+import type { Arthropod, BattleState, BattleReplay } from '@super-insect-battle/engine'
 import { Header } from './header.js'
 import { MainMenu, type MenuScreen } from './main-menu.js'
 import { ArthropodSelect } from './arthropod-select.js'
@@ -9,6 +9,8 @@ import { StatisticsView } from './statistics-view.js'
 import { Encyclopedia } from './encyclopedia.js'
 import { NumberInput } from './number-input.js'
 import { ServerBattleView } from './server-battle-view.js'
+import { AIConfigSelect, type AIConfig } from './ai-config-select.js'
+import { InteractiveBattleView } from './interactive-battle-view.js'
 import { runBattle, runMultipleBattles } from '../simulation/battle-runner.js'
 import { BattleApiClient } from '../api/client.js'
 
@@ -17,6 +19,10 @@ type Screen =
   | 'select-player'
   | 'select-opponent'
   | 'battle'
+  | 'interactive-select-player'
+  | 'interactive-select-opponent'
+  | 'interactive-ai-config'
+  | 'interactive-battle'
   | 'encyclopedia'
   | 'statistics-select-player'
   | 'statistics-select-opponent'
@@ -36,15 +42,17 @@ const apiClient = new BattleApiClient()
 
 interface AppProps {
   onExit?: () => void
+  onSaveReplay?: (replay: BattleReplay) => void
 }
 
-export function App({ onExit }: AppProps): React.ReactNode {
+export function App({ onExit, onSaveReplay }: AppProps): React.ReactNode {
   const [screen, setScreen] = useState<Screen>('menu')
   const [serverConnected, setServerConnected] = useState(false)
 
   const [player, setPlayer] = useState<Arthropod | null>(null)
   const [opponent, setOpponent] = useState<Arthropod | null>(null)
   const [battleState, setBattleState] = useState<BattleState | null>(null)
+  const [aiConfig, setAiConfig] = useState<AIConfig | null>(null)
 
   const [simulationCount, setSimulationCount] = useState(100)
   const [statisticsResult, setStatisticsResult] = useState<{
@@ -63,6 +71,9 @@ export function App({ onExit }: AppProps): React.ReactNode {
     switch (menuScreen) {
       case 'battle':
         setScreen('select-player')
+        break
+      case 'interactive-battle':
+        setScreen('interactive-select-player')
         break
       case 'encyclopedia':
         setScreen('encyclopedia')
@@ -83,6 +94,8 @@ export function App({ onExit }: AppProps): React.ReactNode {
     setPlayer(arthropod)
     if (screen === 'select-player') {
       setScreen('select-opponent')
+    } else if (screen === 'interactive-select-player') {
+      setScreen('interactive-select-opponent')
     } else if (screen === 'statistics-select-player') {
       setScreen('statistics-select-opponent')
     } else if (screen === 'server-battle-select-player') {
@@ -98,6 +111,8 @@ export function App({ onExit }: AppProps): React.ReactNode {
       const result = runBattle(player, arthropod)
       setBattleState(result)
       setScreen('battle')
+    } else if (screen === 'interactive-select-opponent') {
+      setScreen('interactive-ai-config')
     } else if (screen === 'statistics-select-opponent') {
       setScreen('statistics-count')
     } else if (screen === 'server-battle-select-opponent' && player) {
@@ -135,6 +150,7 @@ export function App({ onExit }: AppProps): React.ReactNode {
     setPlayer(null)
     setOpponent(null)
     setBattleState(null)
+    setAiConfig(null)
     setStatisticsResult(null)
     setScreen('menu')
   }
@@ -151,6 +167,7 @@ export function App({ onExit }: AppProps): React.ReactNode {
         )
 
       case 'select-player':
+      case 'interactive-select-player':
       case 'statistics-select-player':
       case 'server-battle-select-player':
       case 'server-stats-select-player':
@@ -163,6 +180,7 @@ export function App({ onExit }: AppProps): React.ReactNode {
         )
 
       case 'select-opponent':
+      case 'interactive-select-opponent':
       case 'statistics-select-opponent':
       case 'server-battle-select-opponent':
       case 'server-stats-select-opponent':
@@ -177,6 +195,31 @@ export function App({ onExit }: AppProps): React.ReactNode {
       case 'battle':
         return battleState ? (
           <BattleView battleState={battleState} onFinish={resetAndGoToMenu} />
+        ) : (
+          <Text>로딩 중...</Text>
+        )
+
+      case 'interactive-ai-config':
+        return (
+          <AIConfigSelect
+            onSelect={(config) => {
+              setAiConfig(config)
+              setScreen('interactive-battle')
+            }}
+            onCancel={resetAndGoToMenu}
+          />
+        )
+
+      case 'interactive-battle':
+        return player && opponent && aiConfig ? (
+          <InteractiveBattleView
+            arthropod1={player}
+            arthropod2={opponent}
+            aiDifficulty={aiConfig.difficulty}
+            aiPersonality={aiConfig.personality}
+            onFinish={resetAndGoToMenu}
+            onSaveReplay={onSaveReplay}
+          />
         ) : (
           <Text>로딩 중...</Text>
         )
