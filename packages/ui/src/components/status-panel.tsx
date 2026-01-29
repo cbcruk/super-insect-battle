@@ -71,6 +71,18 @@ export function StatusPanel({
         {statusCondition === 'bind' && (
           <Text color="yellow">[bind:{bindTurns}] </Text>
         )}
+        {statusCondition === 'paralysis' && (
+          <Text color="yellow">[paralysis] </Text>
+        )}
+        {statusCondition === 'confusion' && (
+          <Text color="magenta">[confusion] </Text>
+        )}
+        {statusCondition === 'sleep' && (
+          <Text color="blue">[sleep:{arthropod.sleepTurns}] </Text>
+        )}
+        {statusCondition === 'burn' && (
+          <Text color="red">[burn] </Text>
+        )}
         {battleMode === 'flee' && (
           <Text color="blue">[flee:{modeTurns}] </Text>
         )}

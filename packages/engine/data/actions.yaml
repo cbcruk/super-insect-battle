@@ -402,14 +402,12 @@ sonic_chirp:
   nameKo: 초음파 울음
   category: special
   power: 0
-  accuracy: 100
+  accuracy: 90
   priority: 0
   effect:
-    type: debuff
+    type: status
     target: opponent
-    statChange:
-      stat: evasion
-      stages: -2
+    condition: confusion
   description: Loud chirping sound confuses and disorients opponent.
 
 sting_fury:
@@ -574,6 +572,10 @@ chemical_bomb:
   power: 85
   accuracy: 100
   priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: burn
   description: Explosive chemical reaction burns opponent.
 
 wing_slash:
@@ -597,8 +599,50 @@ paralyze_sting:
   effect:
     type: status
     target: opponent
-    condition: bind
+    condition: paralysis
   description: Venomous sting that paralyzes the target.
+
+sedative_sting:
+  id: sedative_sting
+  name: Sedative Sting
+  nameKo: 진정독 주사
+  category: special
+  power: 40
+  accuracy: 85
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: sleep
+  description: Injects sedative venom that puts the target to sleep.
+
+acid_burn:
+  id: acid_burn
+  name: Acid Burn
+  nameKo: 산성 화상
+  category: special
+  power: 70
+  accuracy: 95
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: burn
+  description: Sprays burning acid that causes chemical burns.
+
+nerve_toxin:
+  id: nerve_toxin
+  name: Nerve Toxin
+  nameKo: 신경독
+  category: special
+  power: 50
+  accuracy: 85
+  priority: 0
+  effect:
+    type: status
+    target: opponent
+    condition: paralysis
+  description: Injects neurotoxin that causes paralysis.
 
 survivor:
   id: survivor

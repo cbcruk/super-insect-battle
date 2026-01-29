@@ -61,7 +61,7 @@ export const ArthropodSchema = z.object({
   description: z.string(),
 })
 
-export const StatusConditionSchema = z.enum(['poison', 'bind'])
+export const StatusConditionSchema = z.enum(['poison', 'bind', 'paralysis', 'confusion', 'sleep', 'burn'])
 
 export const ActionCategorySchema = z.enum(['attack', 'defense', 'special'])
 

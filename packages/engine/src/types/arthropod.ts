@@ -46,7 +46,7 @@ export interface Arthropod {
   description: string
 }
 
-export type StatusCondition = 'poison' | 'bind'
+export type StatusCondition = 'poison' | 'bind' | 'paralysis' | 'confusion' | 'sleep' | 'burn'
 
 export type BattleMode = 'flee' | 'brace'
 
@@ -64,6 +64,7 @@ export interface BattleArthropod {
   maxHp: number
   statusCondition: StatusCondition | null
   bindTurns: number
+  sleepTurns: number
   appliedVenomPotency: number
   battleMode: BattleMode | null
   modeTurns: number

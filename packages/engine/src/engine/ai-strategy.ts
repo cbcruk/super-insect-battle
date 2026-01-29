@@ -9,7 +9,7 @@ interface AIContext {
   styleAdvantage: number
   hpRatio: number
   opponentHpRatio: number
-  defenderPoisoned: boolean
+  defenderHasStatus: boolean
   attackerHasVenom: boolean
 }
 
@@ -25,7 +25,7 @@ function createAIContext(attacker: BattleArthropod, defender: BattleArthropod): 
     styleAdvantage: getStyleMatchup(attacker.base.behavior.style, defender.base.behavior.style),
     hpRatio: attacker.currentHp / attacker.maxHp,
     opponentHpRatio: defender.currentHp / defender.maxHp,
-    defenderPoisoned: defender.statusCondition === 'poison',
+    defenderHasStatus: defender.statusCondition !== null,
     attackerHasVenom: attacker.base.weapon.venomous,
   }
 }
@@ -48,10 +48,8 @@ function scoreAction(action: Action, ctx: AIContext): number {
     if (action.power >= 80) score += 15
   }
 
-  if (!ctx.defenderPoisoned && ctx.attackerHasVenom) {
-    if (action.effect?.type === 'status' && action.effect.condition === 'poison') {
-      score += 30
-    }
+  if (!ctx.defenderHasStatus && action.effect?.type === 'status' && action.effect.condition) {
+    score += 30
   }
 
   if (action.priority > 0 && ctx.hpRatio <= 0.5) {

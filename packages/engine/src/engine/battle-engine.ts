@@ -15,6 +15,7 @@ import {
   checkCanMove,
   processEndOfTurnStatus,
   statusConditionNames,
+  getBurnStrengthPenalty,
 } from './status-condition'
 import {
   applyBattleMode,
@@ -62,6 +63,7 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
     maxHp,
     statusCondition: null,
     bindTurns: 0,
+    sleepTurns: 0,
     appliedVenomPotency: 0,
     battleMode: null,
     modeTurns: 0,
@@ -134,13 +136,14 @@ export function calculateDamage(
 
   const attackPenalty = getAttackPenalty(attacker)
   const damageReduction = getBraceDamageReduction(defender)
+  const burnPenalty = getBurnStrengthPenalty(attacker)
 
   const strengthMultiplier = getStatMultiplier(attacker.statStages.strength)
   const defenseMultiplier = getStatMultiplier(defender.statStages.defense)
   const stageFactor = strengthMultiplier / defenseMultiplier
 
   const finalDamage = Math.floor(
-    baseDamage * totalMultiplier * attackPenalty * damageReduction * stageFactor
+    baseDamage * totalMultiplier * attackPenalty * damageReduction * burnPenalty * stageFactor
   )
 
   return {

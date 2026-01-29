@@ -80,6 +80,7 @@ scorpion:
     - venom_strike
     - pincer_grab
     - tail_whip
+    - nerve_toxin
     - toxic_sting
   description: Deadly stinger delivers potent venom. Pincers provide secondary offense.
 
@@ -534,6 +535,7 @@ vinegaroon:
     preferred_time: night
   actions:
     - acid_spray
+    - acid_burn
     - pincer_grab
     - tail_whip
     - shell_guard
@@ -565,6 +567,7 @@ jewel_wasp:
     - paralyze_sting
     - venom_inject
     - wing_slash
+    - sedative_sting
     - flee
   description: Mind-controlling venom turns victims into zombies. Tiny but terrifying.
 

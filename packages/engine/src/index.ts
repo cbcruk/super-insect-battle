@@ -60,6 +60,7 @@ export {
   applyStatusCondition,
   checkCanMove,
   processEndOfTurnStatus,
+  getBurnStrengthPenalty,
 } from './engine/status-condition'
 
 export {
