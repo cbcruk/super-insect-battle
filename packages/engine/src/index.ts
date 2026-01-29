@@ -88,6 +88,21 @@ export type { Player, PlayerType, AIDifficulty, BattleContext } from './types/pl
 export { resolveActionOrder, type QueuedAction } from './engine/battle-queue'
 
 export {
+  ReplayRecorder,
+  runReplayBattle,
+  replayBattle,
+  serializeReplay,
+  deserializeReplay,
+} from './engine/replay'
+
+export type {
+  ReplayAction,
+  ReplayTurn,
+  ReplayHeader,
+  BattleReplay,
+} from './types/replay'
+
+export {
   terrainNames,
   timeOfDayNames,
   weatherNames,
