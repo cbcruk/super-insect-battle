@@ -1,7 +1,9 @@
 import type { BattleArthropod } from '../types/arthropod'
 import type { Action } from '../types/action'
+import type { AIPersonality } from '../types/player'
 import { getStyleMatchup } from '../data/matchup'
 import { getActionsByIds } from '../data/actions'
+import { getAvailableActions } from './cooldown'
 
 interface AIContext {
   attacker: BattleArthropod
@@ -69,6 +71,36 @@ function scoreAction(action: Action, ctx: AIContext): number {
   return score
 }
 
+function applyPersonalityModifier(
+  scoredActions: ScoredAction[],
+  personality: AIPersonality
+): ScoredAction[] {
+  return scoredActions.map(({ action, score }) => {
+    let modified = score
+
+    switch (personality) {
+      case 'aggressive':
+        if (action.power > 0) modified *= 1.5
+        if (action.power >= 80) modified *= 1.3
+        if (action.category === 'defense') modified *= 0.5
+        if (action.id === 'flee' || action.id === 'brace') modified *= 0.3
+        break
+
+      case 'defensive':
+        if (action.category === 'defense') modified *= 1.5
+        if (action.id === 'brace') modified *= 1.5
+        if (action.effect?.type === 'buff') modified *= 1.3
+        if (action.power >= 80) modified *= 0.7
+        break
+
+      case 'balanced':
+        break
+    }
+
+    return { action, score: Math.max(1, Math.floor(modified)) }
+  })
+}
+
 function selectByWeight(scoredActions: ScoredAction[]): Action {
   const totalScore = scoredActions.reduce((sum, sa) => sum + sa.score, 0)
 
@@ -86,24 +118,46 @@ function selectByWeight(scoredActions: ScoredAction[]): Action {
   return scoredActions[scoredActions.length - 1].action
 }
 
+function selectBest(scoredActions: ScoredAction[]): Action {
+  let best = scoredActions[0]
+  for (const sa of scoredActions) {
+    if (sa.score > best.score) {
+      best = sa
+    }
+  }
+  return best.action
+}
+
 export function selectStrategicAIAction(
   attacker: BattleArthropod,
-  defender: BattleArthropod
+  defender: BattleArthropod,
+  personality: AIPersonality = 'balanced',
+  deterministic = false
 ): Action {
-  const availableActions = getActionsByIds(attacker.actions)
+  const allActions = getActionsByIds(attacker.actions)
+  const availableActions = getAvailableActions(allActions, attacker)
 
   if (availableActions.length === 0) {
-    throw new Error('No actions available')
+    if (allActions.length === 0) {
+      throw new Error('No actions available')
+    }
+    return allActions[0]
   }
 
   const ctx = createAIContext(attacker, defender)
 
-  const scoredActions = availableActions
+  let scoredActions = availableActions
     .map((action) => ({ action, score: scoreAction(action, ctx) }))
     .filter((sa) => sa.score > 0)
 
   if (scoredActions.length === 0) {
     return availableActions[0]
+  }
+
+  scoredActions = applyPersonalityModifier(scoredActions, personality)
+
+  if (deterministic) {
+    return selectBest(scoredActions)
   }
 
   return selectByWeight(scoredActions)

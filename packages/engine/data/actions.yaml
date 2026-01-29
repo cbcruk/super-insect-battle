@@ -6,6 +6,7 @@ horn_lift:
   power: 85
   accuracy: 90
   priority: 0
+  cooldown: 2
   description: Lifts the opponent with powerful horn and throws them.
 
 horn_thrust:
@@ -26,6 +27,7 @@ shell_guard:
   power: 0
   accuracy: 100
   priority: 0
+  cooldown: 2
   effect:
     type: buff
     target: self
@@ -56,6 +58,7 @@ pincer_crush:
   power: 80
   accuracy: 90
   priority: 0
+  cooldown: 2
   description: Crushes opponent with powerful mandibles.
 
 pincer_grip:
@@ -132,6 +135,7 @@ toxic_sting:
   power: 90
   accuracy: 80
   priority: 0
+  cooldown: 3
   effect:
     type: status
     target: opponent
@@ -190,6 +194,7 @@ venom_inject:
   power: 85
   accuracy: 85
   priority: 0
+  cooldown: 2
   effect:
     type: status
     target: opponent
@@ -204,6 +209,7 @@ scythe_strike:
   power: 85
   accuracy: 95
   priority: 0
+  cooldown: 2
   description: Slashes with razor-sharp forelegs.
 
 rapid_slash:
@@ -224,6 +230,7 @@ ambush:
   power: 95
   accuracy: 85
   priority: 0
+  cooldown: 3
   description: Surprise attack from concealment. High power.
 
 death_grip:
@@ -248,6 +255,7 @@ forcipule_bite:
   power: 80
   accuracy: 90
   priority: 0
+  cooldown: 2
   effect:
     type: status
     target: opponent
@@ -306,6 +314,7 @@ dig_in:
   power: 0
   accuracy: 100
   priority: 0
+  cooldown: 2
   effect:
     type: buff
     target: self
@@ -338,6 +347,7 @@ rage:
   power: 0
   accuracy: 100
   priority: 0
+  cooldown: 3
   effect:
     type: buff
     target: self
@@ -370,6 +380,7 @@ mega_horn:
   power: 120
   accuracy: 70
   priority: 0
+  cooldown: 3
   description: Massive horn attack. Very powerful but hard to land.
 
 assassin_strike:
@@ -380,6 +391,7 @@ assassin_strike:
   power: 95
   accuracy: 85
   priority: 0
+  cooldown: 3
   effect:
     type: status
     target: opponent
@@ -394,6 +406,7 @@ jump_kick:
   power: 80
   accuracy: 90
   priority: 1
+  cooldown: 2
   description: Powerful kick using strong hind legs. Strikes first.
 
 sonic_chirp:
@@ -446,6 +459,7 @@ acid_spray:
   power: 75
   accuracy: 90
   priority: 0
+  cooldown: 2
   effect:
     type: debuff
     target: opponent
@@ -472,6 +486,7 @@ dive_attack:
   power: 90
   accuracy: 85
   priority: 0
+  cooldown: 3
   description: Diving attack from above with great force.
 
 cerci_pinch:
@@ -496,6 +511,7 @@ burrow:
   power: 0
   accuracy: 100
   priority: 0
+  cooldown: 3
   effect:
     type: buff
     target: self
@@ -526,6 +542,7 @@ mandible_crush:
   power: 95
   accuracy: 85
   priority: 0
+  cooldown: 3
   description: Crushes opponent with massive mandibles.
 
 speed_boost:
@@ -536,6 +553,7 @@ speed_boost:
   power: 0
   accuracy: 100
   priority: 2
+  cooldown: 3
   effect:
     type: buff
     target: self
@@ -552,6 +570,7 @@ pounce:
   power: 85
   accuracy: 90
   priority: 1
+  cooldown: 2
   description: Leaps onto prey with surprising speed. Strikes first.
 
 triple_horn:
@@ -562,6 +581,7 @@ triple_horn:
   power: 100
   accuracy: 80
   priority: 0
+  cooldown: 3
   description: Attacks with three horns simultaneously.
 
 chemical_bomb:
@@ -572,6 +592,7 @@ chemical_bomb:
   power: 85
   accuracy: 100
   priority: 0
+  cooldown: 2
   effect:
     type: status
     target: opponent

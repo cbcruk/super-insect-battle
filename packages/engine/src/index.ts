@@ -81,9 +81,17 @@ export {
 
 export { selectStrategicAIAction } from './engine/ai-strategy'
 
-export { createAIPlayer } from './engine/ai-player'
+export { createAIPlayer, type AIPlayerOptions } from './engine/ai-player'
 
-export type { Player, PlayerType, AIDifficulty, BattleContext } from './types/player'
+export type { Player, PlayerType, AIDifficulty, AIPersonality, BattleContext } from './types/player'
+
+export {
+  isActionOnCooldown,
+  getAvailableActions,
+  startCooldown,
+  tickCooldowns,
+  getCooldownRemaining,
+} from './engine/cooldown'
 
 export { resolveActionOrder, type QueuedAction } from './engine/battle-queue'
 

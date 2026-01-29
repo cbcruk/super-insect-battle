@@ -1,5 +1,5 @@
 import type { Action } from '../types/action'
-import type { Player, BattleContext, AIDifficulty } from '../types/player'
+import type { Player, BattleContext, AIDifficulty, AIPersonality } from '../types/player'
 import { selectStrategicAIAction } from './ai-strategy'
 
 function selectRandomAction(availableActions: Action[]): Action {
@@ -7,7 +7,22 @@ function selectRandomAction(availableActions: Action[]): Action {
   return availableActions[index]
 }
 
-export function createAIPlayer(difficulty: AIDifficulty = 'medium'): Player {
+export interface AIPlayerOptions {
+  difficulty?: AIDifficulty
+  personality?: AIPersonality
+}
+
+export function createAIPlayer(
+  difficultyOrOptions: AIDifficulty | AIPlayerOptions = 'medium'
+): Player {
+  const options: AIPlayerOptions =
+    typeof difficultyOrOptions === 'string'
+      ? { difficulty: difficultyOrOptions }
+      : difficultyOrOptions
+
+  const difficulty = options.difficulty ?? 'medium'
+  const personality = options.personality ?? 'balanced'
+
   return {
     type: 'ai',
     async selectAction(context: BattleContext): Promise<Action> {
@@ -15,9 +30,9 @@ export function createAIPlayer(difficulty: AIDifficulty = 'medium'): Player {
         case 'easy':
           return selectRandomAction(context.availableActions)
         case 'medium':
-          return selectStrategicAIAction(context.self, context.opponent)
+          return selectStrategicAIAction(context.self, context.opponent, personality)
         case 'hard':
-          return selectStrategicAIAction(context.self, context.opponent)
+          return selectStrategicAIAction(context.self, context.opponent, personality, true)
       }
     },
   }

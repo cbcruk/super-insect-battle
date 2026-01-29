@@ -85,6 +85,7 @@ export const ActionSchema = z.object({
   power: z.number().min(0),
   accuracy: z.number().min(0).max(100),
   priority: z.number(),
+  cooldown: z.number().min(0).default(0),
   effect: ActionEffectSchema.optional(),
   description: z.string(),
 })

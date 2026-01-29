@@ -98,11 +98,15 @@ ${entries}
 }
 
 function generateActions(): void {
-  const data = readYamlFile('actions.yaml') as Record<string, unknown>
+  const data = readYamlFile('actions.yaml') as Record<string, Record<string, unknown>>
 
   const entries = Object.entries(data)
     .map(([key, value]) => {
-      const formatted = formatValue(value, 1)
+      const withDefaults = {
+        ...value,
+        cooldown: value.cooldown ?? 0,
+      }
+      const formatted = formatValue(withDefaults, 1)
       return `  ${key}: ${formatted},`
     })
     .join('\n')

@@ -20,6 +20,7 @@ export interface Action {
   power: number
   accuracy: number
   priority: number
+  cooldown: number
   effect?: ActionEffect
   description: string
 }

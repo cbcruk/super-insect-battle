@@ -6,6 +6,8 @@ export type PlayerType = 'human' | 'ai'
 
 export type AIDifficulty = 'easy' | 'medium' | 'hard'
 
+export type AIPersonality = 'aggressive' | 'defensive' | 'balanced'
+
 export interface BattleContext {
   self: BattleArthropod
   opponent: BattleArthropod

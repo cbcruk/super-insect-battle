@@ -70,4 +70,5 @@ export interface BattleArthropod {
   modeTurns: number
   actions: string[]
   statStages: StatStages
+  actionCooldowns: Record<string, number>
 }

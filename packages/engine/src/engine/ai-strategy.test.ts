@@ -63,29 +63,29 @@ describe('AIStrategy', () => {
       expect(venomCount).toBeGreaterThan(15)
     })
 
-    it('reduces poison preference when opponent is already poisoned', () => {
+    it('reduces status action preference when opponent already has status', () => {
       const attacker = createBattleArthropod(arthropods.scorpion)
       const defender = createBattleArthropod(arthropods.rhinoceros_beetle)
 
-      let venomCountBefore = 0
-      for (let i = 0; i < 100; i++) {
+      let statusCountBefore = 0
+      for (let i = 0; i < 1000; i++) {
         const action = selectStrategicAIAction(attacker, defender)
-        if (action.effect?.type === 'status' && action.effect.condition === 'poison') {
-          venomCountBefore++
+        if (action.effect?.type === 'status' && action.effect.condition) {
+          statusCountBefore++
         }
       }
 
       defender.statusCondition = 'poison'
 
-      let venomCountAfter = 0
-      for (let i = 0; i < 100; i++) {
+      let statusCountAfter = 0
+      for (let i = 0; i < 1000; i++) {
         const action = selectStrategicAIAction(attacker, defender)
-        if (action.effect?.type === 'status' && action.effect.condition === 'poison') {
-          venomCountAfter++
+        if (action.effect?.type === 'status' && action.effect.condition) {
+          statusCountAfter++
         }
       }
 
-      expect(venomCountAfter).toBeLessThanOrEqual(venomCountBefore)
+      expect(statusCountAfter).toBeLessThan(statusCountBefore)
     })
 
     it('throws error when no actions available', () => {

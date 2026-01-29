@@ -29,6 +29,7 @@ import {
 import { createStatStages, applyStatStageChange, getStatMultiplier } from './stat-stages'
 import { selectStrategicAIAction } from './ai-strategy'
 import { getEnvironmentBonus, getRandomEnvironment } from './environment'
+import { startCooldown, tickCooldowns, getAvailableActions } from './cooldown'
 
 export interface BattleLogEntry {
   turn: number
@@ -69,6 +70,7 @@ export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
     modeTurns: 0,
     actions: arthropod.actions,
     statStages: createStatStages(),
+    actionCooldowns: {},
   }
 }
 
@@ -369,6 +371,7 @@ export function executeTurn(
     }
 
     applyActionEffect(attacker, defender, action, logEntry)
+    startCooldown(attacker, action)
 
     newState.log.push(logEntry)
 
@@ -428,6 +431,8 @@ export function executeTurn(
           action: modeResult.message,
         })
       }
+
+      tickCooldowns(arthropod)
     }
   }
 
@@ -549,8 +554,10 @@ export async function runInteractiveBattle(
   while (state.status !== 'finished' && state.turn < maxTurns) {
     callbacks?.onTurnStart?.(state)
 
-    const playerActions = getActionsByIds(state.player.actions)
-    const opponentActions = getActionsByIds(state.opponent.actions)
+    const allPlayerActions = getActionsByIds(state.player.actions)
+    const allOpponentActions = getActionsByIds(state.opponent.actions)
+    const playerActions = getAvailableActions(allPlayerActions, state.player)
+    const opponentActions = getAvailableActions(allOpponentActions, state.opponent)
 
     const [playerAction, opponentAction] = await Promise.all([
       player1.selectAction({
@@ -558,14 +565,14 @@ export async function runInteractiveBattle(
         opponent: state.opponent,
         environment: env,
         turn: state.turn,
-        availableActions: playerActions,
+        availableActions: playerActions.length > 0 ? playerActions : allPlayerActions,
       }),
       player2.selectAction({
         self: state.opponent,
         opponent: state.player,
         environment: env,
         turn: state.turn,
-        availableActions: opponentActions,
+        availableActions: opponentActions.length > 0 ? opponentActions : allOpponentActions,
       }),
     ])
 
