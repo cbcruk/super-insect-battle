@@ -13,6 +13,7 @@ dist-ssr
 
 # Generated files
 packages/engine/src/data/generated
+*.tsbuildinfo
 *.local
 
 # Editor directories and files
