@@ -15,18 +15,18 @@ export function getWeightBonus(
   const ratio = attackerWeightG / defenderWeightG
 
   if (ratio >= 2) {
-    return 1.3
+    return 1.1
   }
 
   if (ratio <= 0.5) {
-    return 0.7
+    return 0.9
   }
 
   if (ratio >= 1) {
-    return 1 + (ratio - 1) * 0.3
+    return 1 + (ratio - 1) * 0.1
   }
 
-  return 1 - (1 - ratio) * 0.6
+  return 1 - (1 - ratio) * 0.2
 }
 
 export function getWeaponVsArmorBonus(

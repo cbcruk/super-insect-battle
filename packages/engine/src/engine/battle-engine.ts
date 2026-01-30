@@ -54,9 +54,9 @@ export interface BattleState {
 
 export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
   const baseHp = Math.floor(
-    (arthropod.physical.strengthIndex + arthropod.defense.armorRating) * 1.5
+    (arthropod.physical.strengthIndex + arthropod.defense.armorRating) * 0.8 + 100
   )
-  const maxHp = Math.max(100, baseHp)
+  const maxHp = Math.max(150, baseHp)
 
   return {
     base: arthropod,
@@ -114,7 +114,9 @@ export function calculateDamage(
     attacker.base.weapon.type,
     defender.base.defense.armorRating
   )
-  const critical = Math.random() < 0.1
+  const hpRatio = attacker.maxHp / defender.maxHp
+  const underdogCritBonus = hpRatio < 1 ? (1 - hpRatio) * 0.15 : 0
+  const critical = Math.random() < 0.1 + underdogCritBonus
   const random = 0.85 + Math.random() * 0.15
 
   const attackerEnvBonus = environment
@@ -139,17 +141,19 @@ export function calculateDamage(
   const attackPenalty = getAttackPenalty(attacker)
   const damageReduction = getBraceDamageReduction(defender)
   const burnPenalty = getBurnStrengthPenalty(attacker)
+  const defensiveReduction =
+    defender.base.behavior.style === 'defensive' ? 0.9 : 1
 
   const strengthMultiplier = getStatMultiplier(attacker.statStages.strength)
   const defenseMultiplier = getStatMultiplier(defender.statStages.defense)
   const stageFactor = strengthMultiplier / defenseMultiplier
 
   const finalDamage = Math.floor(
-    baseDamage * totalMultiplier * attackPenalty * damageReduction * burnPenalty * stageFactor
+    baseDamage * totalMultiplier * attackPenalty * damageReduction * burnPenalty * stageFactor * defensiveReduction
   )
 
   return {
-    damage: Math.max(1, finalDamage),
+    damage: Math.max(Math.floor(defender.maxHp * 0.03), finalDamage),
     critical,
     factors,
   }
@@ -167,7 +171,7 @@ export function checkAccuracy(
   const lengthBonus = (lengthRatio - 1) * 10
 
   const hitChance =
-    action.accuracy - (defenderEvasion + fleeBonus) * 0.5 + lengthBonus
+    action.accuracy - (defenderEvasion + fleeBonus) * 0.7 + lengthBonus
   const finalHitChance = Math.max(10, Math.min(95, hitChance))
 
   return Math.random() * 100 < finalHitChance

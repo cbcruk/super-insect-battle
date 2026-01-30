@@ -84,7 +84,7 @@ describe('status-condition', () => {
       arthropod.statusCondition = 'poison'
       arthropod.appliedVenomPotency = 50
       const initialHp = arthropod.currentHp
-      const expectedDamage = Math.floor(arthropod.maxHp / 8)
+      const expectedDamage = Math.floor(arthropod.maxHp / 6)
 
       const result = processEndOfTurnStatus(arthropod)
 
@@ -97,7 +97,7 @@ describe('status-condition', () => {
       const arthropod = createBattleArthropod(arthropods.rhinoceros_beetle)
       arthropod.statusCondition = 'poison'
       arthropod.appliedVenomPotency = 80
-      const expectedDamage = Math.floor((arthropod.maxHp / 8) * (80 / 50))
+      const expectedDamage = Math.floor((arthropod.maxHp / 6) * (80 / 50))
 
       const result = processEndOfTurnStatus(arthropod)
 

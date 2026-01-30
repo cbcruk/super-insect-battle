@@ -30,9 +30,9 @@ describe('BattleEngine', () => {
 
       const expectedHp = Math.floor(
         (rhinoceros.physical.strengthIndex + rhinoceros.defense.armorRating) *
-          1.5
+          0.8 + 100
       )
-      expect(battleArthropod.maxHp).toBe(Math.max(100, expectedHp))
+      expect(battleArthropod.maxHp).toBe(Math.max(150, expectedHp))
     })
   })
 

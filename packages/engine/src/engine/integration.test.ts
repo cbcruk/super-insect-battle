@@ -172,7 +172,7 @@ describe('Integration Tests', () => {
     })
 
     it('rage action applies strength buff and has cooldown', () => {
-      vi.spyOn(Math, 'random').mockReturnValue(0.5)
+      vi.spyOn(Math, 'random').mockReturnValue(0.1)
 
       const state = createBattleState()
       const rage = actions.rage
