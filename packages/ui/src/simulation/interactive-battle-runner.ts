@@ -42,7 +42,11 @@ export function createInteractiveBattle(
 ): InteractiveBattleHandle {
   const resolverRef: { current: ActionResolver | null } = { current: null }
   const env = getRandomEnvironment()
-  const recorder = new ReplayRecorder(options.arthropod1, options.arthropod2, env)
+  const recorder = new ReplayRecorder(
+    options.arthropod1,
+    options.arthropod2,
+    env
+  )
 
   let turnPlayerAction: Action | null = null
   let turnOpponentAction: Action | null = null
@@ -87,7 +91,11 @@ export function createInteractiveBattle(
         },
         onTurnEnd(currentState) {
           if (turnPlayerAction && turnOpponentAction) {
-            recorder.recordTurn(currentState.turn, turnPlayerAction, turnOpponentAction)
+            recorder.recordTurn(
+              currentState.turn,
+              turnPlayerAction,
+              turnOpponentAction
+            )
             turnPlayerAction = null
             turnOpponentAction = null
           }

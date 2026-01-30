@@ -13,4 +13,10 @@ export { ActionSelector } from './components/action-selector.js'
 export { AIConfigSelect, type AIConfig } from './components/ai-config-select.js'
 export { ReplaySavePrompt } from './components/replay-save-prompt.js'
 export { InteractiveBattleView } from './components/interactive-battle-view.js'
-export { createInteractiveBattle, type InteractiveBattleHandle, type InteractiveBattleCallbacks, type InteractiveBattleOptions, type ActionResolver } from './simulation/interactive-battle-runner.js'
+export {
+  createInteractiveBattle,
+  type InteractiveBattleHandle,
+  type InteractiveBattleCallbacks,
+  type InteractiveBattleOptions,
+  type ActionResolver,
+} from './simulation/interactive-battle-runner.js'

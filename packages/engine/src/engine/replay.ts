@@ -46,11 +46,7 @@ export class ReplayRecorder {
     }
   }
 
-  recordTurn(
-    turn: number,
-    playerAction: Action,
-    opponentAction: Action
-  ): void {
+  recordTurn(turn: number, playerAction: Action, opponentAction: Action): void {
     this.currentTurn = turn
     this.turns.push({
       turn,
@@ -127,9 +123,7 @@ export async function runReplayBattle(
   return { state, replay }
 }
 
-export async function replayBattle(
-  replay: BattleReplay
-): Promise<BattleState> {
+export async function replayBattle(replay: BattleReplay): Promise<BattleState> {
   const playerArthropod = getArthropodById(replay.header.playerArthropodId)
   const opponentArthropod = getArthropodById(replay.header.opponentArthropodId)
 

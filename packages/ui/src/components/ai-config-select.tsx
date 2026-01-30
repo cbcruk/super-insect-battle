@@ -41,8 +41,7 @@ export function AIConfigSelect({
   const [difficulty, setDifficulty] = useState<AIDifficulty>('medium')
 
   const options = step === 'difficulty' ? difficultyOptions : personalityOptions
-  const title =
-    step === 'difficulty' ? 'AI Difficulty' : 'AI Personality'
+  const title = step === 'difficulty' ? 'AI Difficulty' : 'AI Personality'
 
   useInput((_input, key) => {
     if (key.upArrow) {
@@ -76,9 +75,7 @@ export function AIConfigSelect({
         === {title} ===
       </Text>
       {step === 'personality' && (
-        <Text color="gray">
-          Difficulty: {difficulty}
-        </Text>
+        <Text color="gray">Difficulty: {difficulty}</Text>
       )}
       <Box flexDirection="column" marginY={1}>
         {options.map((opt, index) => {

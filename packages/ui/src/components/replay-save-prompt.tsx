@@ -28,7 +28,8 @@ export function ReplaySavePrompt({
         Save replay? (Y/N)
       </Text>
       <Text color="gray">
-        {replay.header.playerArthropodId} vs {replay.header.opponentArthropodId} ({replay.turns.length} turns)
+        {replay.header.playerArthropodId} vs {replay.header.opponentArthropodId}{' '}
+        ({replay.turns.length} turns)
       </Text>
     </Box>
   )

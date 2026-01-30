@@ -31,7 +31,11 @@ export function MainMenu({
 
   const menuItems: MenuItem[] = [
     { key: '1', label: '배틀 시작 (AI vs AI)', screen: 'battle' },
-    { key: '2', label: '대전 모드 (Player vs AI)', screen: 'interactive-battle' },
+    {
+      key: '2',
+      label: '대전 모드 (Player vs AI)',
+      screen: 'interactive-battle',
+    },
     { key: '3', label: '도감', screen: 'encyclopedia' },
     { key: '4', label: '통계 시뮬레이션', screen: 'statistics' },
     {

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { createStatStages, applyStatStageChange, getStatMultiplier } from './stat-stages'
+import {
+  createStatStages,
+  applyStatStageChange,
+  getStatMultiplier,
+} from './stat-stages'
 import { createBattleArthropod } from './battle-engine'
 import { arthropods } from '../data/arthropods'
 

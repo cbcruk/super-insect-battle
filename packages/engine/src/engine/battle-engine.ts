@@ -26,7 +26,11 @@ import {
   getFleeEvasionBonus,
   processBattleModeEndOfTurn,
 } from './battle-mode'
-import { createStatStages, applyStatStageChange, getStatMultiplier } from './stat-stages'
+import {
+  createStatStages,
+  applyStatStageChange,
+  getStatMultiplier,
+} from './stat-stages'
 import { selectStrategicAIAction } from './ai-strategy'
 import { getEnvironmentBonus, getRandomEnvironment } from './environment'
 import { startCooldown, tickCooldowns, getAvailableActions } from './cooldown'
@@ -54,7 +58,8 @@ export interface BattleState {
 
 export function createBattleArthropod(arthropod: Arthropod): BattleArthropod {
   const baseHp = Math.floor(
-    (arthropod.physical.strengthIndex + arthropod.defense.armorRating) * 0.8 + 100
+    (arthropod.physical.strengthIndex + arthropod.defense.armorRating) * 0.8 +
+      100
   )
   const maxHp = Math.max(150, baseHp)
 
@@ -149,7 +154,13 @@ export function calculateDamage(
   const stageFactor = strengthMultiplier / defenseMultiplier
 
   const finalDamage = Math.floor(
-    baseDamage * totalMultiplier * attackPenalty * damageReduction * burnPenalty * stageFactor * defensiveReduction
+    baseDamage *
+      totalMultiplier *
+      attackPenalty *
+      damageReduction *
+      burnPenalty *
+      stageFactor *
+      defensiveReduction
   )
 
   return {
@@ -343,9 +354,7 @@ export function executeTurn(
       actionId: action.id,
     }
 
-    if (
-      !checkAccuracy(action, defender, attacker.base.physical.lengthMm)
-    ) {
+    if (!checkAccuracy(action, defender, attacker.base.physical.lengthMm)) {
       logEntry.action += ' 그러나 빗나갔다!'
       startCooldown(attacker, action)
       newState.log.push(logEntry)
@@ -562,7 +571,10 @@ export async function runInteractiveBattle(
     const allPlayerActions = getActionsByIds(state.player.actions)
     const allOpponentActions = getActionsByIds(state.opponent.actions)
     const playerActions = getAvailableActions(allPlayerActions, state.player)
-    const opponentActions = getAvailableActions(allOpponentActions, state.opponent)
+    const opponentActions = getAvailableActions(
+      allOpponentActions,
+      state.opponent
+    )
 
     const [playerAction, opponentAction] = await Promise.all([
       player1.selectAction({
@@ -570,14 +582,16 @@ export async function runInteractiveBattle(
         opponent: state.opponent,
         environment: env,
         turn: state.turn,
-        availableActions: playerActions.length > 0 ? playerActions : allPlayerActions,
+        availableActions:
+          playerActions.length > 0 ? playerActions : allPlayerActions,
       }),
       player2.selectAction({
         self: state.opponent,
         opponent: state.player,
         environment: env,
         turn: state.turn,
-        availableActions: opponentActions.length > 0 ? opponentActions : allOpponentActions,
+        availableActions:
+          opponentActions.length > 0 ? opponentActions : allOpponentActions,
       }),
     ])
 

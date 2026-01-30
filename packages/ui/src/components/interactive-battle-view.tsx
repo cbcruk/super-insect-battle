@@ -32,7 +32,12 @@ interface InteractiveBattleViewProps {
   onSaveReplay?: (replay: BattleReplay) => void
 }
 
-type Phase = 'starting' | 'selecting' | 'animating' | 'finished' | 'replay-prompt'
+type Phase =
+  | 'starting'
+  | 'selecting'
+  | 'animating'
+  | 'finished'
+  | 'replay-prompt'
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -52,10 +57,14 @@ export function InteractiveBattleView({
   const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
   const [finalReplay, setFinalReplay] = useState<BattleReplay | null>(null)
 
-  const resolverRef = useRef<{ current: ActionResolver | null }>({ current: null })
+  const resolverRef = useRef<{ current: ActionResolver | null }>({
+    current: null,
+  })
   const pendingContextRef = useRef<BattleContext | null>(null)
   const animatingRef = useRef(false)
-  const logQueueRef = useRef<{ entries: BattleLogEntry[]; finished: boolean }[]>([])
+  const logQueueRef = useRef<
+    { entries: BattleLogEntry[]; finished: boolean }[]
+  >([])
   const displayedCountRef = useRef(0)
 
   const processQueue = useCallback(async () => {
@@ -232,10 +241,12 @@ export function InteractiveBattleView({
 
       <Box justifyContent="space-between" paddingX={2}>
         <Text color={playerEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.player.base.nameKo}: {formatEnvironmentBonus(playerEnvBonus)}
+          {battleState.player.base.nameKo}:{' '}
+          {formatEnvironmentBonus(playerEnvBonus)}
         </Text>
         <Text color={opponentEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.opponent.base.nameKo}: {formatEnvironmentBonus(opponentEnvBonus)}
+          {battleState.opponent.base.nameKo}:{' '}
+          {formatEnvironmentBonus(opponentEnvBonus)}
         </Text>
       </Box>
 
@@ -260,8 +271,7 @@ export function InteractiveBattleView({
 
           return (
             <Box key={index} flexDirection="column">
-              {index === 0 ||
-              displayedLogs[index - 1].turn !== entry.turn ? (
+              {index === 0 || displayedLogs[index - 1].turn !== entry.turn ? (
                 <Text color="yellow">[턴 {entry.turn}]</Text>
               ) : null}
               <Box>
@@ -301,7 +311,8 @@ export function InteractiveBattleView({
                                 : 'red'
                             }
                           >
-                            [env:{entry.factors.attackerEnvBonus.toFixed(2)}x]{' '}
+                            [env:{entry.factors.attackerEnvBonus.toFixed(2)}
+                            x]{' '}
                           </Text>
                         )}
                       {entry.factors.critical && (

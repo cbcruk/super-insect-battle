@@ -8,7 +8,11 @@ import {
 import { arthropods } from '../data/arthropods'
 import { actions, getActionsByIds } from '../data/actions'
 import { createAIPlayer } from './ai-player'
-import { startCooldown, getCooldownRemaining, getAvailableActions } from './cooldown'
+import {
+  startCooldown,
+  getCooldownRemaining,
+  getAvailableActions,
+} from './cooldown'
 import { runReplayBattle } from './replay'
 import { getRandomEnvironment } from './environment'
 import type { Player } from '../types/player'
@@ -127,7 +131,6 @@ describe('Integration Tests', () => {
       if (damage1 !== undefined && damage2 !== undefined) {
         expect(damage2).toBeLessThanOrEqual(damage1)
       }
-
     })
 
     it('paralyzed arthropod may skip turn', () => {
@@ -245,8 +248,14 @@ describe('Integration Tests', () => {
     })
 
     it('aggressive AI uses more attack actions', async () => {
-      const aggressive = createAIPlayer({ difficulty: 'hard', personality: 'aggressive' })
-      const defensive = createAIPlayer({ difficulty: 'hard', personality: 'defensive' })
+      const aggressive = createAIPlayer({
+        difficulty: 'hard',
+        personality: 'aggressive',
+      })
+      const defensive = createAIPlayer({
+        difficulty: 'hard',
+        personality: 'defensive',
+      })
 
       const result = await runInteractiveBattle(
         arthropods.rhinoceros_beetle,
@@ -295,8 +304,16 @@ describe('Integration Tests', () => {
       stateBrace.opponent.battleMode = 'brace'
       stateBrace.opponent.modeTurns = 2
 
-      const result1 = executeTurn(stateNoBrace, actions.scythe_strike, actions.horn_thrust)
-      const result2 = executeTurn(stateBrace, actions.scythe_strike, actions.horn_thrust)
+      const result1 = executeTurn(
+        stateNoBrace,
+        actions.scythe_strike,
+        actions.horn_thrust
+      )
+      const result2 = executeTurn(
+        stateBrace,
+        actions.scythe_strike,
+        actions.horn_thrust
+      )
 
       const damage1 = result1.log.find(
         (e) => e.actor === 'player' && e.damage !== undefined
@@ -317,7 +334,11 @@ describe('Integration Tests', () => {
       stateFlee.opponent.battleMode = 'flee'
       stateFlee.opponent.modeTurns = 2
 
-      const result = executeTurn(stateFlee, actions.scythe_strike, actions.horn_thrust)
+      const result = executeTurn(
+        stateFlee,
+        actions.scythe_strike,
+        actions.horn_thrust
+      )
 
       expect(result.log.length).toBeGreaterThan(0)
     })
@@ -325,8 +346,14 @@ describe('Integration Tests', () => {
 
   describe('multi-system interaction', () => {
     it('completes a full battle with all systems active', async () => {
-      const p1 = createAIPlayer({ difficulty: 'hard', personality: 'aggressive' })
-      const p2 = createAIPlayer({ difficulty: 'medium', personality: 'defensive' })
+      const p1 = createAIPlayer({
+        difficulty: 'hard',
+        personality: 'aggressive',
+      })
+      const p2 = createAIPlayer({
+        difficulty: 'medium',
+        personality: 'defensive',
+      })
 
       const turnStates: BattleState[] = []
 

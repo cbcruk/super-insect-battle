@@ -1,5 +1,10 @@
 import type { Action } from '../types/action'
-import type { Player, BattleContext, AIDifficulty, AIPersonality } from '../types/player'
+import type {
+  Player,
+  BattleContext,
+  AIDifficulty,
+  AIPersonality,
+} from '../types/player'
 import { selectStrategicAIAction } from './ai-strategy'
 
 function selectRandomAction(availableActions: Action[]): Action {
@@ -30,9 +35,18 @@ export function createAIPlayer(
         case 'easy':
           return selectRandomAction(context.availableActions)
         case 'medium':
-          return selectStrategicAIAction(context.self, context.opponent, personality)
+          return selectStrategicAIAction(
+            context.self,
+            context.opponent,
+            personality
+          )
         case 'hard':
-          return selectStrategicAIAction(context.self, context.opponent, personality, true)
+          return selectStrategicAIAction(
+            context.self,
+            context.opponent,
+            personality,
+            true
+          )
       }
     },
   }

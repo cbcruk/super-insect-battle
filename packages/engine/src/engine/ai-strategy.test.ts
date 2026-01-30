@@ -55,7 +55,10 @@ describe('AIStrategy', () => {
       let venomCount = 0
       for (let i = 0; i < 100; i++) {
         const action = selectStrategicAIAction(attacker, defender)
-        if (action.effect?.type === 'status' && action.effect.condition === 'poison') {
+        if (
+          action.effect?.type === 'status' &&
+          action.effect.condition === 'poison'
+        ) {
           venomCount++
         }
       }
@@ -94,7 +97,9 @@ describe('AIStrategy', () => {
 
       attacker.actions = []
 
-      expect(() => selectStrategicAIAction(attacker, defender)).toThrow('No actions available')
+      expect(() => selectStrategicAIAction(attacker, defender)).toThrow(
+        'No actions available'
+      )
     })
   })
 })

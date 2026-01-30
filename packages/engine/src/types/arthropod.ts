@@ -46,7 +46,13 @@ export interface Arthropod {
   description: string
 }
 
-export type StatusCondition = 'poison' | 'bind' | 'paralysis' | 'confusion' | 'sleep' | 'burn'
+export type StatusCondition =
+  | 'poison'
+  | 'bind'
+  | 'paralysis'
+  | 'confusion'
+  | 'sleep'
+  | 'burn'
 
 export type BattleMode = 'flee' | 'brace'
 

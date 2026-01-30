@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'ink'
-import type { Arthropod, BattleState, BattleReplay } from '@super-insect-battle/engine'
+import type {
+  Arthropod,
+  BattleState,
+  BattleReplay,
+} from '@super-insect-battle/engine'
 import { Header } from './header.js'
 import { MainMenu, type MenuScreen } from './main-menu.js'
 import { ArthropodSelect } from './arthropod-select.js'

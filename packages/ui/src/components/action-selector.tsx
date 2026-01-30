@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import { Box, Text, useInput } from 'ink'
 import type { Action, BattleArthropod } from '@super-insect-battle/engine'
-import { getActionsByIds, getCooldownRemaining } from '@super-insect-battle/engine'
+import {
+  getActionsByIds,
+  getCooldownRemaining,
+} from '@super-insect-battle/engine'
 
 interface ActionSelectorProps {
   arthropod: BattleArthropod
@@ -123,11 +126,11 @@ export function ActionSelector({
               <Text color={isSelected ? 'yellowBright' : undefined}>
                 {isSelected ? '▸ ' : '  '}
               </Text>
-              <Text color={catColor}>[{getCategoryLabel(action.category)}]</Text>
+              <Text color={catColor}>
+                [{getCategoryLabel(action.category)}]
+              </Text>
               <Text> {action.nameKo}</Text>
-              {action.power > 0 && (
-                <Text color="white"> P:{action.power}</Text>
-              )}
+              {action.power > 0 && <Text color="white"> P:{action.power}</Text>}
               <Text color="gray"> A:{action.accuracy}</Text>
               {action.cooldown > 0 && (
                 <Text color="gray"> CD:{action.cooldown}</Text>

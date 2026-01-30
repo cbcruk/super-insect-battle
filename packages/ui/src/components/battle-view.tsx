@@ -91,10 +91,12 @@ export function BattleView({
 
       <Box justifyContent="space-between" paddingX={2}>
         <Text color={playerEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.player.base.nameKo}: {formatEnvironmentBonus(playerEnvBonus)}
+          {battleState.player.base.nameKo}:{' '}
+          {formatEnvironmentBonus(playerEnvBonus)}
         </Text>
         <Text color={opponentEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.opponent.base.nameKo}: {formatEnvironmentBonus(opponentEnvBonus)}
+          {battleState.opponent.base.nameKo}:{' '}
+          {formatEnvironmentBonus(opponentEnvBonus)}
         </Text>
       </Box>
 
@@ -133,20 +135,36 @@ export function BattleView({
                     <Text color="gray">
                       {'   '}
                       {entry.factors.styleMatchup !== 1 && (
-                        <Text color={entry.factors.styleMatchup > 1 ? 'green' : 'red'}>
+                        <Text
+                          color={
+                            entry.factors.styleMatchup > 1 ? 'green' : 'red'
+                          }
+                        >
                           [style:{entry.factors.styleMatchup.toFixed(1)}x]{' '}
                         </Text>
                       )}
                       {entry.factors.weightBonus !== 1 && (
-                        <Text color={entry.factors.weightBonus > 1 ? 'green' : 'red'}>
+                        <Text
+                          color={
+                            entry.factors.weightBonus > 1 ? 'green' : 'red'
+                          }
+                        >
                           [weight:{entry.factors.weightBonus.toFixed(2)}x]{' '}
                         </Text>
                       )}
-                      {entry.factors.attackerEnvBonus && entry.factors.attackerEnvBonus !== 1 && (
-                        <Text color={entry.factors.attackerEnvBonus > 1 ? 'green' : 'red'}>
-                          [env:{entry.factors.attackerEnvBonus.toFixed(2)}x]{' '}
-                        </Text>
-                      )}
+                      {entry.factors.attackerEnvBonus &&
+                        entry.factors.attackerEnvBonus !== 1 && (
+                          <Text
+                            color={
+                              entry.factors.attackerEnvBonus > 1
+                                ? 'green'
+                                : 'red'
+                            }
+                          >
+                            [env:{entry.factors.attackerEnvBonus.toFixed(2)}
+                            x]{' '}
+                          </Text>
+                        )}
                       {entry.factors.critical && (
                         <Text color="yellow">[CRITICAL!]</Text>
                       )}

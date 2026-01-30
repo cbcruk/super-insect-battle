@@ -14,7 +14,12 @@ import {
 } from './environment'
 import type { Arthropod } from '../types/arthropod'
 import type { Environment } from '../types/environment'
-import { TERRAINS, TIMES_OF_DAY, WEATHERS, TERRAIN_WEATHERS } from '../types/environment'
+import {
+  TERRAINS,
+  TIMES_OF_DAY,
+  WEATHERS,
+  TERRAIN_WEATHERS,
+} from '../types/environment'
 
 const createMockArthropod = (
   preferredTerrains: Array<'forest' | 'desert' | 'wetland' | 'cave'>,
@@ -35,7 +40,11 @@ const createMockArthropod = (
 describe('getEnvironmentBonus', () => {
   it('returns max bonus for preferred terrain and time with clear weather', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const environment: Environment = { terrain: 'forest', timeOfDay: 'night', weather: 'clear' }
+    const environment: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
 
     const bonus = getEnvironmentBonus(arthropod, environment)
 
@@ -44,7 +53,11 @@ describe('getEnvironmentBonus', () => {
 
   it('returns terrain bonus only for preferred terrain but wrong time', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const environment: Environment = { terrain: 'forest', timeOfDay: 'day', weather: 'clear' }
+    const environment: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'day',
+      weather: 'clear',
+    }
 
     const bonus = getEnvironmentBonus(arthropod, environment)
 
@@ -53,7 +66,11 @@ describe('getEnvironmentBonus', () => {
 
   it('returns time bonus only for preferred time but wrong terrain', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const environment: Environment = { terrain: 'desert', timeOfDay: 'night', weather: 'clear' }
+    const environment: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
 
     const bonus = getEnvironmentBonus(arthropod, environment)
 
@@ -62,7 +79,11 @@ describe('getEnvironmentBonus', () => {
 
   it('returns penalty for both wrong terrain and time', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const environment: Environment = { terrain: 'desert', timeOfDay: 'day', weather: 'clear' }
+    const environment: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'day',
+      weather: 'clear',
+    }
 
     const bonus = getEnvironmentBonus(arthropod, environment)
 
@@ -71,8 +92,16 @@ describe('getEnvironmentBonus', () => {
 
   it('handles multiple preferred terrains', () => {
     const arthropod = createMockArthropod(['desert', 'cave'], 'night')
-    const desertEnv: Environment = { terrain: 'desert', timeOfDay: 'night', weather: 'clear' }
-    const caveEnv: Environment = { terrain: 'cave', timeOfDay: 'night', weather: 'clear' }
+    const desertEnv: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
+    const caveEnv: Environment = {
+      terrain: 'cave',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
 
     expect(getEnvironmentBonus(arthropod, desertEnv)).toBeCloseTo(1.265, 3)
     expect(getEnvironmentBonus(arthropod, caveEnv)).toBeCloseTo(1.265, 3)
@@ -80,8 +109,16 @@ describe('getEnvironmentBonus', () => {
 
   it('handles both preferred time', () => {
     const arthropod = createMockArthropod(['forest'], 'both')
-    const dayEnv: Environment = { terrain: 'forest', timeOfDay: 'day', weather: 'clear' }
-    const nightEnv: Environment = { terrain: 'forest', timeOfDay: 'night', weather: 'clear' }
+    const dayEnv: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'day',
+      weather: 'clear',
+    }
+    const nightEnv: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
 
     expect(getEnvironmentBonus(arthropod, dayEnv)).toBeCloseTo(1.265, 3)
     expect(getEnvironmentBonus(arthropod, nightEnv)).toBeCloseTo(1.265, 3)
@@ -91,49 +128,77 @@ describe('getEnvironmentBonus', () => {
 describe('getWeatherBonus', () => {
   it('returns 1.0 for clear weather', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const env: Environment = { terrain: 'forest', timeOfDay: 'night', weather: 'clear' }
+    const env: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'night',
+      weather: 'clear',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(1.0)
   })
 
   it('returns bonus for wetland arthropod in rain', () => {
     const arthropod = createMockArthropod(['wetland'], 'night')
-    const env: Environment = { terrain: 'wetland', timeOfDay: 'night', weather: 'rain' }
+    const env: Environment = {
+      terrain: 'wetland',
+      timeOfDay: 'night',
+      weather: 'rain',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(1.1)
   })
 
   it('returns penalty for non-wetland arthropod in rain', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const env: Environment = { terrain: 'forest', timeOfDay: 'night', weather: 'rain' }
+    const env: Environment = {
+      terrain: 'forest',
+      timeOfDay: 'night',
+      weather: 'rain',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(0.95)
   })
 
   it('returns bonus for day arthropod in sunny weather', () => {
     const arthropod = createMockArthropod(['forest'], 'day')
-    const env: Environment = { terrain: 'desert', timeOfDay: 'day', weather: 'sunny' }
+    const env: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'day',
+      weather: 'sunny',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(1.15)
   })
 
   it('returns penalty for night arthropod in sunny weather', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const env: Environment = { terrain: 'desert', timeOfDay: 'day', weather: 'sunny' }
+    const env: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'day',
+      weather: 'sunny',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(0.9)
   })
 
   it('returns bonus for desert arthropod in sandstorm', () => {
     const arthropod = createMockArthropod(['desert'], 'night')
-    const env: Environment = { terrain: 'desert', timeOfDay: 'night', weather: 'sandstorm' }
+    const env: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'night',
+      weather: 'sandstorm',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(1.1)
   })
 
   it('returns penalty for non-desert arthropod in sandstorm', () => {
     const arthropod = createMockArthropod(['forest'], 'night')
-    const env: Environment = { terrain: 'desert', timeOfDay: 'night', weather: 'sandstorm' }
+    const env: Environment = {
+      terrain: 'desert',
+      timeOfDay: 'night',
+      weather: 'sandstorm',
+    }
 
     expect(getWeatherBonus(arthropod, env)).toBe(0.9)
   })
@@ -176,15 +241,27 @@ describe('random environment generators', () => {
 
 describe('formatEnvironment', () => {
   it('formats environment with weather correctly', () => {
-    expect(formatEnvironment({ terrain: 'forest', timeOfDay: 'day', weather: 'clear' })).toBe(
-      '숲 / 낮 / 맑음'
-    )
-    expect(formatEnvironment({ terrain: 'desert', timeOfDay: 'night', weather: 'sandstorm' })).toBe(
-      '사막 / 밤 / 모래폭풍'
-    )
-    expect(formatEnvironment({ terrain: 'wetland', timeOfDay: 'day', weather: 'rain' })).toBe(
-      '습지 / 낮 / 비'
-    )
+    expect(
+      formatEnvironment({
+        terrain: 'forest',
+        timeOfDay: 'day',
+        weather: 'clear',
+      })
+    ).toBe('숲 / 낮 / 맑음')
+    expect(
+      formatEnvironment({
+        terrain: 'desert',
+        timeOfDay: 'night',
+        weather: 'sandstorm',
+      })
+    ).toBe('사막 / 밤 / 모래폭풍')
+    expect(
+      formatEnvironment({
+        terrain: 'wetland',
+        timeOfDay: 'day',
+        weather: 'rain',
+      })
+    ).toBe('습지 / 낮 / 비')
   })
 })
 

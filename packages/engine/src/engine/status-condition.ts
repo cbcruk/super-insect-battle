@@ -115,7 +115,10 @@ export function processEndOfTurnStatus(arthropod: BattleArthropod): {
 } {
   if (arthropod.statusCondition === 'poison') {
     const potencyMultiplier = arthropod.appliedVenomPotency / 50
-    const damage = Math.max(1, Math.floor((arthropod.maxHp / 6) * potencyMultiplier))
+    const damage = Math.max(
+      1,
+      Math.floor((arthropod.maxHp / 6) * potencyMultiplier)
+    )
     arthropod.currentHp = Math.max(0, arthropod.currentHp - damage)
 
     return {

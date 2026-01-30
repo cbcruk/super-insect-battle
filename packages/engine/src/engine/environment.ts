@@ -1,5 +1,10 @@
 import type { Arthropod } from '../types/arthropod'
-import type { Environment, Terrain, TimeOfDay, Weather } from '../types/environment'
+import type {
+  Environment,
+  Terrain,
+  TimeOfDay,
+  Weather,
+} from '../types/environment'
 import { TERRAINS, TIMES_OF_DAY, TERRAIN_WEATHERS } from '../types/environment'
 
 export const terrainNames: Record<Terrain, string> = {

@@ -22,7 +22,12 @@ export type {
   Environment,
   HabitatPreference,
 } from './types/environment'
-export { TERRAINS, TIMES_OF_DAY, WEATHERS, TERRAIN_WEATHERS } from './types/environment'
+export {
+  TERRAINS,
+  TIMES_OF_DAY,
+  WEATHERS,
+  TERRAIN_WEATHERS,
+} from './types/environment'
 
 export { arthropods, arthropodList, getArthropodById } from './data/arthropods'
 export {
@@ -83,7 +88,13 @@ export { selectStrategicAIAction } from './engine/ai-strategy'
 
 export { createAIPlayer, type AIPlayerOptions } from './engine/ai-player'
 
-export type { Player, PlayerType, AIDifficulty, AIPersonality, BattleContext } from './types/player'
+export type {
+  Player,
+  PlayerType,
+  AIDifficulty,
+  AIPersonality,
+  BattleContext,
+} from './types/player'
 
 export {
   isActionOnCooldown,

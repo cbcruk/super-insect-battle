@@ -20,11 +20,17 @@ interface ScoredAction {
   score: number
 }
 
-function createAIContext(attacker: BattleArthropod, defender: BattleArthropod): AIContext {
+function createAIContext(
+  attacker: BattleArthropod,
+  defender: BattleArthropod
+): AIContext {
   return {
     attacker,
     defender,
-    styleAdvantage: getStyleMatchup(attacker.base.behavior.style, defender.base.behavior.style),
+    styleAdvantage: getStyleMatchup(
+      attacker.base.behavior.style,
+      defender.base.behavior.style
+    ),
     hpRatio: attacker.currentHp / attacker.maxHp,
     opponentHpRatio: defender.currentHp / defender.maxHp,
     defenderHasStatus: defender.statusCondition !== null,
@@ -50,7 +56,11 @@ function scoreAction(action: Action, ctx: AIContext): number {
     if (action.power >= 80) score += 15
   }
 
-  if (!ctx.defenderHasStatus && action.effect?.type === 'status' && action.effect.condition) {
+  if (
+    !ctx.defenderHasStatus &&
+    action.effect?.type === 'status' &&
+    action.effect.condition
+  ) {
     score += 30
   }
 

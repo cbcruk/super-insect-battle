@@ -35,8 +35,12 @@ export function applyStatStageChange(
   const newValue = Math.max(-6, Math.min(6, current + stages))
 
   if (newValue === current) {
-    const direction = stages > 0 ? '더 이상 오를 수 없다' : '더 이상 내려갈 수 없다'
-    return { applied: false, message: `${arthropod.base.nameKo}의 ${STAT_NAMES[stat]}은(는) ${direction}!` }
+    const direction =
+      stages > 0 ? '더 이상 오를 수 없다' : '더 이상 내려갈 수 없다'
+    return {
+      applied: false,
+      message: `${arthropod.base.nameKo}의 ${STAT_NAMES[stat]}은(는) ${direction}!`,
+    }
   }
 
   arthropod.statStages[stat] = newValue

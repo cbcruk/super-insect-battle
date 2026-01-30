@@ -30,7 +30,9 @@ function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
 }
 
-function transformHabitat(habitat: Record<string, unknown>): Record<string, unknown> {
+function transformHabitat(
+  habitat: Record<string, unknown>
+): Record<string, unknown> {
   return {
     preferredTerrains: habitat['preferred_terrains'],
     preferredTime: habitat['preferred_time'],
@@ -74,7 +76,10 @@ function formatValue(value: unknown, indent: number = 0): string {
 }
 
 function generateArthropods(): void {
-  const data = readYamlFile('arthropods.yaml') as Record<string, Record<string, unknown>>
+  const data = readYamlFile('arthropods.yaml') as Record<
+    string,
+    Record<string, unknown>
+  >
 
   const entries = Object.entries(data)
     .map(([key, value]) => {
@@ -98,7 +103,10 @@ ${entries}
 }
 
 function generateActions(): void {
-  const data = readYamlFile('actions.yaml') as Record<string, Record<string, unknown>>
+  const data = readYamlFile('actions.yaml') as Record<
+    string,
+    Record<string, unknown>
+  >
 
   const entries = Object.entries(data)
     .map(([key, value]) => {
