@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import type { Arthropod } from '@super-insect-battle/engine'
+import type { BattleMode } from '@super-insect-battle/web-ui'
 import {
   ArthropodSelect,
   useGameStore,
@@ -14,6 +15,8 @@ export function BattleSetupPage(): React.ReactNode {
   const selectedOpponent = useGameStore((s) => s.selectedOpponent)
   const setPlayer = useGameStore((s) => s.setPlayer)
   const setOpponent = useGameStore((s) => s.setOpponent)
+  const battleMode = useGameStore((s) => s.battleMode)
+  const setBattleMode = useGameStore((s) => s.setBattleMode)
 
   const phase: SelectPhase = selectedPlayer == null ? '1p' : '2p'
   const canStart = selectedPlayer != null && selectedOpponent != null
@@ -81,7 +84,8 @@ export function BattleSetupPage(): React.ReactNode {
         onSelect={handleSelect}
       />
 
-      <div className="flex justify-center pt-2">
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <ModeToggle mode={battleMode} onChange={setBattleMode} />
         <button
           onClick={handleStart}
           disabled={!canStart}
@@ -102,6 +106,39 @@ interface PortraitSlotProps {
   side: '1p' | '2p'
   arthropod: Arthropod | null
   active: boolean
+}
+
+function ModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: BattleMode
+  onChange: (mode: BattleMode) => void
+}): React.ReactNode {
+  return (
+    <div className="flex rounded-lg border border-gray-700 bg-gray-900/60">
+      <button
+        onClick={() => onChange('player-vs-ai')}
+        className={`rounded-l-lg px-4 py-2 text-sm font-bold transition-colors ${
+          mode === 'player-vs-ai'
+            ? 'bg-cyan-500/20 text-cyan-400'
+            : 'text-gray-500 hover:text-gray-300'
+        }`}
+      >
+        Player vs AI
+      </button>
+      <button
+        onClick={() => onChange('ai-vs-ai')}
+        className={`rounded-r-lg px-4 py-2 text-sm font-bold transition-colors ${
+          mode === 'ai-vs-ai'
+            ? 'bg-amber-500/20 text-amber-400'
+            : 'text-gray-500 hover:text-gray-300'
+        }`}
+      >
+        AI vs AI
+      </button>
+    </div>
+  )
 }
 
 function PortraitSlot({

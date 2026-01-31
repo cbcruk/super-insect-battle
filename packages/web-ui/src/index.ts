@@ -7,6 +7,8 @@ export { StatusBar } from './components/battle-scene/status-bar/status-bar.tsx'
 export { HpBar } from './components/battle-scene/status-bar/hp-bar.tsx'
 export { BattleLog } from './components/battle-scene/battle-log/battle-log.tsx'
 export { BattleResult } from './components/battle-scene/battle-result/battle-result.tsx'
+export { ActionPanel } from './components/battle-scene/action-panel/action-panel.tsx'
+export { ActionButton } from './components/battle-scene/action-panel/action-button.tsx'
 export { ArthropodSelect } from './components/arthropod-select/arthropod-select.tsx'
 export { ArthropodCard } from './components/arthropod-select/arthropod-card.tsx'
 
@@ -23,7 +25,7 @@ export {
 } from './bridge/interactive-battle-runner.ts'
 export { BattleApiClient } from './bridge/api-client.ts'
 
-export type { GameStore, AIConfig } from './stores/game-store.types.ts'
+export type { GameStore, AIConfig, BattleMode } from './stores/game-store.types.ts'
 export type {
   BattleStore,
   BattlePhase,
