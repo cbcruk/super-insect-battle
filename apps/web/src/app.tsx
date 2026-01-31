@@ -7,6 +7,7 @@ import { BattlePage } from './pages/battle.tsx'
 import { EncyclopediaPage } from './pages/encyclopedia.tsx'
 import { EncyclopediaDetailPage } from './pages/encyclopedia-detail.tsx'
 import { StatisticsPage } from './pages/statistics.tsx'
+import { ReplayPage } from './pages/replay.tsx'
 
 export default function App(): React.ReactNode {
   return (
@@ -19,6 +20,7 @@ export default function App(): React.ReactNode {
           <Route path="encyclopedia" element={<EncyclopediaPage />} />
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
+          <Route path="replay" element={<ReplayPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -7,6 +7,9 @@ interface BattleResultProps {
   opponent: Arthropod
   totalTurns: number
   onClose: () => void
+  onSaveReplay?: () => void
+  onDownloadReplay?: () => void
+  replaySaved?: boolean
 }
 
 export function BattleResult({
@@ -15,6 +18,9 @@ export function BattleResult({
   opponent,
   totalTurns,
   onClose,
+  onSaveReplay,
+  onDownloadReplay,
+  replaySaved = false,
 }: BattleResultProps): React.ReactNode {
   const winnerName =
     winner === 'player'
@@ -39,12 +45,31 @@ export function BattleResult({
           </>
         )}
         <p className="mt-2 text-sm text-gray-500">Total turns: {totalTurns}</p>
-        <button
-          onClick={onClose}
-          className="mt-6 rounded-lg bg-amber-500 px-6 py-2 font-bold text-black transition-colors hover:bg-amber-400"
-        >
-          Return
-        </button>
+        <div className="mt-6 flex gap-3 justify-center">
+          {onSaveReplay && (
+            <button
+              onClick={onSaveReplay}
+              disabled={replaySaved}
+              className="rounded-lg border border-gray-600 px-4 py-2 text-sm font-bold text-gray-300 transition-colors hover:border-amber-500 hover:text-amber-400 disabled:opacity-40"
+            >
+              {replaySaved ? 'Saved' : 'Save Replay'}
+            </button>
+          )}
+          {onDownloadReplay && (
+            <button
+              onClick={onDownloadReplay}
+              className="rounded-lg border border-gray-600 px-4 py-2 text-sm font-bold text-gray-300 transition-colors hover:border-amber-500 hover:text-amber-400"
+            >
+              Download
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-amber-500 px-6 py-2 font-bold text-black transition-colors hover:bg-amber-400"
+          >
+            Return
+          </button>
+        </div>
       </div>
     </div>
   )

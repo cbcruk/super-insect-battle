@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router'
-import { simulateBattle } from '@super-insect-battle/engine'
+import { simulateBattle, serializeReplay } from '@super-insect-battle/engine'
 import type { BattleState, BattleLogEntry, Action } from '@super-insect-battle/engine'
 import {
   BattleScene,
@@ -10,6 +10,7 @@ import {
 } from '@super-insect-battle/web-ui'
 
 const LOG_DELAY_MS = 600
+const REPLAY_STORAGE_KEY = 'sib-replays'
 
 export function BattlePage(): React.ReactNode {
   const navigate = useNavigate()
@@ -136,10 +137,13 @@ function InteractiveBattle({
   const selectAction = useBattleStore((s) => s.selectAction)
   const reset = useBattleStore((s) => s.reset)
 
+  const finalReplay = useBattleStore((s) => s.finalReplay)
+
   const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
   const [displayedPlayerHp, setDisplayedPlayerHp] = useState(0)
   const [displayedOpponentHp, setDisplayedOpponentHp] = useState(0)
   const [animating, setAnimating] = useState(false)
+  const [replaySaved, setReplaySaved] = useState(false)
 
   const prevLogLenRef = useRef(0)
   const hpInitializedRef = useRef(false)
@@ -213,9 +217,59 @@ function InteractiveBattle({
     onClose()
   }
 
+  function handleSaveReplay(): void {
+    if (!finalReplay) return
+    try {
+      const raw = localStorage.getItem(REPLAY_STORAGE_KEY)
+      const existing = raw ? (JSON.parse(raw) as unknown[]) : []
+      const entry = {
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        playerName: selectedPlayer.nameKo,
+        opponentName: selectedOpponent.nameKo,
+        winner: finalReplay.winner,
+        totalTurns: finalReplay.turns.length,
+        data: serializeReplay(finalReplay),
+      }
+      localStorage.setItem(REPLAY_STORAGE_KEY, JSON.stringify([entry, ...existing]))
+      setReplaySaved(true)
+    } catch {
+      // storage full or unavailable
+    }
+  }
+
+  function handleDownloadReplay(): void {
+    if (!finalReplay) return
+    const data = serializeReplay(finalReplay)
+    const blob = new Blob([data], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `replay-${selectedPlayer.id}-vs-${selectedOpponent.id}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const isSelecting = phase === 'selecting' && !animating
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent): void {
+      if (!isSelecting || !battleContext) return
+      const num = parseInt(e.key, 10)
+      if (num >= 1 && num <= battleContext.availableActions.length) {
+        const action = battleContext.availableActions[num - 1]
+        const cd = battleState?.player.actionCooldowns[action.id] ?? 0
+        if (cd <= 0) {
+          handleSelectAction(action)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isSelecting, battleContext, battleState])
+
   const turnNumber = battleState?.turn ?? 1
   const winner = phase === 'finished' ? (battleState?.winner ?? null) : null
-  const isSelecting = phase === 'selecting' && !animating
 
   return (
     <div className="flex h-full flex-col">
@@ -233,6 +287,9 @@ function InteractiveBattle({
           winner={winner}
           finished={phase === 'finished'}
           onClose={handleClose}
+          onSaveReplay={finalReplay ? handleSaveReplay : undefined}
+          onDownloadReplay={finalReplay ? handleDownloadReplay : undefined}
+          replaySaved={replaySaved}
         />
       </div>
 

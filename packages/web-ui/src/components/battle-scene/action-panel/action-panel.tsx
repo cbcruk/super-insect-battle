@@ -24,11 +24,12 @@ export function ActionPanel({
         )}
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <ActionButton
             key={action.id}
             action={action}
             cooldown={player.actionCooldowns[action.id] ?? 0}
+            shortcutKey={index + 1}
             onSelect={() => {
               if (!disabled) onSelectAction(action)
             }}

@@ -25,12 +25,14 @@ const categoryStyles: Record<
 interface ActionButtonProps {
   action: Action
   cooldown: number
+  shortcutKey?: number
   onSelect: () => void
 }
 
 export function ActionButton({
   action,
   cooldown,
+  shortcutKey,
   onSelect,
 }: ActionButtonProps): React.ReactNode {
   const style = categoryStyles[action.category] ?? categoryStyles.attack
@@ -51,9 +53,16 @@ export function ActionButton({
         <span className="text-sm font-bold text-gray-200">
           {action.nameKo}
         </span>
-        <span className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold text-gray-400">
-          {action.category.toUpperCase()}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {shortcutKey != null && (
+            <span className="rounded bg-gray-700 px-1 py-0.5 text-[10px] font-bold text-gray-400">
+              {shortcutKey}
+            </span>
+          )}
+          <span className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold text-gray-400">
+            {action.category.toUpperCase()}
+          </span>
+        </div>
       </div>
       <div className="mt-1.5 flex items-center gap-3 text-[11px] text-gray-400">
         {action.power > 0 && (

@@ -24,6 +24,9 @@ interface BattleSceneProps {
   winner: 'player' | 'opponent' | 'draw' | null
   finished: boolean
   onClose: () => void
+  onSaveReplay?: () => void
+  onDownloadReplay?: () => void
+  replaySaved?: boolean
 }
 
 export function BattleScene({
@@ -40,9 +43,12 @@ export function BattleScene({
   winner,
   finished,
   onClose,
+  onSaveReplay,
+  onDownloadReplay,
+  replaySaved,
 }: BattleSceneProps): React.ReactNode {
   return (
-    <div className="relative flex h-full gap-4 p-4">
+    <div className="relative flex h-full flex-col gap-4 p-3 lg:flex-row lg:p-4">
       <div className="flex flex-1 flex-col gap-3">
         <BattleField
           player={player}
@@ -71,7 +77,7 @@ export function BattleScene({
         )}
       </div>
 
-      <div className="w-80">
+      <div className="max-h-48 lg:max-h-none lg:w-80">
         <BattleLog
           entries={displayedLogs}
           playerName={player.nameKo}
@@ -86,6 +92,9 @@ export function BattleScene({
           opponent={opponent}
           totalTurns={turnNumber}
           onClose={onClose}
+          onSaveReplay={onSaveReplay}
+          onDownloadReplay={onDownloadReplay}
+          replaySaved={replaySaved}
         />
       )}
     </div>
