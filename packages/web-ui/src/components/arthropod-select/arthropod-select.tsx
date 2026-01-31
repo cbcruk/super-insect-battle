@@ -4,29 +4,32 @@ import { arthropodList } from '@super-insect-battle/engine'
 import { ArthropodCard } from './arthropod-card.tsx'
 
 interface ArthropodSelectProps {
-  selected: Arthropod | null
+  selectedPlayer: Arthropod | null
+  selectedOpponent: Arthropod | null
   onSelect: (arthropod: Arthropod) => void
-  label: string
 }
 
 export function ArthropodSelect({
-  selected,
+  selectedPlayer,
+  selectedOpponent,
   onSelect,
-  label,
 }: ArthropodSelectProps): React.ReactNode {
+  function getSelectedAs(arthropod: Arthropod): '1p' | '2p' | null {
+    if (selectedPlayer?.id === arthropod.id) return '1p'
+    if (selectedOpponent?.id === arthropod.id) return '2p'
+    return null
+  }
+
   return (
-    <div>
-      <h3 className="mb-3 text-sm font-bold text-gray-400">{label}</h3>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {arthropodList.map((a) => (
-          <ArthropodCard
-            key={a.id}
-            arthropod={a}
-            selected={selected?.id === a.id}
-            onClick={() => onSelect(a)}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+      {arthropodList.map((a) => (
+        <ArthropodCard
+          key={a.id}
+          arthropod={a}
+          selectedAs={getSelectedAs(a)}
+          onClick={() => onSelect(a)}
+        />
+      ))}
     </div>
   )
 }

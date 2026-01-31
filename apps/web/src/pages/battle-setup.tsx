@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router'
+import type { Arthropod } from '@super-insect-battle/engine'
 import {
   ArthropodSelect,
   useGameStore,
 } from '@super-insect-battle/web-ui'
+
+type SelectPhase = '1p' | '2p'
 
 export function BattleSetupPage(): React.ReactNode {
   const navigate = useNavigate()
@@ -12,7 +15,29 @@ export function BattleSetupPage(): React.ReactNode {
   const setPlayer = useGameStore((s) => s.setPlayer)
   const setOpponent = useGameStore((s) => s.setOpponent)
 
+  const phase: SelectPhase = selectedPlayer == null ? '1p' : '2p'
   const canStart = selectedPlayer != null && selectedOpponent != null
+
+  const handleSelect = useCallback(
+    (arthropod: Arthropod): void => {
+      if (selectedPlayer?.id === arthropod.id) {
+        setPlayer(null)
+        setOpponent(null)
+        return
+      }
+      if (selectedOpponent?.id === arthropod.id) {
+        setOpponent(null)
+        return
+      }
+
+      if (phase === '1p') {
+        setPlayer(arthropod)
+      } else {
+        setOpponent(arthropod)
+      }
+    },
+    [phase, selectedPlayer, selectedOpponent, setPlayer, setOpponent],
+  )
 
   function handleStart(): void {
     if (!canStart) return
@@ -20,32 +45,43 @@ export function BattleSetupPage(): React.ReactNode {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-black text-amber-400">Battle Setup</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Select two arthropods for AI vs AI battle
-        </p>
+    <div className="mx-auto max-w-6xl space-y-5 p-6">
+      <div className="flex items-center justify-between">
+        <PortraitSlot
+          side="1p"
+          arthropod={selectedPlayer}
+          active={phase === '1p'}
+        />
+
+        <div className="text-center">
+          <h1 className="text-2xl font-black text-amber-400">
+            SELECT YOUR FIGHTER
+          </h1>
+          <p className="mt-1 text-sm font-bold">
+            {phase === '1p' ? (
+              <span className="text-cyan-400">1P SELECT</span>
+            ) : canStart ? (
+              <span className="text-amber-400">READY!</span>
+            ) : (
+              <span className="text-pink-400">2P SELECT</span>
+            )}
+          </p>
+        </div>
+
+        <PortraitSlot
+          side="2p"
+          arthropod={selectedOpponent}
+          active={phase === '2p' && !canStart}
+        />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-cyan-500/30 bg-gray-900/60 p-4">
-          <ArthropodSelect
-            selected={selectedPlayer}
-            onSelect={setPlayer}
-            label="PLAYER (Left)"
-          />
-        </div>
-        <div className="rounded-xl border border-pink-500/30 bg-gray-900/60 p-4">
-          <ArthropodSelect
-            selected={selectedOpponent}
-            onSelect={setOpponent}
-            label="OPPONENT (Right)"
-          />
-        </div>
-      </div>
+      <ArthropodSelect
+        selectedPlayer={selectedPlayer}
+        selectedOpponent={selectedOpponent}
+        onSelect={handleSelect}
+      />
 
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-center pt-2">
         <button
           onClick={handleStart}
           disabled={!canStart}
@@ -55,16 +91,45 @@ export function BattleSetupPage(): React.ReactNode {
               : 'cursor-not-allowed bg-gray-700 text-gray-500'
           }`}
         >
-          Start Battle
+          START BATTLE
         </button>
       </div>
+    </div>
+  )
+}
 
-      {canStart && (
-        <div className="text-center text-sm text-gray-500">
-          <span className="text-cyan-400">{selectedPlayer.nameKo}</span>
-          {' vs '}
-          <span className="text-pink-400">{selectedOpponent.nameKo}</span>
-        </div>
+interface PortraitSlotProps {
+  side: '1p' | '2p'
+  arthropod: Arthropod | null
+  active: boolean
+}
+
+function PortraitSlot({
+  side,
+  arthropod,
+  active,
+}: PortraitSlotProps): React.ReactNode {
+  const is1p = side === '1p'
+  const borderColor = is1p ? 'border-cyan-500' : 'border-pink-500'
+  const textColor = is1p ? 'text-cyan-400' : 'text-pink-400'
+  const label = is1p ? '1P' : '2P'
+
+  return (
+    <div
+      className={`flex w-40 flex-col items-center rounded-xl border-2 bg-gray-900/60 p-4 transition-all ${
+        active ? `${borderColor} scale-105` : 'border-gray-700'
+      }`}
+    >
+      <span className={`mb-2 text-xs font-black ${textColor}`}>{label}</span>
+      {arthropod ? (
+        <>
+          <span className="text-lg font-black text-gray-200">
+            {arthropod.nameKo}
+          </span>
+          <span className="text-xs text-gray-500">{arthropod.name}</span>
+        </>
+      ) : (
+        <span className="text-sm text-gray-600">---</span>
       )}
     </div>
   )

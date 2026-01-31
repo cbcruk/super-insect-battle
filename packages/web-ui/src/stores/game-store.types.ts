@@ -14,8 +14,8 @@ export interface GameStore {
   selectedOpponent: Arthropod | null
   aiConfig: AIConfig
 
-  setPlayer: (arthropod: Arthropod) => void
-  setOpponent: (arthropod: Arthropod) => void
+  setPlayer: (arthropod: Arthropod | null) => void
+  setOpponent: (arthropod: Arthropod | null) => void
   setAIConfig: (config: AIConfig) => void
   reset: () => void
 }
