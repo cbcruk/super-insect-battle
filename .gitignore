@@ -27,3 +27,5 @@ packages/engine/src/data/generated
 *.sln
 *.sw?
 TODO.md
+
+.playwright-mcp
