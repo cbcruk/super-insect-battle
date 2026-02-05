@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router'
-import { AppLayout } from '@super-insect-battle/web-ui'
+import { AppLayout } from './components/layout/app-layout.tsx'
 import { HomePage } from './pages/home.tsx'
 import { BattleSetupPage } from './pages/battle-setup.tsx'
 import { BattlePage } from './pages/battle.tsx'

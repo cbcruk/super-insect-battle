@@ -1,6 +1,6 @@
 import React from 'react'
-import { MainMenu } from '@super-insect-battle/web-ui'
+import { Dashboard } from '../components/dashboard/dashboard.tsx'
 
 export function HomePage(): React.ReactNode {
-  return <MainMenu />
+  return <Dashboard />
 }

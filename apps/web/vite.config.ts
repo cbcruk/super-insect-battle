@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/super-insect-battle/' : '/',
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
   optimizeDeps: {
     exclude: ['@super-insect-battle/web-ui', '@super-insect-battle/engine'],
   },

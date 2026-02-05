@@ -4,13 +4,18 @@ import {
   simulateMultipleBattles,
 } from '@super-insect-battle/engine'
 import type { Arthropod } from '@super-insect-battle/engine'
-
-const styleColors: Record<string, string> = {
-  grappler: 'text-red-400',
-  striker: 'text-emerald-400',
-  venomous: 'text-purple-400',
-  defensive: 'text-blue-400',
-}
+import { Button } from '../components/ui/button.tsx'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select.tsx'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.tsx'
+import { StatBar } from '../components/ui/stat-bar.tsx'
+import { STYLE_COLORS } from '../lib/style-colors.ts'
+import { cn } from '../lib/utils.ts'
 
 interface MatchupResult {
   player: Arthropod
@@ -25,17 +30,16 @@ interface MatchupResult {
 export function StatisticsPage(): React.ReactNode {
   const [selectedPlayer, setSelectedPlayer] = useState<Arthropod | null>(null)
   const [selectedOpponent, setSelectedOpponent] = useState<Arthropod | null>(null)
-  const [simCount, setSimCount] = useState(1000)
+  const [simCount, setSimCount] = useState('1000')
   const [result, setResult] = useState<MatchupResult | null>(null)
   const [matrixResults, setMatrixResults] = useState<Record<string, number> | null>(null)
   const [running, setRunning] = useState(false)
-  const [mode, setMode] = useState<'matchup' | 'matrix'>('matchup')
 
   const runMatchup = useCallback((): void => {
     if (!selectedPlayer || !selectedOpponent) return
     setRunning(true)
     setTimeout(() => {
-      const stats = simulateMultipleBattles(selectedPlayer, selectedOpponent, simCount)
+      const stats = simulateMultipleBattles(selectedPlayer, selectedOpponent, Number(simCount))
       setResult({
         player: selectedPlayer,
         opponent: selectedOpponent,
@@ -45,17 +49,20 @@ export function StatisticsPage(): React.ReactNode {
     }, 0)
   }, [selectedPlayer, selectedOpponent, simCount])
 
+  const matrixSimCount = Math.min(Number(simCount), 200).toString()
+
   const runMatrix = useCallback((): void => {
     setRunning(true)
     setTimeout(() => {
       const results: Record<string, number> = {}
+      const count = Math.min(Number(simCount), 200)
       for (const a of arthropodList) {
         for (const b of arthropodList) {
           if (a.id === b.id) {
             results[`${a.id}:${b.id}`] = 50
             continue
           }
-          const stats = simulateMultipleBattles(a, b, Math.min(simCount, 200))
+          const stats = simulateMultipleBattles(a, b, count)
           results[`${a.id}:${b.id}`] = Math.round(stats.winRate)
         }
       }
@@ -66,54 +73,40 @@ export function StatisticsPage(): React.ReactNode {
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      <h1 className="mb-6 text-2xl font-bold text-amber-400">
-        Battle Statistics
+      <h1 className="mb-6 text-2xl text-foreground sm:text-3xl">
+        Stats Center
       </h1>
 
-      <div className="mb-6 flex gap-3">
-        <button
-          onClick={() => setMode('matchup')}
-          className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-            mode === 'matchup'
-              ? 'bg-amber-500/20 text-amber-400'
-              : 'bg-gray-900/60 text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          1v1 Matchup
-        </button>
-        <button
-          onClick={() => setMode('matrix')}
-          className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-            mode === 'matrix'
-              ? 'bg-amber-500/20 text-amber-400'
-              : 'bg-gray-900/60 text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          Win Rate Matrix
-        </button>
-      </div>
+      <Tabs defaultValue="matchup">
+        <TabsList variant="line" className="mb-6">
+          <TabsTrigger value="matchup">1v1 Matchup</TabsTrigger>
+          <TabsTrigger value="matrix">Win Rate Matrix</TabsTrigger>
+        </TabsList>
 
-      {mode === 'matchup' ? (
-        <MatchupMode
-          selectedPlayer={selectedPlayer}
-          selectedOpponent={selectedOpponent}
-          onSelectPlayer={setSelectedPlayer}
-          onSelectOpponent={setSelectedOpponent}
-          simCount={simCount}
-          onSimCountChange={setSimCount}
-          onRun={runMatchup}
-          running={running}
-          result={result}
-        />
-      ) : (
-        <MatrixMode
-          simCount={simCount}
-          onSimCountChange={setSimCount}
-          onRun={runMatrix}
-          running={running}
-          results={matrixResults}
-        />
-      )}
+        <TabsContent value="matchup">
+          <MatchupMode
+            selectedPlayer={selectedPlayer}
+            selectedOpponent={selectedOpponent}
+            onSelectPlayer={setSelectedPlayer}
+            onSelectOpponent={setSelectedOpponent}
+            simCount={simCount}
+            onSimCountChange={setSimCount}
+            onRun={runMatchup}
+            running={running}
+            result={result}
+          />
+        </TabsContent>
+
+        <TabsContent value="matrix">
+          <MatrixMode
+            simCount={matrixSimCount}
+            onSimCountChange={setSimCount}
+            onRun={runMatrix}
+            running={running}
+            results={matrixResults}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
@@ -133,8 +126,8 @@ function MatchupMode({
   selectedOpponent: Arthropod | null
   onSelectPlayer: (a: Arthropod | null) => void
   onSelectOpponent: (a: Arthropod | null) => void
-  simCount: number
-  onSimCountChange: (n: number) => void
+  simCount: string
+  onSimCountChange: (n: string) => void
   onRun: () => void
   running: boolean
   result: MatchupResult | null
@@ -146,9 +139,10 @@ function MatchupMode({
           label="Player"
           selected={selectedPlayer}
           onSelect={onSelectPlayer}
+          color="text-cyan-400"
         />
 
-        <div className="flex items-center justify-center text-2xl font-bold text-gray-600">
+        <div className="flex items-center justify-center text-2xl font-bold text-muted-foreground/50">
           VS
         </div>
 
@@ -156,30 +150,32 @@ function MatchupMode({
           label="Opponent"
           selected={selectedOpponent}
           onSelect={onSelectOpponent}
+          color="text-pink-400"
         />
       </div>
 
-      <div className="mb-6 flex items-center gap-4">
-        <label className="text-sm text-gray-400">Simulations:</label>
-        <select
-          value={simCount}
-          onChange={(e) => onSimCountChange(Number(e.target.value))}
-          className="rounded border border-gray-700 bg-gray-900/60 px-3 py-1.5 text-sm text-gray-200"
-        >
-          <option value={100}>100</option>
-          <option value={500}>500</option>
-          <option value={1000}>1,000</option>
-          <option value={5000}>5,000</option>
-          <option value={10000}>10,000</option>
-        </select>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-xs text-muted-foreground">Simulations</span>
+        <Select value={simCount} onValueChange={onSimCountChange}>
+          <SelectTrigger className="h-8 w-28 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="100">100</SelectItem>
+            <SelectItem value="500">500</SelectItem>
+            <SelectItem value="1000">1,000</SelectItem>
+            <SelectItem value="5000">5,000</SelectItem>
+            <SelectItem value="10000">10,000</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <button
+        <Button
+          size="sm"
           onClick={onRun}
           disabled={!selectedPlayer || !selectedOpponent || running}
-          className="rounded-lg bg-amber-500 px-6 py-2 text-sm font-bold text-black transition-colors hover:bg-amber-400 disabled:opacity-40"
         >
           {running ? 'Running...' : 'Simulate'}
-        </button>
+        </Button>
       </div>
 
       {result && <MatchupResultCard result={result} />}
@@ -191,40 +187,72 @@ function ArthropodPicker({
   label,
   selected,
   onSelect,
+  color,
 }: {
   label: string
   selected: Arthropod | null
   onSelect: (a: Arthropod | null) => void
+  color: string
 }): React.ReactNode {
   return (
-    <div className="rounded-lg border border-gray-700/50 bg-gray-900/40 p-3">
-      <label className="mb-2 block text-xs font-bold text-gray-400">{label}</label>
-      <select
-        value={selected?.id ?? ''}
-        onChange={(e) => {
-          const a = arthropodList.find((x) => x.id === e.target.value)
-          onSelect(a ?? null)
-        }}
-        className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-200"
-      >
-        <option value="">Select...</option>
-        {arthropodList.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.nameKo} ({a.name}) — {a.behavior.style}
-          </option>
-        ))}
-      </select>
+    <div className="overflow-hidden rounded-md border border-table-border">
+      <div className="bg-table-header px-3 py-2">
+        <span className={cn('text-[11px] font-semibold uppercase tracking-wider', color)}>
+          {label}
+        </span>
+      </div>
+      <div className="bg-table-row-even p-3">
+        <Select
+          value={selected?.id ?? ''}
+          onValueChange={(v) => {
+            const a = arthropodList.find((x) => x.id === v)
+            onSelect(a ?? null)
+          }}
+        >
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue placeholder="Select..." />
+          </SelectTrigger>
+          <SelectContent>
+            {arthropodList.map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                {a.nameKo} ({a.name})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      {selected && (
-        <div className="mt-3 text-xs text-gray-400">
-          <span className={`font-bold ${styleColors[selected.behavior.style] ?? ''}`}>
-            {selected.behavior.style}
-          </span>
-          {' · '}STR {selected.physical.strengthIndex}
-          {' · '}ARM {selected.defense.armorRating}
-          {' · '}EVA {selected.defense.evasion}
-        </div>
-      )}
+        {selected && (
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'rounded px-1.5 py-0.5 text-[10px] font-bold',
+                  STYLE_COLORS[selected.behavior.style].badge
+                )}
+              >
+                {selected.behavior.style}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+              <div>
+                <span className="block uppercase">STR</span>
+                <StatBar value={selected.physical.strengthIndex} max={100} color="bg-red-500" size="sm" />
+                <span className="tabular-nums text-foreground">{selected.physical.strengthIndex}</span>
+              </div>
+              <div>
+                <span className="block uppercase">ARM</span>
+                <StatBar value={selected.defense.armorRating} max={100} color="bg-blue-500" size="sm" />
+                <span className="tabular-nums text-foreground">{selected.defense.armorRating}</span>
+              </div>
+              <div>
+                <span className="block uppercase">EVA</span>
+                <StatBar value={selected.defense.evasion} max={100} color="bg-emerald-500" size="sm" />
+                <span className="tabular-nums text-foreground">{selected.defense.evasion}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -235,51 +263,76 @@ function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNo
   const opponentPercent = total > 0 ? Math.round((result.opponentWins / total) * 100) : 0
 
   return (
-    <div className="rounded-lg border border-gray-700/50 bg-gray-900/40 p-6">
-      <div className="mb-4 flex items-center justify-between text-sm font-bold">
-        <span className="text-cyan-400">{result.player.nameKo}</span>
-        <span className="text-gray-500">vs</span>
-        <span className="text-pink-400">{result.opponent.nameKo}</span>
+    <div className="overflow-hidden rounded-md border border-table-border">
+      <div className="bg-table-header px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Simulation Results
       </div>
 
-      <div className="mb-4 flex h-6 overflow-hidden rounded-full">
-        <div
-          className="flex items-center justify-center bg-cyan-500 text-[10px] font-bold text-black transition-all"
-          style={{ width: `${playerPercent}%` }}
-        >
-          {playerPercent > 10 ? `${playerPercent}%` : ''}
+      <div className="bg-table-row-even p-4">
+        <div className="mb-3 flex items-center justify-between text-sm font-bold">
+          <span className="text-cyan-400">{result.player.nameKo}</span>
+          <span className="text-muted-foreground/50">vs</span>
+          <span className="text-pink-400">{result.opponent.nameKo}</span>
         </div>
-        {result.draws > 0 && (
+
+        <div className="mb-4 flex h-5 overflow-hidden rounded-full">
           <div
-            className="flex items-center justify-center bg-gray-500 text-[10px] font-bold text-black"
-            style={{ width: `${100 - playerPercent - opponentPercent}%` }}
-          />
-        )}
-        <div
-          className="flex items-center justify-center bg-pink-500 text-[10px] font-bold text-black transition-all"
-          style={{ width: `${opponentPercent}%` }}
-        >
-          {opponentPercent > 10 ? `${opponentPercent}%` : ''}
+            className="flex items-center justify-center bg-cyan-500 text-[10px] font-bold text-black transition-all"
+            style={{ width: `${playerPercent}%` }}
+          >
+            {playerPercent > 10 ? `${playerPercent}%` : ''}
+          </div>
+          {result.draws > 0 && (
+            <div
+              className="flex items-center justify-center bg-muted-foreground/30 text-[10px] font-bold"
+              style={{ width: `${100 - playerPercent - opponentPercent}%` }}
+            />
+          )}
+          <div
+            className="flex items-center justify-center bg-pink-500 text-[10px] font-bold text-black transition-all"
+            style={{ width: `${opponentPercent}%` }}
+          >
+            {opponentPercent > 10 ? `${opponentPercent}%` : ''}
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-4 text-center">
-        <div>
-          <p className="text-2xl font-bold text-cyan-400">{result.playerWins}</p>
-          <p className="text-[10px] text-gray-500">Player Wins</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-gray-400">{result.draws}</p>
-          <p className="text-[10px] text-gray-500">Draws</p>
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-pink-400">{result.opponentWins}</p>
-          <p className="text-[10px] text-gray-500">Opponent Wins</p>
-        </div>
-      </div>
-
-      <div className="mt-4 text-center text-xs text-gray-500">
-        Average {result.avgTurns.toFixed(1)} turns per battle
+        <table className="w-full border-collapse text-sm">
+          <tbody>
+            <tr className="bg-table-row-odd">
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Player Wins</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-cyan-400">
+                {result.playerWins}
+              </td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums text-muted-foreground">
+                {playerPercent}%
+              </td>
+            </tr>
+            <tr className="bg-table-row-even">
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Opponent Wins</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-pink-400">
+                {result.opponentWins}
+              </td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums text-muted-foreground">
+                {opponentPercent}%
+              </td>
+            </tr>
+            <tr className="bg-table-row-odd">
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Draws</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-foreground">
+                {result.draws}
+              </td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums text-muted-foreground">
+                {100 - playerPercent - opponentPercent}%
+              </td>
+            </tr>
+            <tr className="bg-table-row-even">
+              <td className="px-3 py-2 text-muted-foreground">Avg Turns</td>
+              <td colSpan={2} className="px-3 py-2 text-right tabular-nums font-medium text-foreground">
+                {result.avgTurns.toFixed(1)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   )
@@ -292,36 +345,37 @@ function MatrixMode({
   running,
   results,
 }: {
-  simCount: number
-  onSimCountChange: (n: number) => void
+  simCount: string
+  onSimCountChange: (n: string) => void
   onRun: () => void
   running: boolean
   results: Record<string, number> | null
 }): React.ReactNode {
   return (
     <div>
-      <div className="mb-6 flex items-center gap-4">
-        <label className="text-sm text-gray-400">Simulations per matchup:</label>
-        <select
-          value={Math.min(simCount, 200)}
-          onChange={(e) => onSimCountChange(Number(e.target.value))}
-          className="rounded border border-gray-700 bg-gray-900/60 px-3 py-1.5 text-sm text-gray-200"
-        >
-          <option value={50}>50</option>
-          <option value={100}>100</option>
-          <option value={200}>200</option>
-        </select>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="text-xs text-muted-foreground">Per matchup</span>
+        <Select value={simCount} onValueChange={onSimCountChange}>
+          <SelectTrigger className="h-8 w-24 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="100">100</SelectItem>
+            <SelectItem value="200">200</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <button
+        <Button
+          size="sm"
           onClick={onRun}
           disabled={running}
-          className="rounded-lg bg-amber-500 px-6 py-2 text-sm font-bold text-black transition-colors hover:bg-amber-400 disabled:opacity-40"
         >
           {running ? 'Computing...' : 'Generate Matrix'}
-        </button>
+        </Button>
 
-        <span className="text-xs text-gray-500">
-          {arthropodList.length}×{arthropodList.length} = {arthropodList.length * arthropodList.length} matchups
+        <span className="text-xs text-muted-foreground">
+          {arthropodList.length}&times;{arthropodList.length} = {arthropodList.length * arthropodList.length} matchups
         </span>
       </div>
 
@@ -333,7 +387,7 @@ function MatrixMode({
 function getWinRateColor(rate: number): string {
   if (rate >= 70) return 'bg-cyan-500/80 text-black'
   if (rate >= 55) return 'bg-cyan-500/40 text-cyan-200'
-  if (rate >= 45) return 'bg-gray-700/50 text-gray-300'
+  if (rate >= 45) return 'bg-table-row-hover text-muted-foreground'
   if (rate >= 30) return 'bg-pink-500/40 text-pink-200'
   return 'bg-pink-500/80 text-black'
 }
@@ -344,17 +398,17 @@ function WinRateMatrix({
   results: Record<string, number>
 }): React.ReactNode {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-md border border-table-border">
       <table className="w-full border-collapse text-[9px]">
         <thead>
-          <tr>
-            <th className="sticky left-0 z-10 bg-gray-950 p-1 text-left text-gray-400">
-              P1 ↓ / P2 →
+          <tr className="bg-table-header">
+            <th className="sticky left-0 z-10 bg-table-header p-1 text-left text-[10px] text-muted-foreground">
+              P1 &darr; / P2 &rarr;
             </th>
             {arthropodList.map((a) => (
               <th
                 key={a.id}
-                className="min-w-[40px] p-1 text-center text-gray-400"
+                className="min-w-10 p-1 text-center text-muted-foreground"
                 title={a.name}
               >
                 <span className="block truncate">{a.nameKo.slice(0, 3)}</span>
@@ -366,10 +420,13 @@ function WinRateMatrix({
           {arthropodList.map((row) => (
             <tr key={row.id}>
               <td
-                className={`sticky left-0 z-10 bg-gray-950 p-1 font-bold ${styleColors[row.behavior.style] ?? 'text-gray-400'}`}
+                className={cn(
+                  'sticky left-0 z-10 bg-table-row-even p-1 font-bold',
+                  STYLE_COLORS[row.behavior.style].text
+                )}
                 title={row.name}
               >
-                <span className="block max-w-[60px] truncate">{row.nameKo}</span>
+                <span className="block max-w-15 truncate">{row.nameKo}</span>
               </td>
               {arthropodList.map((col) => {
                 const rate = results[`${row.id}:${col.id}`] ?? 50
@@ -377,9 +434,10 @@ function WinRateMatrix({
                 return (
                   <td
                     key={col.id}
-                    className={`p-1 text-center font-mono ${
-                      isSelf ? 'bg-gray-800/30 text-gray-600' : getWinRateColor(rate)
-                    }`}
+                    className={cn(
+                      'p-1 text-center font-mono',
+                      isSelf ? 'bg-table-row-odd text-muted-foreground/30' : getWinRateColor(rate)
+                    )}
                     title={`${row.nameKo} vs ${col.nameKo}: ${rate}%`}
                   >
                     {isSelf ? '—' : rate}

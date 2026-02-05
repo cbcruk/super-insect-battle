@@ -1,0 +1,50 @@
+<svg width="920" height="260" viewBox="0 0 920 260" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg {
+      fill: #0f172a;
+    }
+    .outline {
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 10;
+      stroke-linejoin: round;
+    }
+    .super { fill: #38bdf8; }
+    .insect1 { fill: #facc15; }
+    .insect2 { fill: #fbbf24; }
+    .battle { fill: #e5e7eb; }
+
+    text {
+      font-family: 'Arial Black', 'Helvetica', sans-serif;
+      font-weight: 900;
+      letter-spacing: -2px;
+    }
+  </style>
+
+  <!-- background -->
+  <rect class="bg" x="0" y="0" width="920" height="260" rx="24"/>
+
+  <!-- SUPER -->
+  <text x="460" y="80" font-size="72" text-anchor="middle"
+        class="super outline">SUPER</text>
+  <text x="460" y="80" font-size="72" text-anchor="middle"
+        class="super">SUPER</text>
+
+  <!-- INSECT (톤을 살짝씩 다르게) -->
+  <text x="460" y="150" font-size="96" text-anchor="middle"
+        class="insect1 outline">INSECT</text>
+  <text x="460" y="150" font-size="96" text-anchor="middle"
+        class="insect1">INS</text>
+  <text x="555" y="150" font-size="96" text-anchor="middle"
+        class="insect2">ECT</text>
+
+  <!-- BATTLE -->
+  <text x="460" y="220" font-size="72" text-anchor="middle"
+        class="battle outline">BATTLE</text>
+  <text x="460" y="220" font-size="72" text-anchor="middle"
+        class="battle">BATTLE</text>
+
+  <!-- simple impact icons -->
+  <polygon points="120,140 90,170 120,170" fill="#38bdf8"/>
+  <polygon points="800,140 830,170 800,170" fill="#ef4444"/>
+</svg>

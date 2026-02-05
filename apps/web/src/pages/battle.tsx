@@ -2,12 +2,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import { simulateBattle, serializeReplay } from '@super-insect-battle/engine'
 import type { BattleState, BattleLogEntry, Action } from '@super-insect-battle/engine'
-import {
-  BattleScene,
-  ActionPanel,
-  useGameStore,
-  useBattleStore,
-} from '@super-insect-battle/web-ui'
+import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
+import { ActionPanel } from '../components/battle-scene/action-panel/action-panel.tsx'
+import { useGameStore } from '../stores/game-store.ts'
+import { useBattleStore } from '../stores/battle-store.ts'
 
 const LOG_DELAY_MS = 600
 const REPLAY_STORAGE_KEY = 'sib-replays'

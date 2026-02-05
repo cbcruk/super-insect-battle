@@ -1,11 +1,14 @@
 import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import type { Arthropod } from '@super-insect-battle/engine'
-import type { BattleMode } from '@super-insect-battle/web-ui'
-import {
-  ArthropodSelect,
-  useGameStore,
-} from '@super-insect-battle/web-ui'
+import type { BattleMode } from '../stores/game-store.types.ts'
+import { ArthropodSelect } from '../components/arthropod-select/arthropod-select.tsx'
+import { ComparisonTable } from '../components/ui/comparison-table.tsx'
+import { useGameStore } from '../stores/game-store.ts'
+import { Button } from '../components/ui/button.tsx'
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs.tsx'
+import { STYLE_COLORS } from '../lib/style-colors.ts'
+import { cn } from '../lib/utils.ts'
 
 type SelectPhase = '1p' | '2p'
 
@@ -57,14 +60,14 @@ export function BattleSetupPage(): React.ReactNode {
         />
 
         <div className="text-center">
-          <h1 className="text-2xl font-black text-amber-400">
-            SELECT YOUR FIGHTER
+          <h1 className="text-xl text-foreground sm:text-2xl">
+            Matchup Creator
           </h1>
           <p className="mt-1 text-sm font-bold">
             {phase === '1p' ? (
               <span className="text-cyan-400">1P SELECT</span>
             ) : canStart ? (
-              <span className="text-amber-400">READY!</span>
+              <span className="text-primary">READY!</span>
             ) : (
               <span className="text-pink-400">2P SELECT</span>
             )}
@@ -84,19 +87,23 @@ export function BattleSetupPage(): React.ReactNode {
         onSelect={handleSelect}
       />
 
+      {selectedPlayer && selectedOpponent && (
+        <ComparisonTable
+          player={selectedPlayer}
+          opponent={selectedOpponent}
+        />
+      )}
+
       <div className="flex flex-col items-center gap-3 pt-2">
         <ModeToggle mode={battleMode} onChange={setBattleMode} />
-        <button
+        <Button
           onClick={handleStart}
           disabled={!canStart}
-          className={`rounded-xl px-10 py-3 text-lg font-black transition-all ${
-            canStart
-              ? 'bg-amber-500 text-black hover:bg-amber-400 hover:scale-105'
-              : 'cursor-not-allowed bg-gray-700 text-gray-500'
-          }`}
+          size="lg"
+          className="rounded-xl px-10 py-3 text-lg font-black"
         >
           START BATTLE
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -116,28 +123,12 @@ function ModeToggle({
   onChange: (mode: BattleMode) => void
 }): React.ReactNode {
   return (
-    <div className="flex rounded-lg border border-gray-700 bg-gray-900/60">
-      <button
-        onClick={() => onChange('player-vs-ai')}
-        className={`rounded-l-lg px-4 py-2 text-sm font-bold transition-colors ${
-          mode === 'player-vs-ai'
-            ? 'bg-cyan-500/20 text-cyan-400'
-            : 'text-gray-500 hover:text-gray-300'
-        }`}
-      >
-        Player vs AI
-      </button>
-      <button
-        onClick={() => onChange('ai-vs-ai')}
-        className={`rounded-r-lg px-4 py-2 text-sm font-bold transition-colors ${
-          mode === 'ai-vs-ai'
-            ? 'bg-amber-500/20 text-amber-400'
-            : 'text-gray-500 hover:text-gray-300'
-        }`}
-      >
-        AI vs AI
-      </button>
-    </div>
+    <Tabs value={mode} onValueChange={(v) => onChange(v as BattleMode)}>
+      <TabsList>
+        <TabsTrigger value="player-vs-ai">Player vs AI</TabsTrigger>
+        <TabsTrigger value="ai-vs-ai">AI vs AI</TabsTrigger>
+      </TabsList>
+    </Tabs>
   )
 }
 
@@ -153,20 +144,29 @@ function PortraitSlot({
 
   return (
     <div
-      className={`flex w-40 flex-col items-center rounded-xl border-2 bg-gray-900/60 p-4 transition-all ${
-        active ? `${borderColor} scale-105` : 'border-gray-700'
-      }`}
+      className={cn(
+        'flex w-40 flex-col items-center rounded-md border bg-table-row-even p-4 transition-colors',
+        active ? borderColor : 'border-table-border'
+      )}
     >
-      <span className={`mb-2 text-xs font-black ${textColor}`}>{label}</span>
+      <span className={cn('mb-2 text-xs font-semibold', textColor)}>{label}</span>
       {arthropod ? (
         <>
-          <span className="text-lg font-black text-gray-200">
+          <span className="text-lg font-semibold text-foreground">
             {arthropod.nameKo}
           </span>
-          <span className="text-xs text-gray-500">{arthropod.name}</span>
+          <span className="text-xs text-muted-foreground">{arthropod.name}</span>
+          <span
+            className={cn(
+              'mt-1 rounded px-1.5 py-0.5 text-[10px] font-bold',
+              STYLE_COLORS[arthropod.behavior.style].badge
+            )}
+          >
+            {arthropod.behavior.style}
+          </span>
         </>
       ) : (
-        <span className="text-sm text-gray-600">---</span>
+        <span className="text-sm text-muted-foreground/50">---</span>
       )}
     </div>
   )

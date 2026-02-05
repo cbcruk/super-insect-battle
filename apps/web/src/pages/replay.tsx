@@ -9,7 +9,12 @@ import type {
   BattleLogEntry,
   BattleReplay,
 } from '@super-insect-battle/engine'
-import { BattleScene } from '@super-insect-battle/web-ui'
+import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
+import { Button } from '../components/ui/button.tsx'
+import { DataTable } from '../components/ui/data-table.tsx'
+import type { Column } from '../components/ui/data-table.tsx'
+import { Progress } from '../components/ui/progress.tsx'
+import { cn } from '../lib/utils.ts'
 
 const REPLAY_STORAGE_KEY = 'sib-replays'
 const SPEED_OPTIONS = [0.5, 1, 2, 4]
@@ -38,9 +43,81 @@ function deleteSavedReplay(id: string): void {
   localStorage.setItem(REPLAY_STORAGE_KEY, JSON.stringify(replays))
 }
 
+const replayColumns: Column<SavedReplay>[] = [
+  {
+    key: 'index',
+    header: '#',
+    align: 'center',
+    width: 'w-8',
+    render: (_item, index) => (
+      <span className="text-muted-foreground">{index + 1}</span>
+    ),
+  },
+  {
+    key: 'date',
+    header: 'Date',
+    sortable: true,
+    sortValue: (item) => item.timestamp,
+    render: (item) => (
+      <span className="text-xs text-muted-foreground">
+        {new Date(item.timestamp).toLocaleString()}
+      </span>
+    ),
+  },
+  {
+    key: 'player',
+    header: 'Player',
+    render: (item) => (
+      <span className="font-medium text-cyan-400">{item.playerName}</span>
+    ),
+  },
+  {
+    key: 'opponent',
+    header: 'Opponent',
+    render: (item) => (
+      <span className="font-medium text-pink-400">{item.opponentName}</span>
+    ),
+  },
+  {
+    key: 'turns',
+    header: 'Turns',
+    align: 'right',
+    sortable: true,
+    sortValue: (item) => item.totalTurns,
+    hideBelow: 'sm',
+    render: (item) => (
+      <span className="tabular-nums text-muted-foreground">{item.totalTurns}</span>
+    ),
+  },
+  {
+    key: 'winner',
+    header: 'Winner',
+    align: 'right',
+    render: (item) => (
+      <span
+        className={cn(
+          'text-xs font-medium',
+          item.winner === 'player'
+            ? 'text-cyan-400'
+            : item.winner === 'opponent'
+              ? 'text-pink-400'
+              : 'text-muted-foreground'
+        )}
+      >
+        {item.winner === 'player'
+          ? item.playerName
+          : item.winner === 'opponent'
+            ? item.opponentName
+            : 'Draw'}
+      </span>
+    ),
+  },
+]
+
 export function ReplayPage(): React.ReactNode {
   const [replays, setReplays] = useState<SavedReplay[]>([])
   const [activeReplay, setActiveReplay] = useState<BattleReplay | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -55,6 +132,7 @@ export function ReplayPage(): React.ReactNode {
   function handleDelete(id: string): void {
     deleteSavedReplay(id)
     setReplays(loadSavedReplays())
+    if (selectedId === id) setSelectedId(null)
   }
 
   function handleImport(e: React.ChangeEvent<HTMLInputElement>): void {
@@ -82,19 +160,22 @@ export function ReplayPage(): React.ReactNode {
     )
   }
 
+  const selected = replays.find((r) => r.id === selectedId)
+
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-6 text-2xl font-bold text-amber-400">
-        Battle Replays
+    <div className="mx-auto max-w-5xl p-6">
+      <h1 className="mb-6 text-2xl text-foreground sm:text-3xl">
+        Battle History
       </h1>
 
-      <div className="mb-6 flex gap-3">
-        <button
+      <div className="mb-4 flex gap-3">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => fileInputRef.current?.click()}
-          className="rounded-lg border border-gray-700 bg-gray-900/60 px-4 py-2 text-sm font-bold text-gray-300 transition-colors hover:text-amber-400"
         >
-          Import Replay File
-        </button>
+          Import Replay
+        </Button>
         <input
           ref={fileInputRef}
           type="file"
@@ -105,44 +186,47 @@ export function ReplayPage(): React.ReactNode {
       </div>
 
       {replays.length === 0 ? (
-        <div className="rounded-lg border border-gray-700/50 bg-gray-900/40 p-8 text-center">
-          <p className="text-gray-500">No saved replays yet.</p>
-          <p className="mt-2 text-xs text-gray-600">
+        <div className="rounded-md border border-table-border bg-table-row-even px-6 py-12 text-center">
+          <p className="text-muted-foreground">No saved replays yet.</p>
+          <p className="mt-1 text-xs text-muted-foreground/70">
             Complete a battle and click &quot;Save Replay&quot; to store it here.
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {replays.map((saved) => (
-            <div
-              key={saved.id}
-              className="flex items-center justify-between rounded-lg border border-gray-700/50 bg-gray-900/40 p-4"
-            >
-              <div>
-                <p className="text-sm font-bold text-gray-200">
-                  {saved.playerName} vs {saved.opponentName}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {new Date(saved.timestamp).toLocaleString()} · {saved.totalTurns} turns · Winner: {saved.winner}
-                </p>
+        <>
+          <DataTable
+            columns={replayColumns}
+            data={replays}
+            rowKey={(item) => item.id}
+            onRowClick={(item) => setSelectedId(item.id === selectedId ? null : item.id)}
+            defaultSort={{ key: 'date', direction: 'desc' }}
+          />
+
+          {selected && (
+            <div className="mt-4 flex items-center justify-between rounded-md border border-table-border bg-table-row-even px-4 py-3">
+              <div className="text-sm">
+                <span className="text-cyan-400">{selected.playerName}</span>
+                <span className="mx-2 text-muted-foreground">vs</span>
+                <span className="text-pink-400">{selected.opponentName}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({selected.totalTurns} turns)
+                </span>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleLoad(saved)}
-                  className="rounded bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-400 transition-colors hover:bg-amber-500/30"
-                >
+                <Button size="sm" onClick={() => handleLoad(selected)}>
                   Play
-                </button>
-                <button
-                  onClick={() => handleDelete(saved.id)}
-                  className="rounded bg-red-500/20 px-3 py-1 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/30"
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(selected.id)}
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -239,7 +323,7 @@ function ReplayViewer({
   if (!player || !opponent || !battleState) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-gray-400">Invalid replay data.</p>
+        <p className="text-muted-foreground">Invalid replay data.</p>
       </div>
     )
   }
@@ -301,42 +385,43 @@ function ReplayControls({
   const percent = total > 0 ? Math.round((progress / total) * 100) : 0
 
   return (
-    <div className="border-t border-gray-700 bg-gray-900/80 px-4 py-3 backdrop-blur-sm">
-      <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-gray-700">
-        <div
-          className="h-full rounded-full bg-amber-500 transition-all duration-300"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+    <div className="border-t border-table-border bg-background px-4 py-3">
+      <Progress
+        value={percent}
+        className="mb-2 h-1.5 bg-stat-bar-track **:data-[slot=progress-indicator]:bg-primary"
+      />
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onTogglePlay}
             disabled={done}
-            className="rounded bg-gray-800 px-3 py-1 text-sm font-bold text-gray-300 transition-colors hover:text-white disabled:opacity-40"
           >
-            {playing ? '⏸ Pause' : '▶ Play'}
-          </button>
+            {playing ? 'Pause' : 'Play'}
+          </Button>
 
           <div className="flex gap-1">
             {SPEED_OPTIONS.map((s) => (
-              <button
+              <Button
                 key={s}
+                variant={speed === s ? 'default' : 'ghost'}
+                size="xs"
                 onClick={() => onSpeedChange(s)}
-                className={`rounded px-2 py-0.5 text-xs font-bold transition-colors ${
+                className={cn(
                   speed === s
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
+                    ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
               >
                 {s}x
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
-        <span className="text-xs text-gray-500">
+        <span className="text-xs tabular-nums text-muted-foreground">
           {progress} / {total} {done ? '(Complete)' : ''}
         </span>
       </div>
