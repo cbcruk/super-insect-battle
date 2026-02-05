@@ -19,7 +19,7 @@ export function BattlePage(): React.ReactNode {
 
   useEffect(() => {
     if (!selectedPlayer || !selectedOpponent) {
-      navigate('/battle/setup')
+      navigate('/')
     }
   }, [selectedPlayer, selectedOpponent, navigate])
 
@@ -28,7 +28,7 @@ export function BattlePage(): React.ReactNode {
   if (battleMode === 'ai-vs-ai') {
     return (
       <AiVsAiBattle
-        onClose={() => navigate('/battle/setup')}
+        onClose={() => navigate('/')}
       />
     )
   }
@@ -37,7 +37,7 @@ export function BattlePage(): React.ReactNode {
     <InteractiveBattle
       aiDifficulty={aiConfig.difficulty}
       aiPersonality={aiConfig.personality}
-      onClose={() => navigate('/battle/setup')}
+      onClose={() => navigate('/')}
     />
   )
 }

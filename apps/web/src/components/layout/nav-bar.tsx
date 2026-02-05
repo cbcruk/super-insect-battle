@@ -9,8 +9,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/', label: 'Dashboard' },
-  { path: '/battle/setup', label: 'Matchup' },
+  { path: '/', label: 'Matchup' },
+  { path: '/dashboard', label: 'Dashboard' },
   { path: '/encyclopedia', label: 'Roster' },
   { path: '/statistics', label: 'Stats' },
   { path: '/replay', label: 'History' },

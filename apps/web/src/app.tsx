@@ -14,8 +14,8 @@ export default function App(): React.ReactNode {
     <BrowserRouter>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="battle/setup" element={<BattleSetupPage />} />
+          <Route index element={<BattleSetupPage />} />
+          <Route path="dashboard" element={<HomePage />} />
           <Route path="battle" element={<BattlePage />} />
           <Route path="encyclopedia" element={<EncyclopediaPage />} />
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />
