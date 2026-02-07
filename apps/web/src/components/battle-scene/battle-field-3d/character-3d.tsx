@@ -10,7 +10,9 @@ export function Character3D({
   fainted,
 }: Character3DProps): React.ReactNode {
   const isPlayer = side === 'player'
-  const position: [number, number, number] = isPlayer ? [0, 0.5, 2.5] : [0, 0.5, -2.5]
+  const position: [number, number, number] = isPlayer
+    ? [-3, 0.5, 0]
+    : [3, 0.5, 0]
 
   const color = useMemo(
     () => STYLE_COLORS[arthropod.behavior.style]?.hex ?? '#6B7280',
@@ -22,7 +24,7 @@ export function Character3D({
     [arthropod.physical.lengthMm]
   )
 
-  const scale = isPlayer ? 1 : 0.85
+  const scale = 1
 
   return (
     <group position={position}>

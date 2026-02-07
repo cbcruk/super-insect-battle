@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { formatEnvironment } from '@super-insect-battle/engine'
 import type { BattleField3DProps } from './battle-field-3d.types.ts'
@@ -7,6 +7,7 @@ import { ArenaLighting } from './arena-lighting.tsx'
 import { Character3D } from './character-3d.tsx'
 import { CameraController } from './camera-controller.tsx'
 import { AmbientParticles } from './ambient-particles.tsx'
+import { ArenaSky } from './arena-sky.tsx'
 import { isMobileDevice } from '../../../lib/webgl-support.ts'
 
 export function BattleField3D({
@@ -19,6 +20,18 @@ export function BattleField3D({
   message,
 }: BattleField3DProps): React.ReactNode {
   const isMobile = isMobileDevice()
+  const [debug, setDebug] = useState(false)
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'd' && e.ctrlKey) {
+        e.preventDefault()
+        setDebug((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   return (
     <div
@@ -33,7 +46,11 @@ export function BattleField3D({
           powerPreference: isMobile ? 'low-power' : 'high-performance',
         }}
       >
-        <CameraController />
+        <CameraController debug={debug} />
+        <ArenaSky
+          timeOfDay={environment.timeOfDay}
+          weather={environment.weather}
+        />
         <ArenaLighting
           timeOfDay={environment.timeOfDay}
           weather={environment.weather}
