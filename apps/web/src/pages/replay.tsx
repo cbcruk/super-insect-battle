@@ -86,7 +86,9 @@ const replayColumns: Column<SavedReplay>[] = [
     sortValue: (item) => item.totalTurns,
     hideBelow: 'sm',
     render: (item) => (
-      <span className="tabular-nums text-muted-foreground">{item.totalTurns}</span>
+      <span className="tabular-nums text-muted-foreground">
+        {item.totalTurns}
+      </span>
     ),
   },
   {
@@ -163,11 +165,7 @@ export function ReplayPage(): React.ReactNode {
   const selected = replays.find((r) => r.id === selectedId)
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-6 text-2xl text-foreground sm:text-3xl">
-        Battle History
-      </h1>
-
+    <div className="max-w-5xl p-6">
       <div className="mb-4 flex gap-3">
         <Button
           variant="outline"
@@ -189,7 +187,8 @@ export function ReplayPage(): React.ReactNode {
         <div className="rounded-md border border-table-border bg-table-row-even px-6 py-12 text-center">
           <p className="text-muted-foreground">No saved replays yet.</p>
           <p className="mt-1 text-xs text-muted-foreground/70">
-            Complete a battle and click &quot;Save Replay&quot; to store it here.
+            Complete a battle and click &quot;Save Replay&quot; to store it
+            here.
           </p>
         </div>
       ) : (
@@ -198,7 +197,9 @@ export function ReplayPage(): React.ReactNode {
             columns={replayColumns}
             data={replays}
             rowKey={(item) => item.id}
-            onRowClick={(item) => setSelectedId(item.id === selectedId ? null : item.id)}
+            onRowClick={(item) =>
+              setSelectedId(item.id === selectedId ? null : item.id)
+            }
             defaultSort={{ key: 'date', direction: 'desc' }}
           />
 

@@ -65,6 +65,11 @@ export function ComparisonTable({
       numeric: true,
     },
     {
+      label: 'Length',
+      playerValue: `${player.physical.lengthMm}mm`,
+      opponentValue: `${opponent.physical.lengthMm}mm`,
+    },
+    {
       label: 'Weight',
       playerValue: `${player.physical.weightG}g`,
       opponentValue: `${opponent.physical.weightG}g`,
@@ -186,27 +191,27 @@ export function ComparisonTable({
           ))}
           <tr className="bg-table-header">
             <td className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Style Matchup
+              Matchup
             </td>
-            <td
-              colSpan={2}
-              className="px-3 py-2 text-center text-sm font-medium"
-            >
-              <span
-                className={cn(
-                  matchup > 1
-                    ? 'text-emerald-400'
-                    : matchup < 1
-                      ? 'text-red-400'
-                      : 'text-muted-foreground'
-                )}
-              >
-                {matchup > 1
-                  ? `${matchup}x (${player.nameKo} advantage)`
-                  : matchup < 1
-                    ? `${matchup}x (${opponent.nameKo} advantage)`
-                    : `${matchup}x (neutral)`}
-              </span>
+            <td className="px-3 py-2 text-right text-sm font-medium">
+              {matchup > 1 ? (
+                <span className="text-emerald-400">{matchup}x</span>
+              ) : matchup < 1 ? (
+                <span className="text-muted-foreground">—</span>
+              ) : (
+                <span className="text-muted-foreground">1x</span>
+              )}
+            </td>
+            <td className="px-3 py-2 text-right text-sm font-medium">
+              {matchup < 1 ? (
+                <span className="text-emerald-400">
+                  {Math.round((1 / matchup) * 100) / 100}x
+                </span>
+              ) : matchup > 1 ? (
+                <span className="text-muted-foreground">—</span>
+              ) : (
+                <span className="text-muted-foreground">1x</span>
+              )}
             </td>
           </tr>
         </tbody>

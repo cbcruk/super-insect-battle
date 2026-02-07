@@ -12,7 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select.tsx'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs.tsx'
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '../components/ui/tabs.tsx'
 import { StatBar } from '../components/ui/stat-bar.tsx'
 import { STYLE_COLORS } from '../lib/style-colors.ts'
 import { cn } from '../lib/utils.ts'
@@ -29,17 +34,26 @@ interface MatchupResult {
 
 export function StatisticsPage(): React.ReactNode {
   const [selectedPlayer, setSelectedPlayer] = useState<Arthropod | null>(null)
-  const [selectedOpponent, setSelectedOpponent] = useState<Arthropod | null>(null)
+  const [selectedOpponent, setSelectedOpponent] = useState<Arthropod | null>(
+    null
+  )
   const [simCount, setSimCount] = useState('1000')
   const [result, setResult] = useState<MatchupResult | null>(null)
-  const [matrixResults, setMatrixResults] = useState<Record<string, number> | null>(null)
+  const [matrixResults, setMatrixResults] = useState<Record<
+    string,
+    number
+  > | null>(null)
   const [running, setRunning] = useState(false)
 
   const runMatchup = useCallback((): void => {
     if (!selectedPlayer || !selectedOpponent) return
     setRunning(true)
     setTimeout(() => {
-      const stats = simulateMultipleBattles(selectedPlayer, selectedOpponent, Number(simCount))
+      const stats = simulateMultipleBattles(
+        selectedPlayer,
+        selectedOpponent,
+        Number(simCount)
+      )
       setResult({
         player: selectedPlayer,
         opponent: selectedOpponent,
@@ -72,11 +86,7 @@ export function StatisticsPage(): React.ReactNode {
   }, [simCount])
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
-      <h1 className="mb-6 text-2xl text-foreground sm:text-3xl">
-        Stats Center
-      </h1>
-
+    <div className="max-w-6xl p-6">
       <Tabs defaultValue="matchup">
         <TabsList variant="line" className="mb-6">
           <TabsTrigger value="matchup">1v1 Matchup</TabsTrigger>
@@ -197,7 +207,12 @@ function ArthropodPicker({
   return (
     <div className="overflow-hidden rounded-md border border-table-border">
       <div className="bg-table-header px-3 py-2">
-        <span className={cn('text-[11px] font-semibold uppercase tracking-wider', color)}>
+        <span
+          className={cn(
+            'text-[11px] font-semibold uppercase tracking-wider',
+            color
+          )}
+        >
           {label}
         </span>
       </div>
@@ -236,18 +251,39 @@ function ArthropodPicker({
             <div className="grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
               <div>
                 <span className="block uppercase">STR</span>
-                <StatBar value={selected.physical.strengthIndex} max={100} color="bg-red-500" size="sm" />
-                <span className="tabular-nums text-foreground">{selected.physical.strengthIndex}</span>
+                <StatBar
+                  value={selected.physical.strengthIndex}
+                  max={100}
+                  color="bg-red-500"
+                  size="sm"
+                />
+                <span className="tabular-nums text-foreground">
+                  {selected.physical.strengthIndex}
+                </span>
               </div>
               <div>
                 <span className="block uppercase">ARM</span>
-                <StatBar value={selected.defense.armorRating} max={100} color="bg-blue-500" size="sm" />
-                <span className="tabular-nums text-foreground">{selected.defense.armorRating}</span>
+                <StatBar
+                  value={selected.defense.armorRating}
+                  max={100}
+                  color="bg-blue-500"
+                  size="sm"
+                />
+                <span className="tabular-nums text-foreground">
+                  {selected.defense.armorRating}
+                </span>
               </div>
               <div>
                 <span className="block uppercase">EVA</span>
-                <StatBar value={selected.defense.evasion} max={100} color="bg-emerald-500" size="sm" />
-                <span className="tabular-nums text-foreground">{selected.defense.evasion}</span>
+                <StatBar
+                  value={selected.defense.evasion}
+                  max={100}
+                  color="bg-emerald-500"
+                  size="sm"
+                />
+                <span className="tabular-nums text-foreground">
+                  {selected.defense.evasion}
+                </span>
               </div>
             </div>
           </div>
@@ -257,10 +293,16 @@ function ArthropodPicker({
   )
 }
 
-function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNode {
+function MatchupResultCard({
+  result,
+}: {
+  result: MatchupResult
+}): React.ReactNode {
   const total = result.playerWins + result.opponentWins + result.draws
-  const playerPercent = total > 0 ? Math.round((result.playerWins / total) * 100) : 0
-  const opponentPercent = total > 0 ? Math.round((result.opponentWins / total) * 100) : 0
+  const playerPercent =
+    total > 0 ? Math.round((result.playerWins / total) * 100) : 0
+  const opponentPercent =
+    total > 0 ? Math.round((result.opponentWins / total) * 100) : 0
 
   return (
     <div className="overflow-hidden rounded-md border border-table-border">
@@ -299,7 +341,9 @@ function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNo
         <table className="w-full border-collapse text-sm">
           <tbody>
             <tr className="bg-table-row-odd">
-              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Player Wins</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">
+                Player Wins
+              </td>
               <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-cyan-400">
                 {result.playerWins}
               </td>
@@ -308,7 +352,9 @@ function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNo
               </td>
             </tr>
             <tr className="bg-table-row-even">
-              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Opponent Wins</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">
+                Opponent Wins
+              </td>
               <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-pink-400">
                 {result.opponentWins}
               </td>
@@ -317,7 +363,9 @@ function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNo
               </td>
             </tr>
             <tr className="bg-table-row-odd">
-              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">Draws</td>
+              <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">
+                Draws
+              </td>
               <td className="border-b border-table-border/50 px-3 py-2 text-right tabular-nums font-medium text-foreground">
                 {result.draws}
               </td>
@@ -327,7 +375,10 @@ function MatchupResultCard({ result }: { result: MatchupResult }): React.ReactNo
             </tr>
             <tr className="bg-table-row-even">
               <td className="px-3 py-2 text-muted-foreground">Avg Turns</td>
-              <td colSpan={2} className="px-3 py-2 text-right tabular-nums font-medium text-foreground">
+              <td
+                colSpan={2}
+                className="px-3 py-2 text-right tabular-nums font-medium text-foreground"
+              >
                 {result.avgTurns.toFixed(1)}
               </td>
             </tr>
@@ -366,16 +417,13 @@ function MatrixMode({
           </SelectContent>
         </Select>
 
-        <Button
-          size="sm"
-          onClick={onRun}
-          disabled={running}
-        >
+        <Button size="sm" onClick={onRun} disabled={running}>
           {running ? 'Computing...' : 'Generate Matrix'}
         </Button>
 
         <span className="text-xs text-muted-foreground">
-          {arthropodList.length}&times;{arthropodList.length} = {arthropodList.length * arthropodList.length} matchups
+          {arthropodList.length}&times;{arthropodList.length} ={' '}
+          {arthropodList.length * arthropodList.length} matchups
         </span>
       </div>
 
@@ -436,7 +484,9 @@ function WinRateMatrix({
                     key={col.id}
                     className={cn(
                       'p-1 text-center font-mono',
-                      isSelf ? 'bg-table-row-odd text-muted-foreground/30' : getWinRateColor(rate)
+                      isSelf
+                        ? 'bg-table-row-odd text-muted-foreground/30'
+                        : getWinRateColor(rate)
                     )}
                     title={`${row.nameKo} vs ${col.nameKo}: ${rate}%`}
                   >

@@ -1,49 +1,46 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
+import { Swords, Bug, BarChart3, History } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
 
 interface NavItem {
   path: string
   label: string
+  icon: LucideIcon
 }
 
 const navItems: NavItem[] = [
-  { path: '/', label: 'Matchup' },
-  { path: '/dashboard', label: 'Dashboard' },
-  { path: '/encyclopedia', label: 'Roster' },
-  { path: '/statistics', label: 'Stats' },
-  { path: '/replay', label: 'History' },
+  { path: '/', label: 'Matchup', icon: Swords },
+  { path: '/encyclopedia', label: 'Roster', icon: Bug },
+  { path: '/statistics', label: 'Stats', icon: BarChart3 },
+  { path: '/replay', label: 'History', icon: History },
 ]
 
 export function NavBar(): React.ReactNode {
   const location = useLocation()
 
   return (
-    <nav className="flex h-13 items-center justify-between gap-4 border-b border-table-border bg-background px-4 sm:h-16">
-      <Link
-        to="/"
-        className="flex items-center font-heading shrink-0 text-foreground no-underline lowercase text-base font-logo font-bold"
-      >
-        super-insect-battle
-      </Link>
+    <nav className="flex h-13 items-center gap-4 border-b border-table-border bg-background px-2 sm:h-16">
       <div className="flex gap-0.5 overflow-x-auto sm:gap-1">
         {navItems.map((item) => {
           const isActive =
             item.path === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(item.path)
+
+          const Icon = item.icon
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                'shrink-0 px-2.5 py-1 text-xs font-medium no-underline transition-colors sm:px-3 sm:py-1.5 sm:text-sm',
-                isActive
-                  ? 'border-b-2 border-primary text-foreground'
-                  : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
+                'flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs font-medium no-underline transition-colors sm:px-3 sm:py-1.5 sm:text-sm border-b-2 border-transparent text-muted-foreground hover:text-foreground',
+                isActive && 'text-foreground'
               )}
             >
+              <Icon className="size-3.5 sm:size-4" />
               {item.label}
             </Link>
           )

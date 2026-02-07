@@ -1,7 +1,6 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import { AppLayout } from './components/layout/app-layout.tsx'
-import { HomePage } from './pages/home.tsx'
 import { BattleSetupPage } from './pages/battle-setup.tsx'
 import { BattlePage } from './pages/battle.tsx'
 import { EncyclopediaPage } from './pages/encyclopedia.tsx'
@@ -15,7 +14,6 @@ export default function App(): React.ReactNode {
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<BattleSetupPage />} />
-          <Route path="dashboard" element={<HomePage />} />
           <Route path="battle" element={<BattlePage />} />
           <Route path="encyclopedia" element={<EncyclopediaPage />} />
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />

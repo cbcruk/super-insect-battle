@@ -181,8 +181,6 @@ export function EncyclopediaPage(): React.ReactNode {
 
   return (
     <div className="mx-auto max-w-7xl p-6">
-      <h1 className="mb-6 text-2xl text-foreground sm:text-3xl">Roster</h1>
-
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Tabs
           value={filter}
