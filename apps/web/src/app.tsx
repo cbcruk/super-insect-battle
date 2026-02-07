@@ -8,9 +8,11 @@ import { EncyclopediaDetailPage } from './pages/encyclopedia-detail.tsx'
 import { StatisticsPage } from './pages/statistics.tsx'
 import { ReplayPage } from './pages/replay.tsx'
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export default function App(): React.ReactNode {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<BattleSetupPage />} />
