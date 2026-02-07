@@ -14,12 +14,20 @@ export function BattleSetupPage(): React.ReactNode {
   const setOpponent = useGameStore((s) => s.setOpponent)
   const battleMode = useGameStore((s) => s.battleMode)
   const setBattleMode = useGameStore((s) => s.setBattleMode)
+  const aiConfig = useGameStore((s) => s.aiConfig)
 
   const canStart = selectedPlayer != null && selectedOpponent != null
 
   function handleStart(): void {
     if (!canStart) return
-    navigate('/battle')
+    const params = new URLSearchParams({
+      player: selectedPlayer.id,
+      opponent: selectedOpponent.id,
+      mode: battleMode,
+      difficulty: aiConfig.difficulty,
+      personality: aiConfig.personality,
+    })
+    navigate(`/battle?${params.toString()}`)
   }
 
   return (

@@ -1,33 +1,115 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router'
-import { simulateBattle, serializeReplay } from '@super-insect-battle/engine'
-import type { BattleState, BattleLogEntry, Action } from '@super-insect-battle/engine'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { simulateBattle, serializeReplay, getArthropodById } from '@super-insect-battle/engine'
+import type { BattleState, BattleLogEntry, Action, Arthropod, AIDifficulty, AIPersonality } from '@super-insect-battle/engine'
 import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
 import { ActionPanel } from '../components/battle-scene/action-panel/action-panel.tsx'
 import { useGameStore } from '../stores/game-store.ts'
 import { useBattleStore } from '../stores/battle-store.ts'
+import type { BattleMode } from '../stores/game-store.types.ts'
 
 const LOG_DELAY_MS = 600
 const REPLAY_STORAGE_KEY = 'sib-replays'
 
+interface BattleParams {
+  player: Arthropod | null
+  opponent: Arthropod | null
+  mode: BattleMode
+  difficulty: AIDifficulty
+  personality: AIPersonality
+  error: string | null
+}
+
+function useBattleParams(): BattleParams {
+  const [searchParams] = useSearchParams()
+  const storePlayer = useGameStore((s) => s.selectedPlayer)
+  const storeOpponent = useGameStore((s) => s.selectedOpponent)
+  const storeMode = useGameStore((s) => s.battleMode)
+  const storeAiConfig = useGameStore((s) => s.aiConfig)
+
+  return useMemo(() => {
+    const playerParam = searchParams.get('player')
+    const opponentParam = searchParams.get('opponent')
+    const modeParam = searchParams.get('mode')
+    const difficultyParam = searchParams.get('difficulty')
+    const personalityParam = searchParams.get('personality')
+
+    const errors: string[] = []
+
+    let player: Arthropod | null = storePlayer
+    if (playerParam) {
+      player = getArthropodById(playerParam) ?? null
+      if (!player) {
+        errors.push(`Invalid player ID: "${playerParam}"`)
+      }
+    }
+
+    let opponent: Arthropod | null = storeOpponent
+    if (opponentParam) {
+      opponent = getArthropodById(opponentParam) ?? null
+      if (!opponent) {
+        errors.push(`Invalid opponent ID: "${opponentParam}"`)
+      }
+    }
+
+    const validModes: BattleMode[] = ['ai-vs-ai', 'player-vs-ai']
+    const mode = modeParam && validModes.includes(modeParam as BattleMode)
+      ? (modeParam as BattleMode)
+      : storeMode
+
+    const validDifficulties: AIDifficulty[] = ['easy', 'medium', 'hard']
+    const difficulty = difficultyParam && validDifficulties.includes(difficultyParam as AIDifficulty)
+      ? (difficultyParam as AIDifficulty)
+      : storeAiConfig.difficulty
+
+    const validPersonalities: AIPersonality[] = ['aggressive', 'defensive', 'balanced']
+    const personality = personalityParam && validPersonalities.includes(personalityParam as AIPersonality)
+      ? (personalityParam as AIPersonality)
+      : storeAiConfig.personality
+
+    return {
+      player,
+      opponent,
+      mode,
+      difficulty,
+      personality,
+      error: errors.length > 0 ? errors.join(', ') : null,
+    }
+  }, [searchParams, storePlayer, storeOpponent, storeMode, storeAiConfig])
+}
+
 export function BattlePage(): React.ReactNode {
   const navigate = useNavigate()
-  const selectedPlayer = useGameStore((s) => s.selectedPlayer)
-  const selectedOpponent = useGameStore((s) => s.selectedOpponent)
-  const battleMode = useGameStore((s) => s.battleMode)
-  const aiConfig = useGameStore((s) => s.aiConfig)
+  const { player, opponent, mode, difficulty, personality, error } = useBattleParams()
 
   useEffect(() => {
-    if (!selectedPlayer || !selectedOpponent) {
+    if (!error && !player && !opponent) {
       navigate('/')
     }
-  }, [selectedPlayer, selectedOpponent, navigate])
+  }, [player, opponent, error, navigate])
 
-  if (!selectedPlayer || !selectedOpponent) return null
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
+        <div className="text-destructive text-lg font-semibold">Error</div>
+        <div className="text-muted-foreground text-center">{error}</div>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-4 rounded-lg bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90"
+        >
+          Go to Setup
+        </button>
+      </div>
+    )
+  }
 
-  if (battleMode === 'ai-vs-ai') {
+  if (!player || !opponent) return null
+
+  if (mode === 'ai-vs-ai') {
     return (
       <AiVsAiBattle
+        player={player}
+        opponent={opponent}
         onClose={() => navigate('/')}
       />
     )
@@ -35,20 +117,24 @@ export function BattlePage(): React.ReactNode {
 
   return (
     <InteractiveBattle
-      aiDifficulty={aiConfig.difficulty}
-      aiPersonality={aiConfig.personality}
+      player={player}
+      opponent={opponent}
+      aiDifficulty={difficulty}
+      aiPersonality={personality}
       onClose={() => navigate('/')}
     />
   )
 }
 
 function AiVsAiBattle({
+  player,
+  opponent,
   onClose,
 }: {
+  player: Arthropod
+  opponent: Arthropod
   onClose: () => void
 }): React.ReactNode {
-  const selectedPlayer = useGameStore((s) => s.selectedPlayer)!
-  const selectedOpponent = useGameStore((s) => s.selectedOpponent)!
 
   const [battleState, setBattleState] = useState<BattleState | null>(null)
   const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
@@ -58,7 +144,7 @@ function AiVsAiBattle({
   const replayAbortRef = useRef(false)
 
   useEffect(() => {
-    const result = simulateBattle(selectedPlayer, selectedOpponent)
+    const result = simulateBattle(player, opponent)
     setBattleState(result)
     setDisplayedPlayerHp(result.player.maxHp)
     setDisplayedOpponentHp(result.opponent.maxHp)
@@ -71,7 +157,7 @@ function AiVsAiBattle({
     return (): void => {
       replayAbortRef.current = true
     }
-  }, [selectedPlayer, selectedOpponent])
+  }, [player, opponent])
 
   const replayLogs = useCallback(async (result: BattleState): Promise<void> => {
     for (let i = 0; i < result.log.length; i++) {
@@ -99,8 +185,8 @@ function AiVsAiBattle({
   return (
     <div className="h-full">
       <BattleScene
-        player={selectedPlayer}
-        opponent={selectedOpponent}
+        player={player}
+        opponent={opponent}
         playerBattle={battleState.player}
         opponentBattle={battleState.opponent}
         environment={battleState.environment}
@@ -117,16 +203,18 @@ function AiVsAiBattle({
 }
 
 function InteractiveBattle({
+  player,
+  opponent,
   aiDifficulty,
   aiPersonality,
   onClose,
 }: {
-  aiDifficulty: string
-  aiPersonality: string
+  player: Arthropod
+  opponent: Arthropod
+  aiDifficulty: AIDifficulty
+  aiPersonality: AIPersonality
   onClose: () => void
 }): React.ReactNode {
-  const selectedPlayer = useGameStore((s) => s.selectedPlayer)!
-  const selectedOpponent = useGameStore((s) => s.selectedOpponent)!
 
   const phase = useBattleStore((s) => s.phase)
   const battleState = useBattleStore((s) => s.battleState)
@@ -155,16 +243,16 @@ function InteractiveBattle({
     setDisplayedOpponentHp(0)
 
     startInteractiveBattle({
-      player: selectedPlayer,
-      opponent: selectedOpponent,
-      aiDifficulty: aiDifficulty as 'easy' | 'medium' | 'hard',
-      aiPersonality: aiPersonality as 'aggressive' | 'defensive' | 'balanced',
+      player,
+      opponent,
+      aiDifficulty,
+      aiPersonality,
     })
 
     return (): void => {
       reset()
     }
-  }, [selectedPlayer, selectedOpponent])
+  }, [player, opponent, aiDifficulty, aiPersonality])
 
   useEffect(() => {
     if (!battleState) return
@@ -223,8 +311,8 @@ function InteractiveBattle({
       const entry = {
         id: crypto.randomUUID(),
         timestamp: Date.now(),
-        playerName: selectedPlayer.nameKo,
-        opponentName: selectedOpponent.nameKo,
+        playerName: player.nameKo,
+        opponentName: opponent.nameKo,
         winner: finalReplay.winner,
         totalTurns: finalReplay.turns.length,
         data: serializeReplay(finalReplay),
@@ -243,7 +331,7 @@ function InteractiveBattle({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `replay-${selectedPlayer.id}-vs-${selectedOpponent.id}.json`
+    a.download = `replay-${player.id}-vs-${opponent.id}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -273,8 +361,8 @@ function InteractiveBattle({
     <div className="flex h-full flex-col">
       <div className="flex-1">
         <BattleScene
-          player={selectedPlayer}
-          opponent={selectedOpponent}
+          player={player}
+          opponent={opponent}
           playerBattle={battleState?.player ?? null}
           opponentBattle={battleState?.opponent ?? null}
           environment={battleState?.environment ?? { terrain: 'forest', weather: 'clear', timeOfDay: 'day' }}
