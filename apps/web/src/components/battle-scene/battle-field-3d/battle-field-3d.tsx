@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { Leva } from 'leva'
 import { formatEnvironment } from '@super-insect-battle/engine'
 import type { BattleField3DProps } from './battle-field-3d.types.ts'
 import { ArenaGround } from './arena-ground.tsx'
@@ -8,6 +9,7 @@ import { Character3D } from './character-3d.tsx'
 import { CameraController } from './camera-controller.tsx'
 import { AmbientParticles } from './ambient-particles.tsx'
 import { ArenaSky } from './arena-sky.tsx'
+import { GlassBox } from './glass-box.tsx'
 import { isMobileDevice } from '../../../lib/webgl-support.ts'
 
 export function BattleField3D({
@@ -20,7 +22,7 @@ export function BattleField3D({
   message,
 }: BattleField3DProps): React.ReactNode {
   const isMobile = isMobileDevice()
-  const [debug, setDebug] = useState(false)
+  const [debug, setDebug] = useState(import.meta.env.DEV)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
@@ -38,6 +40,7 @@ export function BattleField3D({
       className="relative overflow-hidden rounded-lg"
       style={{ height: 320 }}
     >
+      <Leva hidden={!debug} collapsed />
       <Canvas
         shadows={!isMobile}
         dpr={isMobile ? [1, 1.5] : [1, 2]}
@@ -56,6 +59,7 @@ export function BattleField3D({
           weather={environment.weather}
         />
         <ArenaGround terrain={environment.terrain} />
+        <GlassBox />
         <AmbientParticles
           terrain={environment.terrain}
           weather={environment.weather}
