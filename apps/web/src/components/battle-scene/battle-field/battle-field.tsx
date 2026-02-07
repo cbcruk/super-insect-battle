@@ -1,57 +1,24 @@
-import React from 'react'
-import type { Arthropod, Environment } from '@super-insect-battle/engine'
-import { EnvironmentBg } from './environment-bg.tsx'
-import { Sprite } from './sprite.tsx'
-import {
-  formatEnvironment,
-} from '@super-insect-battle/engine'
+import React, { lazy, Suspense, useMemo } from 'react'
+import { isWebGLSupported } from '../../../lib/webgl-support.ts'
+import { BattleField2D } from './battle-field-2d.tsx'
+import type { BattleFieldProps } from './battle-field.types.ts'
 
-interface BattleFieldProps {
-  player: Arthropod
-  opponent: Arthropod
-  environment: Environment
-  playerFainted?: boolean
-  opponentFainted?: boolean
-  turnNumber?: number
-  message?: string
-}
+const BattleField3D = lazy(
+  () => import('../battle-field-3d/battle-field-3d.tsx')
+)
 
-export function BattleField({
-  player,
-  opponent,
-  environment,
-  playerFainted = false,
-  opponentFainted = false,
-  turnNumber,
-  message,
-}: BattleFieldProps): React.ReactNode {
-  return (
-    <EnvironmentBg environment={environment}>
-      <div className="flex min-h-[320px] flex-col justify-between p-6">
-        {turnNumber != null && (
-          <div className="absolute left-4 top-4 rounded-md bg-black/50 px-3 py-1 text-sm font-bold text-white">
-            Turn {turnNumber}
-          </div>
-        )}
+export type { BattleFieldProps }
 
-        <div className="absolute right-4 top-4 rounded-md bg-black/40 px-2 py-1 text-xs text-gray-300">
-          {formatEnvironment(environment)}
-        </div>
+export function BattleField(props: BattleFieldProps): React.ReactNode {
+  const webglSupported = useMemo(() => isWebGLSupported(), [])
 
-        <div className="flex justify-end pr-8 pt-4">
-          <Sprite arthropod={opponent} side="opponent" fainted={opponentFainted} />
-        </div>
+  if (webglSupported) {
+    return (
+      <Suspense fallback={<BattleField2D {...props} />}>
+        <BattleField3D {...props} />
+      </Suspense>
+    )
+  }
 
-        <div className="flex justify-start pl-8 pb-4">
-          <Sprite arthropod={player} side="player" fainted={playerFainted} />
-        </div>
-
-        {message && (
-          <div className="absolute inset-x-0 bottom-0 bg-black/70 px-4 py-3 text-sm text-white">
-            {message}
-          </div>
-        )}
-      </div>
-    </EnvironmentBg>
-  )
+  return <BattleField2D {...props} />
 }

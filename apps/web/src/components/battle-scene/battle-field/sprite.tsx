@@ -1,21 +1,13 @@
 import React from 'react'
 import type { Arthropod } from '@super-insect-battle/engine'
 import { STYLE_COLORS } from '../../../lib/style-colors.ts'
+import { getSpriteSize } from '../../../lib/sprite-utils.ts'
 
 interface SpriteProps {
   arthropod: Arthropod
   side: 'player' | 'opponent'
   fainted?: boolean
   className?: string
-}
-
-function getSpriteSize(lengthMm: number): number {
-  const minSize = 64
-  const maxSize = 128
-  const minLength = 30
-  const maxLength = 200
-  const ratio = (lengthMm - minLength) / (maxLength - minLength)
-  return Math.round(minSize + Math.max(0, Math.min(1, ratio)) * (maxSize - minSize))
 }
 
 export function Sprite({
