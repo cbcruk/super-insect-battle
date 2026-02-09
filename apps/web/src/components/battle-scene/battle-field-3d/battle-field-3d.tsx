@@ -10,6 +10,7 @@ import { CameraController } from './camera-controller.tsx'
 import { AmbientParticles } from './ambient-particles.tsx'
 import { ArenaSky } from './arena-sky.tsx'
 import { GlassBox } from './glass-box.tsx'
+import { BlockDecorations } from './block-decorations.tsx'
 import { isMobileDevice } from '../../../lib/webgl-support.ts'
 
 export function BattleField3D({
@@ -60,6 +61,7 @@ export function BattleField3D({
         />
         <ArenaGround terrain={environment.terrain} />
         <GlassBox />
+        <BlockDecorations terrain={environment.terrain} />
         <AmbientParticles
           terrain={environment.terrain}
           weather={environment.weather}

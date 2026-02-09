@@ -1,100 +1,115 @@
 import React, { useMemo } from 'react'
-import * as THREE from 'three'
 
-interface GlassBoxProps {
+interface WoodFenceProps {
   width?: number
-  height?: number
   depth?: number
 }
 
-const GLASS_OPACITY = 0.12
-const FRAME_OPACITY = 0.4
-const FRAME_THICKNESS = 0.05
+const FENCE_POST_SIZE = 0.15
+const FENCE_HEIGHT = 0.8
+const FENCE_RAIL_HEIGHT = 0.08
+const FENCE_RAIL_DEPTH = 0.05
+const WOOD_COLOR = '#8b6b4a'
+const WOOD_DARK = '#6b4a2a'
+
+function FencePost({ x, z }: { x: number; z: number }): React.ReactNode {
+  return (
+    <mesh position={[x, FENCE_HEIGHT / 2, z]} castShadow>
+      <boxGeometry args={[FENCE_POST_SIZE, FENCE_HEIGHT, FENCE_POST_SIZE]} />
+      <meshStandardMaterial color={WOOD_COLOR} roughness={0.9} />
+    </mesh>
+  )
+}
+
+function FenceRail({
+  x,
+  z,
+  length,
+  rotateY = false,
+  yOffset = 0,
+}: {
+  x: number
+  z: number
+  length: number
+  rotateY?: boolean
+  yOffset?: number
+}): React.ReactNode {
+  return (
+    <mesh
+      position={[x, FENCE_HEIGHT * 0.35 + yOffset, z]}
+      rotation={[0, rotateY ? Math.PI / 2 : 0, 0]}
+      castShadow
+    >
+      <boxGeometry args={[length, FENCE_RAIL_HEIGHT, FENCE_RAIL_DEPTH]} />
+      <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
+    </mesh>
+  )
+}
 
 export function GlassBox({
   width = 6,
-  height = 3,
   depth = 4,
-}: GlassBoxProps): React.ReactNode {
-  const glassWalls = useMemo(() => [
-    { pos: [0, height / 2, depth / 2], rot: [0, 0, 0], size: [width, height] },
-    { pos: [0, height / 2, -depth / 2], rot: [0, Math.PI, 0], size: [width, height] },
-    { pos: [-width / 2, height / 2, 0], rot: [0, Math.PI / 2, 0], size: [depth, height] },
-    { pos: [width / 2, height / 2, 0], rot: [0, -Math.PI / 2, 0], size: [depth, height] },
-  ] as const, [width, height, depth])
+}: WoodFenceProps): React.ReactNode {
+  const halfW = width / 2
+  const halfD = depth / 2
+  const postSpacing = 1
 
-  const verticalFrames = useMemo(() => [
-    [-width / 2, 0, -depth / 2],
-    [width / 2, 0, -depth / 2],
-    [-width / 2, 0, depth / 2],
-    [width / 2, 0, depth / 2],
-  ] as const, [width, depth])
+  const posts = useMemo(() => {
+    const result: Array<{ x: number; z: number }> = []
 
-  const horizontalWidthFrames = useMemo(() => [
-    [0, 0, -depth / 2],
-    [0, 0, depth / 2],
-    [0, height, -depth / 2],
-    [0, height, depth / 2],
-  ] as const, [height, depth])
+    for (let x = -halfW; x <= halfW; x += postSpacing) {
+      result.push({ x, z: -halfD })
+      result.push({ x, z: halfD })
+    }
 
-  const horizontalDepthFrames = useMemo(() => [
-    [-width / 2, 0, 0],
-    [width / 2, 0, 0],
-    [-width / 2, height, 0],
-    [width / 2, height, 0],
-  ] as const, [width, height])
+    for (let z = -halfD + postSpacing; z < halfD; z += postSpacing) {
+      result.push({ x: -halfW, z })
+      result.push({ x: halfW, z })
+    }
+
+    return result
+  }, [halfW, halfD, postSpacing])
+
+  const rails = useMemo(() => {
+    const result: Array<{
+      x: number
+      z: number
+      length: number
+      rotateY: boolean
+      yOffset: number
+    }> = []
+
+    for (let x = -halfW + postSpacing / 2; x < halfW; x += postSpacing) {
+      result.push({ x, z: -halfD, length: postSpacing, rotateY: false, yOffset: 0 })
+      result.push({ x, z: -halfD, length: postSpacing, rotateY: false, yOffset: 0.25 })
+      result.push({ x, z: halfD, length: postSpacing, rotateY: false, yOffset: 0 })
+      result.push({ x, z: halfD, length: postSpacing, rotateY: false, yOffset: 0.25 })
+    }
+
+    for (let z = -halfD + postSpacing / 2; z < halfD; z += postSpacing) {
+      result.push({ x: -halfW, z, length: postSpacing, rotateY: true, yOffset: 0 })
+      result.push({ x: -halfW, z, length: postSpacing, rotateY: true, yOffset: 0.25 })
+      result.push({ x: halfW, z, length: postSpacing, rotateY: true, yOffset: 0 })
+      result.push({ x: halfW, z, length: postSpacing, rotateY: true, yOffset: 0.25 })
+    }
+
+    return result
+  }, [halfW, halfD, postSpacing])
 
   return (
-    <group>
-      {glassWalls.map((wall, i) => (
-        <mesh
-          key={`glass-${i}`}
-          position={wall.pos as [number, number, number]}
-          rotation={wall.rot as [number, number, number]}
-        >
-          <planeGeometry args={wall.size as [number, number]} />
-          <meshPhysicalMaterial
-            color="#ffffff"
-            transparent
-            opacity={GLASS_OPACITY}
-            roughness={0.05}
-            metalness={0.1}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
+    <group position={[0, 0.25, 0]}>
+      {posts.map((post, i) => (
+        <FencePost key={`post-${i}`} x={post.x} z={post.z} />
       ))}
-
-      {verticalFrames.map((pos, i) => (
-        <mesh key={`vertical-${i}`} position={[pos[0], height / 2, pos[2]]}>
-          <boxGeometry args={[FRAME_THICKNESS, height, FRAME_THICKNESS]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            transparent
-            opacity={FRAME_OPACITY}
-          />
-        </mesh>
-      ))}
-
-      {horizontalWidthFrames.map((pos, i) => (
-        <mesh key={`horizontal-w-${i}`} position={[pos[0], pos[1], pos[2]]}>
-          <boxGeometry args={[width, FRAME_THICKNESS, FRAME_THICKNESS]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            transparent
-            opacity={FRAME_OPACITY}
-          />
-        </mesh>
-      ))}
-
-      {horizontalDepthFrames.map((pos, i) => (
-        <mesh key={`horizontal-d-${i}`} position={[pos[0], pos[1], pos[2]]}>
-          <boxGeometry args={[FRAME_THICKNESS, FRAME_THICKNESS, depth]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            transparent
-            opacity={FRAME_OPACITY}
-          />
-        </mesh>
+      {rails.map((rail, i) => (
+        <FenceRail
+          key={`rail-${i}`}
+          x={rail.x}
+          z={rail.z}
+          length={rail.length}
+          rotateY={rail.rotateY}
+          yOffset={rail.yOffset}
+        />
       ))}
     </group>
   )

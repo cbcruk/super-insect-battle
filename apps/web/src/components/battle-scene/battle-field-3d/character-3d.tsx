@@ -11,8 +11,8 @@ export function Character3D({
 }: Character3DProps): React.ReactNode {
   const isPlayer = side === 'player'
   const position: [number, number, number] = isPlayer
-    ? [-1.5, 0.3, 0]
-    : [1.5, 0.3, 0]
+    ? [-1.5, 0.8, 0]
+    : [1.5, 0.8, 0]
 
   const color = useMemo(
     () => STYLE_COLORS[arthropod.behavior.style]?.hex ?? '#6B7280',
