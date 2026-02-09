@@ -58,7 +58,6 @@ function BlockTree({
   trunkColor: string
 }): React.ReactNode {
   const trunkHeight = 2
-  const leafSize = 1.5
 
   return (
     <group position={[x, 0.25, z]}>

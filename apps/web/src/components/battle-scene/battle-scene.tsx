@@ -5,10 +5,18 @@ import type {
   BattleLogEntry,
   Environment,
 } from '@super-insect-battle/engine'
+import type {
+  CharacterAnimation,
+  DamagePopupEffect,
+  ActionTextEffect,
+  BlockParticleEffect,
+} from './battle-field-3d/battle-field-3d.types.ts'
+import type { HpEmphasis } from './status-bar/hp-bar.tsx'
 import { BattleField } from './battle-field/battle-field.tsx'
 import { StatusBar } from './status-bar/status-bar.tsx'
 import { BattleLog } from './battle-log/battle-log.tsx'
 import { BattleResult } from './battle-result/battle-result.tsx'
+import { ScreenEffects } from './battle-field-3d/screen-effects.tsx'
 
 interface BattleSceneProps {
   player: Arthropod
@@ -21,6 +29,21 @@ interface BattleSceneProps {
   displayedLogs: BattleLogEntry[]
   turnNumber: number
   message?: string
+  playerAnimation?: CharacterAnimation
+  opponentAnimation?: CharacterAnimation
+  playerHpEmphasis?: HpEmphasis
+  opponentHpEmphasis?: HpEmphasis
+  onPlayerHpEmphasisComplete?: () => void
+  onOpponentHpEmphasisComplete?: () => void
+  damagePopups?: DamagePopupEffect[]
+  actionTexts?: ActionTextEffect[]
+  blockParticles?: BlockParticleEffect[]
+  onDamagePopupComplete?: (id: string) => void
+  onActionTextComplete?: (id: string) => void
+  onBlockParticleComplete?: (id: string) => void
+  screenShake?: boolean
+  screenFlash?: 'none' | 'hit' | 'critical'
+  onScreenEffectComplete?: () => void
   winner: 'player' | 'opponent' | 'draw' | null
   finished: boolean
   onClose: () => void
@@ -40,6 +63,21 @@ export function BattleScene({
   displayedLogs,
   turnNumber,
   message,
+  playerAnimation,
+  opponentAnimation,
+  playerHpEmphasis,
+  opponentHpEmphasis,
+  onPlayerHpEmphasisComplete,
+  onOpponentHpEmphasisComplete,
+  damagePopups,
+  actionTexts,
+  blockParticles,
+  onDamagePopupComplete,
+  onActionTextComplete,
+  onBlockParticleComplete,
+  screenShake = false,
+  screenFlash = 'none',
+  onScreenEffectComplete,
   winner,
   finished,
   onClose,
@@ -50,21 +88,38 @@ export function BattleScene({
   return (
     <div className="relative flex h-full flex-col gap-4 p-3 lg:flex-row lg:p-4">
       <div className="flex flex-1 flex-col gap-3">
-        <BattleField
-          player={player}
-          opponent={opponent}
-          environment={environment}
-          playerFainted={winner === 'opponent' && finished}
-          opponentFainted={winner === 'player' && finished}
-          turnNumber={turnNumber}
-          message={message}
-        />
+        <div className="relative">
+          <BattleField
+            player={player}
+            opponent={opponent}
+            environment={environment}
+            playerFainted={winner === 'opponent' && finished}
+            opponentFainted={winner === 'player' && finished}
+            playerAnimation={playerAnimation}
+            opponentAnimation={opponentAnimation}
+            turnNumber={turnNumber}
+            message={message}
+            damagePopups={damagePopups}
+            actionTexts={actionTexts}
+            blockParticles={blockParticles}
+            onDamagePopupComplete={onDamagePopupComplete}
+            onActionTextComplete={onActionTextComplete}
+            onBlockParticleComplete={onBlockParticleComplete}
+          />
+          <ScreenEffects
+            shake={screenShake}
+            flash={screenFlash}
+            onEffectComplete={onScreenEffectComplete ?? (() => {})}
+          />
+        </div>
 
         {opponentBattle && (
           <StatusBar
             arthropod={opponentBattle}
             displayedHp={displayedOpponentHp}
             side="opponent"
+            hpEmphasis={opponentHpEmphasis}
+            onHpEmphasisComplete={onOpponentHpEmphasisComplete}
           />
         )}
 
@@ -73,6 +128,8 @@ export function BattleScene({
             arthropod={playerBattle}
             displayedHp={displayedPlayerHp}
             side="player"
+            hpEmphasis={playerHpEmphasis}
+            onHpEmphasisComplete={onPlayerHpEmphasisComplete}
           />
         )}
       </div>

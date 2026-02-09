@@ -11,6 +11,9 @@ import { AmbientParticles } from './ambient-particles.tsx'
 import { ArenaSky } from './arena-sky.tsx'
 import { GlassBox } from './glass-box.tsx'
 import { BlockDecorations } from './block-decorations.tsx'
+import { DamagePopupManager } from './damage-popup.tsx'
+import { ActionTextManager } from './action-text.tsx'
+import { BlockParticleManager } from './block-particles.tsx'
 import { isMobileDevice } from '../../../lib/webgl-support.ts'
 
 export function BattleField3D({
@@ -19,8 +22,16 @@ export function BattleField3D({
   environment,
   playerFainted = false,
   opponentFainted = false,
+  playerAnimation = 'idle',
+  opponentAnimation = 'idle',
   turnNumber,
   message,
+  damagePopups = [],
+  actionTexts = [],
+  blockParticles = [],
+  onDamagePopupComplete,
+  onActionTextComplete,
+  onBlockParticleComplete,
 }: BattleField3DProps): React.ReactNode {
   const isMobile = isMobileDevice()
   const [debug, setDebug] = useState(import.meta.env.DEV)
@@ -66,11 +77,29 @@ export function BattleField3D({
           terrain={environment.terrain}
           weather={environment.weather}
         />
-        <Character3D arthropod={player} side="player" fainted={playerFainted} />
+        <Character3D
+          arthropod={player}
+          side="player"
+          fainted={playerFainted}
+          animation={playerAnimation}
+        />
         <Character3D
           arthropod={opponent}
           side="opponent"
           fainted={opponentFainted}
+          animation={opponentAnimation}
+        />
+        <DamagePopupManager
+          popups={damagePopups}
+          onPopupComplete={onDamagePopupComplete ?? (() => {})}
+        />
+        <ActionTextManager
+          actions={actionTexts}
+          onActionComplete={onActionTextComplete ?? (() => {})}
+        />
+        <BlockParticleManager
+          effects={blockParticles}
+          onEffectComplete={onBlockParticleComplete ?? (() => {})}
         />
       </Canvas>
 

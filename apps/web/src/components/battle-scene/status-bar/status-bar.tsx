@@ -1,6 +1,6 @@
 import React from 'react'
 import type { BattleArthropod } from '@super-insect-battle/engine'
-import { HpBar } from './hp-bar.tsx'
+import { HpBar, type HpEmphasis } from './hp-bar.tsx'
 import { StatBadge } from './stat-badge.tsx'
 import { StatusBadge } from './status-badge.tsx'
 
@@ -8,12 +8,16 @@ interface StatusBarProps {
   arthropod: BattleArthropod
   displayedHp: number
   side: 'player' | 'opponent'
+  hpEmphasis?: HpEmphasis
+  onHpEmphasisComplete?: () => void
 }
 
 export function StatusBar({
   arthropod,
   displayedHp,
   side,
+  hpEmphasis,
+  onHpEmphasisComplete,
 }: StatusBarProps): React.ReactNode {
   const isPlayer = side === 'player'
 
@@ -39,7 +43,12 @@ export function StatusBar({
           />
         </div>
       </div>
-      <HpBar current={displayedHp} max={arthropod.maxHp} />
+      <HpBar
+        current={displayedHp}
+        max={arthropod.maxHp}
+        emphasis={hpEmphasis}
+        onEmphasisComplete={onHpEmphasisComplete}
+      />
     </div>
   )
 }

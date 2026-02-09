@@ -6,9 +6,10 @@ import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
 import { ActionPanel } from '../components/battle-scene/action-panel/action-panel.tsx'
 import { useGameStore } from '../stores/game-store.ts'
 import { useBattleStore } from '../stores/battle-store.ts'
+import { useBattleEffects } from '../hooks/use-battle-effects.ts'
 import type { BattleMode } from '../stores/game-store.types.ts'
 
-const LOG_DELAY_MS = 600
+const LOG_DELAY_MS = 800
 const REPLAY_STORAGE_KEY = 'sib-replays'
 
 interface BattleParams {
@@ -143,6 +144,8 @@ function AiVsAiBattle({
   const [replayDone, setReplayDone] = useState(false)
   const replayAbortRef = useRef(false)
 
+  const effects = useBattleEffects()
+
   useEffect(() => {
     const result = simulateBattle(player, opponent)
     setBattleState(result)
@@ -151,6 +154,7 @@ function AiVsAiBattle({
     setDisplayedLogs([])
     setReplayDone(false)
     replayAbortRef.current = false
+    effects.reset()
 
     replayLogs(result)
 
@@ -166,6 +170,7 @@ function AiVsAiBattle({
       if (replayAbortRef.current) return
 
       const entry = result.log[i]
+      effects.triggerEffectsFromLog(entry)
       setDisplayedLogs((prev) => [...prev, entry])
 
       if (entry.remainingHp) {
@@ -174,7 +179,7 @@ function AiVsAiBattle({
       }
     }
     setReplayDone(true)
-  }, [])
+  }, [effects])
 
   if (!battleState) return null
 
@@ -197,6 +202,19 @@ function AiVsAiBattle({
         winner={winner}
         finished={replayDone}
         onClose={onClose}
+        damagePopups={effects.damagePopups}
+        actionTexts={effects.actionTexts}
+        blockParticles={effects.blockParticles}
+        onDamagePopupComplete={effects.removeDamagePopup}
+        onActionTextComplete={effects.removeActionText}
+        onBlockParticleComplete={effects.removeBlockParticle}
+        playerHpEmphasis={effects.playerHpEmphasis}
+        opponentHpEmphasis={effects.opponentHpEmphasis}
+        onPlayerHpEmphasisComplete={effects.clearPlayerHpEmphasis}
+        onOpponentHpEmphasisComplete={effects.clearOpponentHpEmphasis}
+        screenShake={effects.screenShake}
+        screenFlash={effects.screenFlash}
+        onScreenEffectComplete={effects.clearScreenEffects}
       />
     </div>
   )
@@ -234,8 +252,11 @@ function InteractiveBattle({
   const prevLogLenRef = useRef(0)
   const hpInitializedRef = useRef(false)
 
+  const effects = useBattleEffects()
+
   useEffect(() => {
     reset()
+    effects.reset()
     hpInitializedRef.current = false
     prevLogLenRef.current = 0
     setDisplayedLogs([])
@@ -277,9 +298,10 @@ function InteractiveBattle({
     ;(async (): Promise<void> => {
       for (const entry of newLogs) {
         if (cancelled) return
-        await new Promise<void>((r) => setTimeout(r, 400))
+        await new Promise<void>((r) => setTimeout(r, LOG_DELAY_MS))
         if (cancelled) return
 
+        effects.triggerEffectsFromLog(entry)
         setDisplayedLogs((prev) => [...prev, entry])
         if (entry.remainingHp) {
           setDisplayedPlayerHp(entry.remainingHp.player)
@@ -292,7 +314,7 @@ function InteractiveBattle({
     return (): void => {
       cancelled = true
     }
-  }, [logLen])
+  }, [logLen, effects])
 
   function handleSelectAction(action: Action): void {
     selectAction(action)
@@ -376,6 +398,19 @@ function InteractiveBattle({
           onSaveReplay={finalReplay ? handleSaveReplay : undefined}
           onDownloadReplay={finalReplay ? handleDownloadReplay : undefined}
           replaySaved={replaySaved}
+          damagePopups={effects.damagePopups}
+          actionTexts={effects.actionTexts}
+          blockParticles={effects.blockParticles}
+          onDamagePopupComplete={effects.removeDamagePopup}
+          onActionTextComplete={effects.removeActionText}
+          onBlockParticleComplete={effects.removeBlockParticle}
+          playerHpEmphasis={effects.playerHpEmphasis}
+          opponentHpEmphasis={effects.opponentHpEmphasis}
+          onPlayerHpEmphasisComplete={effects.clearPlayerHpEmphasis}
+          onOpponentHpEmphasisComplete={effects.clearOpponentHpEmphasis}
+          screenShake={effects.screenShake}
+          screenFlash={effects.screenFlash}
+          onScreenEffectComplete={effects.clearScreenEffects}
         />
       </div>
 
