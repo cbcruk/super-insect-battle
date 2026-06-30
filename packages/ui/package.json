@@ -20,6 +20,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@super-insect-battle/commentary": "workspace:*",
     "@super-insect-battle/engine": "workspace:*",
     "ink": "^6.6.0",
     "react": "^19.0.0"

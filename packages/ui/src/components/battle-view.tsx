@@ -1,74 +1,89 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Box, Text, useInput } from 'ink'
-import type { BattleState, BattleLogEntry } from '@super-insect-battle/engine'
+import type { BattleState } from '@super-insect-battle/engine'
 import {
-  formatEnvironment,
-  getEnvironmentBonus,
-  formatEnvironmentBonus,
-} from '@super-insect-battle/engine'
-import { StatusPanel } from './status-panel.js'
+  buildFeed,
+  type CommentaryLine,
+  type Emphasis,
+  type MatchFeed,
+} from '@super-insect-battle/commentary'
+import { HpBar } from './hp-bar.js'
 
 interface BattleViewProps {
   battleState: BattleState
   onFinish: () => void
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+const WINDOW = 14
+
+const DELAY: Record<Emphasis, number> = {
+  header: 650,
+  critical: 850,
+  strong: 520,
+  normal: 360,
+  system: 280,
+}
+
+function lineColor(line: CommentaryLine): { color?: string; bold?: boolean } {
+  const actorColor =
+    line.actor === 'player'
+      ? 'cyan'
+      : line.actor === 'opponent'
+        ? 'magenta'
+        : 'white'
+  switch (line.emphasis) {
+    case 'header':
+      return { color: 'yellow', bold: true }
+    case 'critical':
+      return { color: 'red', bold: true }
+    case 'strong':
+      return { color: actorColor, bold: true }
+    case 'system':
+      return { color: 'gray' }
+    default:
+      return { color: actorColor }
+  }
 }
 
 export function BattleView({
   battleState,
   onFinish,
 }: BattleViewProps): React.ReactNode {
-  const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
-  const [isAnimating, setIsAnimating] = useState(true)
-  const [finished, setFinished] = useState(false)
+  const feedRef = useRef<MatchFeed | null>(null)
+  if (feedRef.current === null) {
+    feedRef.current = buildFeed(battleState)
+  }
+  const feed = feedRef.current
+
+  const [cursor, setCursor] = useState(1)
+  const [paused, setPaused] = useState(false)
+
+  const finished = cursor >= feed.items.length
 
   useEffect(() => {
-    const animate = async (): Promise<void> => {
-      for (const entry of battleState.log) {
-        setDisplayedLogs((prev) => [...prev, entry])
-        await sleep(300)
-      }
-      setIsAnimating(false)
-      setFinished(true)
+    if (finished || paused) return
+    const current = feed.items[cursor - 1]
+    const delay = DELAY[current.line.emphasis]
+    const timer = setTimeout(() => setCursor((c) => c + 1), delay)
+    return () => clearTimeout(timer)
+  }, [cursor, paused, finished, feed])
+
+  useInput((input, key) => {
+    if (finished) {
+      if (key.return || key.escape) onFinish()
+      return
     }
-
-    animate()
-  }, [battleState])
-
-  useInput((_input, key) => {
-    if (finished && (key.return || key.escape)) {
-      onFinish()
+    if (input === 'f' || input === 'F') {
+      setCursor(feed.items.length)
+    } else if (input === ' ') {
+      setPaused((p) => !p)
     }
   })
 
-  const getLastKnownHp = (
-    logs: BattleLogEntry[],
-    side: 'player' | 'opponent'
-  ): number | undefined => {
-    for (let i = logs.length - 1; i >= 0; i--) {
-      const hp = logs[i].remainingHp?.[side]
-      if (hp !== undefined) return hp
-    }
-    return undefined
-  }
-
-  const currentPlayerHp =
-    getLastKnownHp(displayedLogs, 'player') ?? battleState.player.maxHp
-
-  const currentOpponentHp =
-    getLastKnownHp(displayedLogs, 'opponent') ?? battleState.opponent.maxHp
-
-  const playerEnvBonus = getEnvironmentBonus(
-    battleState.player.base,
-    battleState.environment
-  )
-  const opponentEnvBonus = getEnvironmentBonus(
-    battleState.opponent.base,
-    battleState.environment
-  )
+  const revealed = feed.items.slice(0, cursor)
+  const current = revealed[revealed.length - 1]
+  const hp = current?.hp ?? feed.maxHp
+  const window = revealed.slice(-WINDOW)
 
   return (
     <Box flexDirection="column">
@@ -78,139 +93,56 @@ export function BattleView({
         paddingX={2}
         justifyContent="center"
       >
-        <Text color="cyan">{battleState.player.base.nameKo}</Text>
+        <Text color="cyan" bold>
+          {feed.player}
+        </Text>
         <Text> vs </Text>
-        <Text color="magenta">{battleState.opponent.base.nameKo}</Text>
-      </Box>
-
-      <Box marginY={1} justifyContent="center">
-        <Text color="gray">
-          환경: {formatEnvironment(battleState.environment)}
+        <Text color="magenta" bold>
+          {feed.opponent}
         </Text>
+        <Text color="gray"> · {feed.environment}</Text>
       </Box>
 
-      <Box justifyContent="space-between" paddingX={2}>
-        <Text color={playerEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.player.base.nameKo}:{' '}
-          {formatEnvironmentBonus(playerEnvBonus)}
-        </Text>
-        <Text color={opponentEnvBonus >= 1 ? 'green' : 'red'}>
-          {battleState.opponent.base.nameKo}:{' '}
-          {formatEnvironmentBonus(opponentEnvBonus)}
-        </Text>
+      <Box justifyContent="space-between" paddingX={1} marginTop={1}>
+        <Box>
+          <Text color="cyan">{feed.player} </Text>
+          <HpBar current={hp.player} max={feed.maxHp.player} width={16} />
+        </Box>
+        <Box>
+          <HpBar current={hp.opponent} max={feed.maxHp.opponent} width={16} />
+          <Text color="magenta"> {feed.opponent}</Text>
+        </Box>
       </Box>
 
-      <Box marginY={1} flexDirection="column" gap={1}>
-        <StatusPanel
-          arthropod={battleState.player}
-          currentHp={currentPlayerHp}
-          color="cyan"
-        />
-        <StatusPanel
-          arthropod={battleState.opponent}
-          currentHp={currentOpponentHp}
-          color="magenta"
-        />
-      </Box>
-
-      <Box flexDirection="column" marginY={1}>
-        {displayedLogs.map((entry, index) => {
-          const isPlayer = entry.actor === 'player'
-          const color = isPlayer ? 'cyan' : 'magenta'
-          const prefix = isPlayer ? '▶' : '◀'
-
+      <Box
+        flexDirection="column"
+        marginTop={1}
+        paddingX={1}
+        borderStyle="round"
+        borderColor="gray"
+        minHeight={WINDOW + 2}
+      >
+        {window.map((item, index) => {
+          const style = lineColor(item.line)
           return (
-            <Box key={index} flexDirection="column">
-              {index === 0 || displayedLogs[index - 1].turn !== entry.turn ? (
-                <Text color="yellow">[턴 {entry.turn}]</Text>
-              ) : null}
-              <Box>
-                <Text color={color}>{prefix} </Text>
-                <Text>{entry.action}</Text>
-              </Box>
-              {entry.damage !== undefined && entry.damage > 0 && (
-                <Box flexDirection="column">
-                  <Text color="red"> → {entry.damage} 데미지!</Text>
-                  {entry.factors && (
-                    <Text color="gray">
-                      {'   '}
-                      {entry.factors.styleMatchup !== 1 && (
-                        <Text
-                          color={
-                            entry.factors.styleMatchup > 1 ? 'green' : 'red'
-                          }
-                        >
-                          [style:{entry.factors.styleMatchup.toFixed(1)}x]{' '}
-                        </Text>
-                      )}
-                      {entry.factors.weightBonus !== 1 && (
-                        <Text
-                          color={
-                            entry.factors.weightBonus > 1 ? 'green' : 'red'
-                          }
-                        >
-                          [weight:{entry.factors.weightBonus.toFixed(2)}x]{' '}
-                        </Text>
-                      )}
-                      {entry.factors.attackerEnvBonus &&
-                        entry.factors.attackerEnvBonus !== 1 && (
-                          <Text
-                            color={
-                              entry.factors.attackerEnvBonus > 1
-                                ? 'green'
-                                : 'red'
-                            }
-                          >
-                            [env:{entry.factors.attackerEnvBonus.toFixed(2)}
-                            x]{' '}
-                          </Text>
-                        )}
-                      {entry.factors.critical && (
-                        <Text color="yellow">[CRITICAL!]</Text>
-                      )}
-                    </Text>
-                  )}
-                </Box>
-              )}
-            </Box>
+            <Text key={cursor - window.length + index} {...style}>
+              {item.line.text}
+            </Text>
           )
         })}
       </Box>
 
-      {finished && (
-        <Box flexDirection="column" marginTop={1}>
-          <Box
-            borderStyle="double"
-            borderColor="yellow"
-            paddingX={2}
-            flexDirection="column"
-          >
-            {battleState.winner === 'draw' ? (
-              <Text color="yellow" bold>
-                무승부!
-              </Text>
-            ) : (
-              <Text color="green" bold>
-                승자:{' '}
-                {battleState.winner === 'player'
-                  ? battleState.player.base.nameKo
-                  : battleState.opponent.base.nameKo}
-                !
-              </Text>
-            )}
-            <Text>총 {battleState.turn}턴 소요</Text>
-          </Box>
-          <Box marginTop={1}>
-            <Text color="gray">Enter를 눌러 계속</Text>
-          </Box>
-        </Box>
-      )}
-
-      {isAnimating && (
-        <Box marginTop={1}>
-          <Text color="gray">배틀 진행 중...</Text>
-        </Box>
-      )}
+      <Box marginTop={1} paddingX={1}>
+        {finished ? (
+          <Text color="gray">Enter를 눌러 계속</Text>
+        ) : (
+          <Text color="gray">
+            {paused ? '⏸ 일시정지  ' : '▶ 중계 중  '}
+            <Text color="white">[Space]</Text> {paused ? '재생' : '정지'}{' '}
+            <Text color="white">[F]</Text> 빨리감기
+          </Text>
+        )}
+      </Box>
     </Box>
   )
 }
