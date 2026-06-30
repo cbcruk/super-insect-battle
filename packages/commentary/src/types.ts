@@ -67,10 +67,23 @@ export interface MoveEvent {
   intent: MoveIntent
 }
 
+export type NoteCause =
+  | 'poison'
+  | 'burn'
+  | 'paralysis'
+  | 'bind'
+  | 'freed'
+  | 'confusion'
+  | 'sleep'
+  | 'wake'
+  | 'other'
+
 export interface NoteEvent {
   kind: 'note'
   turn: number
   side: Side
+  name: string
+  cause: NoteCause
   text: string
   damage?: number
   hpAfter?: Hp
@@ -82,6 +95,16 @@ export interface FaintEvent {
   side: Side
   name: string
   hpAfter?: Hp
+}
+
+export type MomentumSort = 'streak' | 'turnaround'
+
+export interface MomentumEvent {
+  kind: 'momentum'
+  turn: number
+  side: Side
+  name: string
+  sort: MomentumSort
 }
 
 export interface EndEvent {
@@ -99,6 +122,7 @@ export type BattleEvent =
   | MoveEvent
   | NoteEvent
   | FaintEvent
+  | MomentumEvent
   | EndEvent
 
 export type Emphasis = 'normal' | 'strong' | 'critical' | 'system' | 'header'

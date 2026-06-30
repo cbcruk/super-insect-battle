@@ -1,5 +1,5 @@
-import type { Magnitude, MoveIntent } from './types'
-import { euroRo } from './particles'
+import type { Magnitude, MoveIntent, NoteCause } from './types'
+import { euroRo, eulReul } from './particles'
 
 export const INTRO_LINES = [
   (p: string, o: string, env: string): string =>
@@ -125,6 +125,56 @@ export const MOVE_LINES: Record<MoveIntent, ((atk: string, move: string) => stri
     (atk: string): string => `${atk}, 은밀히 독을 흘려넣는다.`,
   ],
 }
+
+export const NOTE_LINES: Record<
+  Exclude<NoteCause, 'other'>,
+  ((name: string) => string)[]
+> = {
+  poison: [
+    (n: string): string => `독이 ${n}의 온몸으로 퍼진다 — 살이 타들어간다.`,
+    (n: string): string => `${n}, 독에 신음한다. 체력이 갉아먹힌다.`,
+  ],
+  burn: [
+    (n: string): string => `불길이 ${n}${eulReul(n)} 핥는다 — 고통스럽다.`,
+    (n: string): string => `${n}, 화상의 열기에 몸부림친다.`,
+  ],
+  paralysis: [
+    (n: string): string => `${n}, 마비되어 꼼짝도 못 한다!`,
+    (n: string): string => `${n}, 몸이 말을 듣지 않는다 — 기회를 놓친다.`,
+  ],
+  bind: [
+    (n: string): string => `${n}, 옭매인 채 발버둥치지만 빠져나오지 못한다.`,
+    (n: string): string => `${n}, 속박을 풀지 못하고 묶여 있다.`,
+  ],
+  freed: [
+    (n: string): string => `${n}, 마침내 속박을 끊어낸다!`,
+    (n: string): string => `${n}, 몸을 비틀어 옭아맴에서 풀려난다!`,
+  ],
+  confusion: [
+    (n: string): string => `${n}, 혼란에 빠져 제 몸을 친다!`,
+    (n: string): string => `${n}, 갈피를 못 잡고 헛손질한다.`,
+  ],
+  sleep: [
+    (n: string): string => `${n}, 깊은 잠에 빠져 미동도 없다...`,
+    (n: string): string => `${n}, 곤히 잠들어 무방비 상태다.`,
+  ],
+  wake: [
+    (n: string): string => `${n}, 번쩍 깨어난다!`,
+    (n: string): string => `${n}, 정신을 차리고 몸을 일으킨다!`,
+  ],
+}
+
+export const STREAK_LINES = [
+  (name: string): string => `${name}, 완전히 흐름을 휘어잡았다! 파상공세가 멈추질 않는다.`,
+  (name: string): string => `${name}, 연이은 적중 — 상대가 손쓸 틈이 없다!`,
+  (name: string): string => `몰아치는 ${name}! 경기를 완전히 지배한다.`,
+]
+
+export const TURNAROUND_LINES = [
+  (name: string): string => `흐름이 뒤집힌다 — ${name}, 단숨에 앞서 나간다!`,
+  (name: string): string => `반전이다! 밀리던 ${name}, 전세를 역전시킨다.`,
+  (name: string): string => `${name}, 기어이 흐름을 가져온다. 경기가 뒤집혔다!`,
+]
 
 export const FAINT_LINES = [
   (name: string): string => `${name}, 쓰러졌다! 더 이상 일어서지 못한다.`,

@@ -5,8 +5,28 @@ import {
   type BattleState,
 } from '@super-insect-battle/engine'
 import type { Action } from '@super-insect-battle/engine'
-import type { BattleEvent, Magnitude, Matchup, MoveIntent, Side } from './types'
+import type {
+  BattleEvent,
+  Magnitude,
+  Matchup,
+  MoveIntent,
+  NoteCause,
+  Side,
+} from './types'
 import { eunNeun } from './particles'
+
+function classifyNote(text: string): NoteCause {
+  if (text.includes('속박에서 벗어났') || text.includes('잠에서 깨어났')) {
+    return text.includes('속박') ? 'freed' : 'wake'
+  }
+  if (text.includes('마비')) return 'paralysis'
+  if (text.includes('속박')) return 'bind'
+  if (text.includes('혼란')) return 'confusion'
+  if (text.includes('잠들어')) return 'sleep'
+  if (text.includes('독')) return 'poison'
+  if (text.includes('화상')) return 'burn'
+  return 'other'
+}
 
 function moveIntentOf(action: Action): MoveIntent {
   if (action.id === 'flee') return 'flee'
@@ -81,6 +101,10 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
   const fainted: Record<Side, boolean> = { player: false, opponent: false }
   let lastTurn = 0
 
+  let streakSide: Side | null = null
+  let streakCount = 0
+  let leader: Side | null = null
+
   for (const entry of state.log) {
     if (entry.turn !== lastTurn) {
       events.push({ kind: 'turn', turn: entry.turn })
@@ -117,6 +141,22 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
           appliedStatus,
           hpAfter: entry.remainingHp,
         })
+
+        if (streakSide === actor) {
+          streakCount += 1
+        } else {
+          streakSide = actor
+          streakCount = 1
+        }
+        if (streakCount === 3) {
+          events.push({
+            kind: 'momentum',
+            turn: entry.turn,
+            side: actor,
+            name: name[actor],
+            sort: 'streak',
+          })
+        }
       } else if (action.category === 'attack') {
         events.push({
           kind: 'miss',
@@ -141,6 +181,8 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
         kind: 'note',
         turn: entry.turn,
         side: actor,
+        name: name[actor],
+        cause: classifyNote(entry.action),
         text: fixSubjectParticle(entry.action, name[actor]),
         damage: entry.damage,
         hpAfter: entry.remainingHp,
@@ -159,6 +201,25 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
             hpAfter: entry.remainingHp,
           })
         }
+      }
+
+      if (!fainted.player && !fainted.opponent) {
+        const pr = entry.remainingHp.player / maxHp.player
+        const or = entry.remainingHp.opponent / maxHp.opponent
+        let newLeader: Side | null = null
+        if (pr - or > 0.08) newLeader = 'player'
+        else if (or - pr > 0.08) newLeader = 'opponent'
+
+        if (newLeader && leader && newLeader !== leader) {
+          events.push({
+            kind: 'momentum',
+            turn: entry.turn,
+            side: newLeader,
+            name: name[newLeader],
+            sort: 'turnaround',
+          })
+        }
+        if (newLeader) leader = newLeader
       }
     }
   }

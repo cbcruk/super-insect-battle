@@ -11,6 +11,9 @@ import {
   STATUS_APPLIED_LINES,
   MISS_LINES,
   MOVE_LINES,
+  NOTE_LINES,
+  STREAK_LINES,
+  TURNAROUND_LINES,
   FAINT_LINES,
 } from './phrases'
 
@@ -138,8 +141,38 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
         },
       ]
 
-    case 'note':
-      return [{ text: event.text, emphasis: 'system', turn: event.turn }]
+    case 'note': {
+      if (event.cause === 'other') {
+        return [{ text: event.text, emphasis: 'system', turn: event.turn }]
+      }
+      const damaging =
+        event.cause === 'poison' ||
+        event.cause === 'burn' ||
+        event.cause === 'confusion'
+      return [
+        {
+          text: r.pick(`note:${event.cause}`, NOTE_LINES[event.cause])(
+            event.name
+          ),
+          emphasis: damaging ? 'normal' : 'system',
+          actor: event.side,
+          turn: event.turn,
+        },
+      ]
+    }
+
+    case 'momentum':
+      return [
+        {
+          text:
+            event.sort === 'streak'
+              ? r.pick('streak', STREAK_LINES)(event.name)
+              : r.pick('turnaround', TURNAROUND_LINES)(event.name),
+          emphasis: 'strong',
+          actor: event.side,
+          turn: event.turn,
+        },
+      ]
 
     case 'faint':
       return [
