@@ -1,0 +1,24 @@
+{
+  "name": "@super-insect-battle/game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "pnpm build:sprites && tsc -b && vite build",
+    "build:sprites": "tsx scripts/build-sprites.ts",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@super-insect-battle/engine": "workspace:*",
+    "pixi.js": "^8.6.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0"
+  }
+}
