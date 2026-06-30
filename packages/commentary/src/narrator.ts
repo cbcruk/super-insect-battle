@@ -1,15 +1,34 @@
 import type { BattleEvent, CommentaryLine } from './types'
-import { iGa, euroRo } from './particles'
+import { iGa } from './particles'
 import {
+  INTRO_LINES,
   ACTION_LINES,
   RESULT_LINES,
   CRIT_PREFIXES,
   MATCHUP_UP,
   MATCHUP_DOWN,
   LOW_HP_LINES,
+  STATUS_APPLIED_LINES,
   MISS_LINES,
+  MOVE_LINES,
   FAINT_LINES,
 } from './phrases'
+
+const END_WIN_LINES = [
+  (name: string, particle: string, turns: number): string =>
+    `${name}${particle} 승리를 거머쥔다! ${turns}턴 만의 결판.`,
+  (name: string, particle: string, turns: number): string =>
+    `승부 끝! ${turns}턴의 혈투 끝에 ${name}${particle} 살아남았다.`,
+  (name: string, particle: string, turns: number): string =>
+    `${name}${particle} 최후의 승자다 — ${turns}턴 만에 막을 내린다.`,
+]
+
+const END_DRAW_LINES = [
+  (turns: number): string =>
+    `무승부! ${turns}턴의 혈투 끝에 승부를 가리지 못했다.`,
+  (turns: number): string =>
+    `${turns}턴을 싸우고도 우열을 가리지 못한다 — 무승부!`,
+]
 
 class Rotation {
   private readonly counters = new Map<string, number>()
@@ -26,7 +45,11 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
     case 'intro':
       return [
         {
-          text: `${event.player} 대 ${event.opponent} — ${event.environment}에서의 일전이 시작된다!`,
+          text: r.pick('intro', INTRO_LINES)(
+            event.player,
+            event.opponent,
+            event.environment
+          ),
           emphasis: 'header',
         },
       ]
@@ -68,7 +91,10 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
 
       if (event.appliedStatus) {
         lines.push({
-          text: `그리고 ${event.defenderName}, ${event.appliedStatus} 상태에 빠진다!`,
+          text: r.pick('statusApplied', STATUS_APPLIED_LINES)(
+            event.defenderName,
+            event.appliedStatus
+          ),
           emphasis: 'strong',
           turn: event.turn,
         })
@@ -102,7 +128,10 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
     case 'move':
       return [
         {
-          text: `${event.actorName}, ${event.move}${euroRo(event.move)} 자세를 가다듬는다.`,
+          text: r.pick(`move:${event.intent}`, MOVE_LINES[event.intent])(
+            event.actorName,
+            event.move
+          ),
           emphasis: 'normal',
           actor: event.actor,
           turn: event.turn,
@@ -126,14 +155,18 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
       if (event.winnerName) {
         return [
           {
-            text: `${event.winnerName}${iGa(event.winnerName)} 승리를 거머쥔다! ${event.turns}턴 만의 결판.`,
+            text: r.pick('endWin', END_WIN_LINES)(
+              event.winnerName,
+              iGa(event.winnerName),
+              event.turns
+            ),
             emphasis: 'header',
           },
         ]
       }
       return [
         {
-          text: `무승부! ${event.turns}턴의 혈투 끝에 승부를 가리지 못했다.`,
+          text: r.pick('endDraw', END_DRAW_LINES)(event.turns),
           emphasis: 'header',
         },
       ]

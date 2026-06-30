@@ -45,12 +45,26 @@ export interface MissEvent {
   move: string
 }
 
+export type MoveIntent =
+  | 'guard'
+  | 'brace'
+  | 'flee'
+  | 'defenseUp'
+  | 'evasionUp'
+  | 'strengthUp'
+  | 'weaken'
+  | 'blind'
+  | 'ensnare'
+  | 'confuse'
+  | 'envenom'
+
 export interface MoveEvent {
   kind: 'move'
   turn: number
   actor: Side
   actorName: string
   move: string
+  intent: MoveIntent
 }
 
 export interface NoteEvent {

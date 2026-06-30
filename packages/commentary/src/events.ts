@@ -4,8 +4,32 @@ import {
   formatEnvironment,
   type BattleState,
 } from '@super-insect-battle/engine'
-import type { BattleEvent, Magnitude, Matchup, Side } from './types'
+import type { Action } from '@super-insect-battle/engine'
+import type { BattleEvent, Magnitude, Matchup, MoveIntent, Side } from './types'
 import { eunNeun } from './particles'
+
+function moveIntentOf(action: Action): MoveIntent {
+  if (action.id === 'flee') return 'flee'
+  if (action.id === 'brace') return 'brace'
+
+  const effect = action.effect
+  if (!effect) return 'guard'
+
+  if (effect.type === 'buff' && effect.statChange) {
+    if (effect.statChange.stat === 'defense') return 'defenseUp'
+    if (effect.statChange.stat === 'evasion') return 'evasionUp'
+    if (effect.statChange.stat === 'strength') return 'strengthUp'
+  }
+  if (effect.type === 'debuff' && effect.statChange) {
+    return effect.statChange.stat === 'evasion' ? 'blind' : 'weaken'
+  }
+  if (effect.type === 'status') {
+    if (effect.condition === 'confusion') return 'confuse'
+    if (effect.condition === 'poison') return 'envenom'
+    return 'ensnare'
+  }
+  return 'guard'
+}
 
 function other(side: Side): Side {
   return side === 'player' ? 'opponent' : 'player'
@@ -109,6 +133,7 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
           actor,
           actorName: name[actor],
           move,
+          intent: moveIntentOf(action),
         })
       }
     } else if (!entry.action.includes('쓰러졌다')) {
