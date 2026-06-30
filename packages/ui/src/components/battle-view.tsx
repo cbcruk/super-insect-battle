@@ -24,6 +24,13 @@ const DELAY: Record<Emphasis, number> = {
   system: 280,
 }
 
+const SPEEDS = [
+  { label: '느리게', mult: 1.8 },
+  { label: '보통', mult: 1 },
+  { label: '빠르게', mult: 0.5 },
+]
+const DEFAULT_SPEED = 1
+
 function lineColor(line: CommentaryLine): { color?: string; bold?: boolean } {
   const actorColor =
     line.actor === 'player'
@@ -57,16 +64,17 @@ export function BattleView({
 
   const [cursor, setCursor] = useState(1)
   const [paused, setPaused] = useState(false)
+  const [speed, setSpeed] = useState(DEFAULT_SPEED)
 
   const finished = cursor >= feed.items.length
 
   useEffect(() => {
     if (finished || paused) return
     const current = feed.items[cursor - 1]
-    const delay = DELAY[current.line.emphasis]
+    const delay = DELAY[current.line.emphasis] * SPEEDS[speed].mult
     const timer = setTimeout(() => setCursor((c) => c + 1), delay)
     return () => clearTimeout(timer)
-  }, [cursor, paused, finished, feed])
+  }, [cursor, paused, finished, speed, feed])
 
   useInput((input, key) => {
     if (finished) {
@@ -77,6 +85,8 @@ export function BattleView({
       setCursor(feed.items.length)
     } else if (input === ' ') {
       setPaused((p) => !p)
+    } else if (input === '1' || input === '2' || input === '3') {
+      setSpeed(Number(input) - 1)
     }
   })
 
@@ -139,6 +149,8 @@ export function BattleView({
           <Text color="gray">
             {paused ? '⏸ 일시정지  ' : '▶ 중계 중  '}
             <Text color="white">[Space]</Text> {paused ? '재생' : '정지'}{' '}
+            <Text color="white">[1/2/3]</Text> 속도(
+            <Text color="cyan">{SPEEDS[speed].label}</Text>){' '}
             <Text color="white">[F]</Text> 빨리감기
           </Text>
         )}
