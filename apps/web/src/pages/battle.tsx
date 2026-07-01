@@ -1,12 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { simulateBattle, serializeReplay, getArthropodById } from '@super-insect-battle/engine'
 import type { BattleState, BattleLogEntry, Action, Arthropod, AIDifficulty, AIPersonality } from '@super-insect-battle/engine'
-import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
+import { BattleCommentary } from '../components/battle-commentary/battle-commentary.tsx'
 import { ActionPanel } from '../components/battle-scene/action-panel/action-panel.tsx'
 import { useGameStore } from '../stores/game-store.ts'
 import { useBattleStore } from '../stores/battle-store.ts'
-import { useBattleEffects } from '../hooks/use-battle-effects.ts'
 import type { BattleMode } from '../stores/game-store.types.ts'
 
 const LOG_DELAY_MS = 800
@@ -142,81 +141,53 @@ function AiVsAiBattle({
   const [displayedPlayerHp, setDisplayedPlayerHp] = useState(0)
   const [displayedOpponentHp, setDisplayedOpponentHp] = useState(0)
   const [replayDone, setReplayDone] = useState(false)
-  const replayAbortRef = useRef(false)
-
-  const effects = useBattleEffects()
 
   useEffect(() => {
+    let cancelled = false
     const result = simulateBattle(player, opponent)
     setBattleState(result)
     setDisplayedPlayerHp(result.player.maxHp)
     setDisplayedOpponentHp(result.opponent.maxHp)
     setDisplayedLogs([])
     setReplayDone(false)
-    replayAbortRef.current = false
-    effects.reset()
 
-    replayLogs(result)
+    ;(async (): Promise<void> => {
+      for (const entry of result.log) {
+        await new Promise<void>((resolve) => setTimeout(resolve, LOG_DELAY_MS))
+        if (cancelled) return
+
+        setDisplayedLogs((prev) => [...prev, entry])
+        if (entry.remainingHp) {
+          setDisplayedPlayerHp(entry.remainingHp.player)
+          setDisplayedOpponentHp(entry.remainingHp.opponent)
+        }
+      }
+      if (!cancelled) setReplayDone(true)
+    })()
 
     return (): void => {
-      replayAbortRef.current = true
+      cancelled = true
     }
   }, [player, opponent])
 
-  const replayLogs = useCallback(async (result: BattleState): Promise<void> => {
-    for (let i = 0; i < result.log.length; i++) {
-      if (replayAbortRef.current) return
-      await new Promise<void>((resolve) => setTimeout(resolve, LOG_DELAY_MS))
-      if (replayAbortRef.current) return
-
-      const entry = result.log[i]
-      effects.triggerEffectsFromLog(entry)
-      setDisplayedLogs((prev) => [...prev, entry])
-
-      if (entry.remainingHp) {
-        setDisplayedPlayerHp(entry.remainingHp.player)
-        setDisplayedOpponentHp(entry.remainingHp.opponent)
-      }
-    }
-    setReplayDone(true)
-  }, [effects])
-
   if (!battleState) return null
 
-  const lastLog = displayedLogs[displayedLogs.length - 1]
-  const currentTurn = lastLog?.turn ?? 1
   const winner = replayDone ? battleState.winner : null
 
   return (
-    <div className="h-full">
-      <BattleScene
-        player={player}
-        opponent={opponent}
-        playerBattle={battleState.player}
-        opponentBattle={battleState.opponent}
-        environment={battleState.environment}
-        displayedPlayerHp={displayedPlayerHp}
-        displayedOpponentHp={displayedOpponentHp}
-        displayedLogs={displayedLogs}
-        turnNumber={currentTurn}
-        winner={winner}
-        finished={replayDone}
-        onClose={onClose}
-        damagePopups={effects.damagePopups}
-        actionTexts={effects.actionTexts}
-        blockParticles={effects.blockParticles}
-        onDamagePopupComplete={effects.removeDamagePopup}
-        onActionTextComplete={effects.removeActionText}
-        onBlockParticleComplete={effects.removeBlockParticle}
-        playerHpEmphasis={effects.playerHpEmphasis}
-        opponentHpEmphasis={effects.opponentHpEmphasis}
-        onPlayerHpEmphasisComplete={effects.clearPlayerHpEmphasis}
-        onOpponentHpEmphasisComplete={effects.clearOpponentHpEmphasis}
-        screenShake={effects.screenShake}
-        screenFlash={effects.screenFlash}
-        onScreenEffectComplete={effects.clearScreenEffects}
-      />
-    </div>
+    <BattleCommentary
+      player={player}
+      opponent={opponent}
+      playerBattle={battleState.player}
+      opponentBattle={battleState.opponent}
+      environment={battleState.environment}
+      displayedPlayerHp={displayedPlayerHp}
+      displayedOpponentHp={displayedOpponentHp}
+      displayedLogs={displayedLogs}
+      winner={winner}
+      finished={replayDone}
+      onClose={onClose}
+    />
   )
 }
 
@@ -252,11 +223,8 @@ function InteractiveBattle({
   const prevLogLenRef = useRef(0)
   const hpInitializedRef = useRef(false)
 
-  const effects = useBattleEffects()
-
   useEffect(() => {
     reset()
-    effects.reset()
     hpInitializedRef.current = false
     prevLogLenRef.current = 0
     setDisplayedLogs([])
@@ -301,7 +269,6 @@ function InteractiveBattle({
         await new Promise<void>((r) => setTimeout(r, LOG_DELAY_MS))
         if (cancelled) return
 
-        effects.triggerEffectsFromLog(entry)
         setDisplayedLogs((prev) => [...prev, entry])
         if (entry.remainingHp) {
           setDisplayedPlayerHp(entry.remainingHp.player)
@@ -314,7 +281,7 @@ function InteractiveBattle({
     return (): void => {
       cancelled = true
     }
-  }, [logLen, effects])
+  }, [logLen])
 
   function handleSelectAction(action: Action): void {
     selectAction(action)
@@ -376,13 +343,12 @@ function InteractiveBattle({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isSelecting, battleContext, battleState])
 
-  const turnNumber = battleState?.turn ?? 1
   const winner = phase === 'finished' ? (battleState?.winner ?? null) : null
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1">
-        <BattleScene
+      <div className="min-h-0 flex-1">
+        <BattleCommentary
           player={player}
           opponent={opponent}
           playerBattle={battleState?.player ?? null}
@@ -391,26 +357,12 @@ function InteractiveBattle({
           displayedPlayerHp={displayedPlayerHp}
           displayedOpponentHp={displayedOpponentHp}
           displayedLogs={displayedLogs}
-          turnNumber={turnNumber}
           winner={winner}
           finished={phase === 'finished'}
           onClose={handleClose}
           onSaveReplay={finalReplay ? handleSaveReplay : undefined}
           onDownloadReplay={finalReplay ? handleDownloadReplay : undefined}
           replaySaved={replaySaved}
-          damagePopups={effects.damagePopups}
-          actionTexts={effects.actionTexts}
-          blockParticles={effects.blockParticles}
-          onDamagePopupComplete={effects.removeDamagePopup}
-          onActionTextComplete={effects.removeActionText}
-          onBlockParticleComplete={effects.removeBlockParticle}
-          playerHpEmphasis={effects.playerHpEmphasis}
-          opponentHpEmphasis={effects.opponentHpEmphasis}
-          onPlayerHpEmphasisComplete={effects.clearPlayerHpEmphasis}
-          onOpponentHpEmphasisComplete={effects.clearOpponentHpEmphasis}
-          screenShake={effects.screenShake}
-          screenFlash={effects.screenFlash}
-          onScreenEffectComplete={effects.clearScreenEffects}
         />
       </div>
 

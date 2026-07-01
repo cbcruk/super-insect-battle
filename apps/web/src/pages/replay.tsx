@@ -9,7 +9,7 @@ import type {
   BattleLogEntry,
   BattleReplay,
 } from '@super-insect-battle/engine'
-import { BattleScene } from '../components/battle-scene/battle-scene.tsx'
+import { BattleCommentary } from '../components/battle-commentary/battle-commentary.tsx'
 import { Button } from '../components/ui/button.tsx'
 import { DataTable } from '../components/ui/data-table.tsx'
 import type { Column } from '../components/ui/data-table.tsx'
@@ -329,15 +329,13 @@ function ReplayViewer({
     )
   }
 
-  const lastLog = displayedLogs[displayedLogs.length - 1]
-  const currentTurn = lastLog?.turn ?? 1
   const totalLogs = battleState.log.length
   const winner = done ? battleState.winner : null
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1">
-        <BattleScene
+        <BattleCommentary
           player={player}
           opponent={opponent}
           playerBattle={battleState.player}
@@ -346,7 +344,6 @@ function ReplayViewer({
           displayedPlayerHp={displayedPlayerHp}
           displayedOpponentHp={displayedOpponentHp}
           displayedLogs={displayedLogs}
-          turnNumber={currentTurn}
           winner={winner}
           finished={done}
           onClose={onClose}
