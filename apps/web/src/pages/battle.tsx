@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { simulateBattle, serializeReplay, getArthropodById } from '@super-insect-battle/engine'
 import type { BattleState, BattleLogEntry, Action, Arthropod, AIDifficulty, AIPersonality } from '@super-insect-battle/engine'
-import { BattleCommentary } from '../components/battle-commentary/battle-commentary.tsx'
+import {
+  BattleCommentary,
+  PLAYBACK_SPEEDS,
+} from '../components/battle-commentary/battle-commentary.tsx'
 import { ActionPanel } from '../components/battle-scene/action-panel/action-panel.tsx'
 import { useGameStore } from '../stores/game-store.ts'
 import { useBattleStore } from '../stores/battle-store.ts'
@@ -10,6 +13,17 @@ import type { BattleMode } from '../stores/game-store.types.ts'
 
 const LOG_DELAY_MS = 800
 const REPLAY_STORAGE_KEY = 'sib-replays'
+
+function lastKnownHp(
+  logs: BattleLogEntry[],
+  side: 'player' | 'opponent'
+): number | undefined {
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const hp = logs[i].remainingHp?.[side]
+    if (hp !== undefined) return hp
+  }
+  return undefined
+}
 
 interface BattleParams {
   player: Arthropod | null
@@ -137,42 +151,51 @@ function AiVsAiBattle({
 }): React.ReactNode {
 
   const [battleState, setBattleState] = useState<BattleState | null>(null)
-  const [displayedLogs, setDisplayedLogs] = useState<BattleLogEntry[]>([])
-  const [displayedPlayerHp, setDisplayedPlayerHp] = useState(0)
-  const [displayedOpponentHp, setDisplayedOpponentHp] = useState(0)
-  const [replayDone, setReplayDone] = useState(false)
+  const [cursor, setCursor] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const [speedIndex, setSpeedIndex] = useState(1)
 
   useEffect(() => {
-    let cancelled = false
-    const result = simulateBattle(player, opponent)
-    setBattleState(result)
-    setDisplayedPlayerHp(result.player.maxHp)
-    setDisplayedOpponentHp(result.opponent.maxHp)
-    setDisplayedLogs([])
-    setReplayDone(false)
-
-    ;(async (): Promise<void> => {
-      for (const entry of result.log) {
-        await new Promise<void>((resolve) => setTimeout(resolve, LOG_DELAY_MS))
-        if (cancelled) return
-
-        setDisplayedLogs((prev) => [...prev, entry])
-        if (entry.remainingHp) {
-          setDisplayedPlayerHp(entry.remainingHp.player)
-          setDisplayedOpponentHp(entry.remainingHp.opponent)
-        }
-      }
-      if (!cancelled) setReplayDone(true)
-    })()
-
-    return (): void => {
-      cancelled = true
-    }
+    setBattleState(simulateBattle(player, opponent))
+    setCursor(0)
+    setPaused(false)
   }, [player, opponent])
+
+  const logLen = battleState?.log.length ?? 0
+  const finished = battleState !== null && cursor >= logLen
+
+  useEffect(() => {
+    if (!battleState || paused || finished) return
+    const timer = setTimeout(
+      () => setCursor((c) => c + 1),
+      LOG_DELAY_MS * PLAYBACK_SPEEDS[speedIndex].mult
+    )
+    return (): void => clearTimeout(timer)
+  }, [battleState, cursor, paused, finished, speedIndex])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === ' ') {
+        e.preventDefault()
+        setPaused((p) => !p)
+      } else if (e.key === 'f' || e.key === 'F') {
+        setCursor(logLen)
+      } else if (e.key >= '1' && e.key <= '3') {
+        setSpeedIndex(Number(e.key) - 1)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return (): void => window.removeEventListener('keydown', onKey)
+  }, [logLen])
 
   if (!battleState) return null
 
-  const winner = replayDone ? battleState.winner : null
+  const displayedLogs = battleState.log.slice(0, cursor)
+  const playerHp =
+    lastKnownHp(displayedLogs, 'player') ?? battleState.player.maxHp
+  const opponentHp =
+    lastKnownHp(displayedLogs, 'opponent') ?? battleState.opponent.maxHp
+  const winner = finished ? battleState.winner : null
 
   return (
     <BattleCommentary
@@ -181,12 +204,20 @@ function AiVsAiBattle({
       playerBattle={battleState.player}
       opponentBattle={battleState.opponent}
       environment={battleState.environment}
-      displayedPlayerHp={displayedPlayerHp}
-      displayedOpponentHp={displayedOpponentHp}
+      displayedPlayerHp={playerHp}
+      displayedOpponentHp={opponentHp}
       displayedLogs={displayedLogs}
       winner={winner}
-      finished={replayDone}
+      finished={finished}
       onClose={onClose}
+      controls={{
+        paused,
+        speedIndex,
+        onTogglePause: () => setPaused((p) => !p),
+        onCycleSpeed: () =>
+          setSpeedIndex((i) => (i + 1) % PLAYBACK_SPEEDS.length),
+        onSkip: () => setCursor(logLen),
+      }}
     />
   )
 }

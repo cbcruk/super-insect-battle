@@ -5,6 +5,14 @@ import type {
   Environment,
 } from '@super-insect-battle/engine'
 
+export interface PlaybackControls {
+  paused: boolean
+  speedIndex: number
+  onTogglePause: () => void
+  onCycleSpeed: () => void
+  onSkip: () => void
+}
+
 export interface BattleCommentaryProps {
   player: Arthropod
   opponent: Arthropod
@@ -20,4 +28,5 @@ export interface BattleCommentaryProps {
   onSaveReplay?: () => void
   onDownloadReplay?: () => void
   replaySaved?: boolean
+  controls?: PlaybackControls
 }

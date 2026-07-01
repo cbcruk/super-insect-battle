@@ -224,15 +224,17 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
     }
   }
 
-  events.push({
-    kind: 'end',
-    winner: state.winner,
-    winnerName:
-      state.winner === 'player' || state.winner === 'opponent'
-        ? name[state.winner]
-        : null,
-    turns: state.turn,
-  })
+  if (state.status === 'finished') {
+    events.push({
+      kind: 'end',
+      winner: state.winner,
+      winnerName:
+        state.winner === 'player' || state.winner === 'opponent'
+          ? name[state.winner]
+          : null,
+      turns: state.turn,
+    })
+  }
 
   return events
 }

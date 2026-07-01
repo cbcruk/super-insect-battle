@@ -9,6 +9,12 @@ import { Button } from '../ui/button.tsx'
 import { cn } from '../../lib/utils.ts'
 import type { BattleCommentaryProps } from './battle-commentary.types.ts'
 
+export const PLAYBACK_SPEEDS = [
+  { label: '느리게', mult: 1.8 },
+  { label: '보통', mult: 1 },
+  { label: '빠르게', mult: 0.5 },
+]
+
 function hpColor(ratio: number): string {
   if (ratio > 0.5) return 'bg-green-500'
   if (ratio > 0.25) return 'bg-yellow-500'
@@ -79,6 +85,7 @@ export function BattleCommentary({
   onSaveReplay,
   onDownloadReplay,
   replaySaved,
+  controls,
 }: BattleCommentaryProps): React.ReactNode {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -145,7 +152,7 @@ export function BattleCommentary({
         ))}
       </div>
 
-      {finished && (
+      {finished ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
           <div className="text-lg font-bold">
             {winnerName ? `${winnerName} 승리!` : '무승부!'}
@@ -164,7 +171,22 @@ export function BattleCommentary({
             <Button onClick={onClose}>돌아가기</Button>
           </div>
         </div>
-      )}
+      ) : controls ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border p-3">
+          <Button variant="outline" size="sm" onClick={controls.onTogglePause}>
+            {controls.paused ? '▶ 재생' : '⏸ 일시정지'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={controls.onCycleSpeed}>
+            속도: {PLAYBACK_SPEEDS[controls.speedIndex].label}
+          </Button>
+          <Button variant="outline" size="sm" onClick={controls.onSkip}>
+            ⏭ 빨리감기
+          </Button>
+          <span className="text-muted-foreground ml-auto text-xs">
+            [Space] 정지 · [1/2/3] 속도 · [F] 빨리감기
+          </span>
+        </div>
+      ) : null}
     </div>
   )
 }
