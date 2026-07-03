@@ -31,7 +31,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # VITE_API_URL은 저장소 Variables에 배포된 Worker 주소를 설정한다.
+      # 미설정 시 웹은 API 미연결 상태로 빌드되고, 통계 페이지의 브라우저 모드만 동작한다.
       - run: pnpm build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
 
       - uses: actions/configure-pages@v5
 

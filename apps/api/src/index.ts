@@ -1,13 +1,20 @@
-import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { createDb } from './db/client.js'
+import type { AppEnv } from './types.js'
 import { arthropods } from './routes/arthropods.js'
 import { battle } from './routes/battle.js'
 import { history } from './routes/history.js'
 
-const app = new Hono()
+const app = new Hono<AppEnv>()
 
 app.use('*', cors())
+
+// 요청마다 D1 바인딩으로 drizzle 인스턴스를 만들어 컨텍스트에 주입
+app.use('*', async (c, next) => {
+  c.set('db', createDb(c.env.DB))
+  await next()
+})
 
 app.get('/', (c) => {
   return c.json({
@@ -30,11 +37,4 @@ app.route('/api/arthropods', arthropods)
 app.route('/api/battle', battle)
 app.route('/api/history', history)
 
-const port = Number(process.env.PORT) || 3000
-
-console.log(`🐛 Super Insect Battle API running on http://localhost:${port}`)
-
-serve({
-  fetch: app.fetch,
-  port,
-})
+export default app
