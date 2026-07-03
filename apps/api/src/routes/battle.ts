@@ -7,11 +7,11 @@ import {
   createBattleArthropod,
 } from '@super-insect-battle/engine'
 import { getEventDelay, sleep } from '../utils/stream.js'
-import { db } from '../db/client.js'
 import { battles, battleLogs, matchupStats } from '../db/schema.js'
 import { eq, and, sql } from 'drizzle-orm'
+import type { AppEnv } from '../types.js'
 
-const battle = new Hono()
+const battle = new Hono<AppEnv>()
 
 interface BattleRequest {
   player: string
@@ -47,6 +47,7 @@ battle.post('/', async (c) => {
   const playerBattle = createBattleArthropod(playerArthropod)
   const opponentBattle = createBattleArthropod(opponentArthropod)
   const battleId = generateId()
+  const db = c.get('db')
 
   return streamSSE(c, async (stream) => {
     await stream.writeSSE({
@@ -170,6 +171,7 @@ battle.post('/stats', async (c) => {
     return c.json({ error: `Opponent arthropod not found: ${opponentId}` }, 400)
   }
 
+  const db = c.get('db')
   const limitedCount = Math.min(Math.max(1, count), 1000)
   const stats = simulateMultipleBattles(
     playerArthropod,
