@@ -1,6 +1,17 @@
 # 슈퍼곤충대전 (Super Insect Battle)
 
-실제 절지동물의 특성을 기반으로 한 1:1 턴제 배틀 시뮬레이터
+실제 절지동물의 특성을 기반으로 한 1:1 턴제 배틀 시뮬레이터.
+헤드리스 엔진이 생성한 배틀을 Championship Manager식 텍스트 중계로 풀어낸다.
+
+## 기능
+
+- **배틀 시뮬레이션** — 절지동물 24종의 1:1 턴제 대결, 스타일 상성·환경·상태이상 반영
+- **텍스트 중계** — 배틀을 숫자 없이 생동감 있는 한국어 산문 중계로 실시간 재생
+- **도감** — 절지동물별 특성·무기·행동 상세 정보 열람
+- **통계** — 전적, 대전 기록, 매치업별 승률 집계
+- **리플레이** — 배틀을 저장하고 다시 재생
+- **AI 대전** — 전략 기반 AI와 대결
+- **터미널·웹 양쪽 지원** — Ink 터미널 앱과 React 웹 앱이 동일한 엔진·중계를 공유
 
 ## 실행 방법
 
@@ -8,7 +19,8 @@
 pnpm install          # 의존성 설치
 pnpm build            # 빌드
 pnpm simulator        # 터미널 시뮬레이터 실행
-pnpm simulator:web          # 웹 시뮬레이터 실행
+pnpm dev:web          # 웹 시뮬레이터 실행
+pnpm api              # API 서버 실행
 ```
 
 ## 게임 시스템
@@ -121,35 +133,21 @@ defensive: 중립 (카운터 역할)
 - 3턴간 받는 데미지 -50%
 - 공격 불가
 
-## 프로젝트 구조
+### 텍스트 중계 (Commentary)
 
-```
-packages/
-├── engine/                 # 배틀 엔진 코어
-│   ├── data/              # YAML 데이터 (절지동물, 액션, 상성)
-│   ├── src/types/         # 타입 정의
-│   ├── src/data/          # 데이터 로더
-│   └── src/engine/        # 배틀 로직
-│       ├── battle-engine.ts    # 메인 배틀 로직
-│       ├── environment.ts      # 환경/날씨 시스템
-│       ├── status-condition.ts # 상태이상
-│       ├── stat-stages.ts      # 스탯 버프/디버프
-│       ├── battle-mode.ts      # 도망/움츠림
-│       └── ai-strategy.ts      # AI 전략
-└── ui/                    # 터미널 UI (Ink)
+배틀 결과를 숫자·디버그 태그 없이 생동감 있는 한국어 산문 중계로 변환한다.
 
-apps/
-├── simulator/             # 터미널 시뮬레이터
-├── web/                   # 웹 시뮬레이터
-└── api/                   # API 서버
-```
+- `deriveEvents`: 배틀 로그 → 구조화된 배틀 이벤트
+- `narrate` / `createNarrator`: 이벤트 → 다양한 중계 문구 (반복 회피)
+- `buildFeed`: 라인별 HP가 포함된 매치 피드 생성
+- 터미널(Ink)과 웹(React) 뷰가 동일한 중계 엔진을 공유
 
 ## 개발
 
 ```bash
-pnpm test:run             # 테스트 실행
-pnpm build                # 전체 빌드
-pnpm build:data           # YAML → TypeScript 변환
+pnpm test:run                              # 테스트 실행
+pnpm build                                 # 전체 빌드
+pnpm --filter @super-insect-battle/engine build:data  # YAML → TypeScript 변환
 ```
 
 ### 밸런스 검증
