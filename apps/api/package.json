@@ -3,22 +3,20 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "dev": "wrangler dev",
+    "build": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply super-insect-battle --local",
+    "db:migrate:remote": "wrangler d1 migrations apply super-insect-battle --remote"
   },
   "dependencies": {
     "@super-insect-battle/engine": "workspace:*",
     "hono": "^4.7.0",
-    "@hono/node-server": "^1.14.0",
-    "@libsql/client": "^0.14.0",
     "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "drizzle-kit": "^0.30.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.90.0"
   }
 }

@@ -1,11 +1,12 @@
 import { Hono } from 'hono'
-import { db } from '../db/client.js'
 import { battles, battleLogs, matchupStats } from '../db/schema.js'
 import { eq, and, desc } from 'drizzle-orm'
+import type { AppEnv } from '../types.js'
 
-const history = new Hono()
+const history = new Hono<AppEnv>()
 
 history.get('/', async (c) => {
+  const db = c.get('db')
   const page = Number(c.req.query('page')) || 1
   const limit = Math.min(Number(c.req.query('limit')) || 20, 100)
   const offset = (page - 1) * limit
@@ -36,6 +37,7 @@ history.get('/', async (c) => {
 })
 
 history.get('/:id', async (c) => {
+  const db = c.get('db')
   const id = c.req.param('id')
 
   const battleResult = await db
@@ -81,6 +83,7 @@ history.get('/:id', async (c) => {
 })
 
 history.get('/stats/:playerId/:opponentId', async (c) => {
+  const db = c.get('db')
   const playerId = c.req.param('playerId')
   const opponentId = c.req.param('opponentId')
 

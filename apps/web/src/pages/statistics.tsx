@@ -4,6 +4,10 @@ import {
   simulateMultipleBattles,
 } from '@super-insect-battle/engine'
 import type { Arthropod } from '@super-insect-battle/engine'
+import {
+  battleApi,
+  type CumulativeStatsResponse,
+} from '../bridge/api-client.ts'
 import { Button } from '../components/ui/button.tsx'
 import {
   Select,
@@ -44,24 +48,67 @@ export function StatisticsPage(): React.ReactNode {
     number
   > | null>(null)
   const [running, setRunning] = useState(false)
+  const [source, setSource] = useState<'local' | 'server'>('local')
+  const [cumulative, setCumulative] =
+    useState<CumulativeStatsResponse | null>(null)
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const runMatchup = useCallback((): void => {
     if (!selectedPlayer || !selectedOpponent) return
     setRunning(true)
-    setTimeout(() => {
-      const stats = simulateMultipleBattles(
-        selectedPlayer,
-        selectedOpponent,
-        Number(simCount)
-      )
-      setResult({
-        player: selectedPlayer,
-        opponent: selectedOpponent,
-        ...stats,
-      })
-      setRunning(false)
-    }, 0)
-  }, [selectedPlayer, selectedOpponent, simCount])
+    setServerError(null)
+
+    if (source === 'local') {
+      setCumulative(null)
+      setTimeout(() => {
+        const stats = simulateMultipleBattles(
+          selectedPlayer,
+          selectedOpponent,
+          Number(simCount)
+        )
+        setResult({
+          player: selectedPlayer,
+          opponent: selectedOpponent,
+          ...stats,
+        })
+        setRunning(false)
+      }, 0)
+      return
+    }
+
+    // 서버 모드: 서버에서 배틀을 돌리고 결과를 D1에 누적 저장한다.
+    // 서버는 1회 요청당 최대 1,000회로 제한한다.
+    void (async () => {
+      try {
+        const res = await battleApi.getStats(
+          selectedPlayer.id,
+          selectedOpponent.id,
+          Math.min(Number(simCount), 1000)
+        )
+        setResult({
+          player: selectedPlayer,
+          opponent: selectedOpponent,
+          playerWins: res.stats.playerWins,
+          opponentWins: res.stats.opponentWins,
+          draws: res.stats.draws,
+          winRate: res.stats.winRate,
+          avgTurns: res.stats.avgTurns,
+        })
+        const cum = await battleApi.getCumulativeStats(
+          selectedPlayer.id,
+          selectedOpponent.id
+        )
+        setCumulative(cum)
+      } catch (e) {
+        setServerError(
+          e instanceof Error ? e.message : '서버에 연결할 수 없습니다.'
+        )
+        setCumulative(null)
+      } finally {
+        setRunning(false)
+      }
+    })()
+  }, [selectedPlayer, selectedOpponent, simCount, source])
 
   const matrixSimCount = Math.min(Number(simCount), 200).toString()
 
@@ -104,6 +151,10 @@ export function StatisticsPage(): React.ReactNode {
             onRun={runMatchup}
             running={running}
             result={result}
+            source={source}
+            onSourceChange={setSource}
+            cumulative={cumulative}
+            serverError={serverError}
           />
         </TabsContent>
 
@@ -131,6 +182,10 @@ function MatchupMode({
   onRun,
   running,
   result,
+  source,
+  onSourceChange,
+  cumulative,
+  serverError,
 }: {
   selectedPlayer: Arthropod | null
   selectedOpponent: Arthropod | null
@@ -141,6 +196,10 @@ function MatchupMode({
   onRun: () => void
   running: boolean
   result: MatchupResult | null
+  source: 'local' | 'server'
+  onSourceChange: (s: 'local' | 'server') => void
+  cumulative: CumulativeStatsResponse | null
+  serverError: string | null
 }): React.ReactNode {
   return (
     <div>
@@ -164,7 +223,7 @@ function MatchupMode({
         />
       </div>
 
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <span className="text-xs text-muted-foreground">Simulations</span>
         <Select value={simCount} onValueChange={onSimCountChange}>
           <SelectTrigger className="h-8 w-28 text-xs">
@@ -179,6 +238,25 @@ function MatchupMode({
           </SelectContent>
         </Select>
 
+        <div className="inline-flex overflow-hidden rounded-md border border-white/10">
+          <Button
+            size="xs"
+            variant={source === 'local' ? 'default' : 'ghost'}
+            className="rounded-none"
+            onClick={() => onSourceChange('local')}
+          >
+            브라우저
+          </Button>
+          <Button
+            size="xs"
+            variant={source === 'server' ? 'default' : 'ghost'}
+            className="rounded-none"
+            onClick={() => onSourceChange('server')}
+          >
+            서버(누적)
+          </Button>
+        </div>
+
         <Button
           size="sm"
           onClick={onRun}
@@ -186,9 +264,74 @@ function MatchupMode({
         >
           {running ? 'Running...' : 'Simulate'}
         </Button>
+
+        {source === 'server' && (
+          <span className="text-[11px] text-muted-foreground">
+            서버는 요청당 최대 1,000회, 결과를 누적 저장합니다
+          </span>
+        )}
       </div>
 
+      {serverError && (
+        <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          서버 연결 실패: {serverError} — 브라우저 모드로 실행할 수 있습니다.
+        </div>
+      )}
+
       {result && <MatchupResultCard result={result} />}
+
+      {cumulative && cumulative.stats.totalBattles > 0 && (
+        <CumulativeStatsCard cumulative={cumulative} />
+      )}
+    </div>
+  )
+}
+
+function CumulativeStatsCard({
+  cumulative,
+}: {
+  cumulative: CumulativeStatsResponse
+}): React.ReactNode {
+  const { stats } = cumulative
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-md border border-table-border">
+      <div className="bg-table-header px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        누적 통계 (서버 저장 · 총 {stats.totalBattles.toLocaleString()}전)
+      </div>
+      <div className="grid grid-cols-2 gap-px bg-table-border sm:grid-cols-4">
+        <StatCell label="Player Wins" value={stats.playerWins} accent="text-cyan-400" />
+        <StatCell
+          label="Opponent Wins"
+          value={stats.opponentWins}
+          accent="text-pink-400"
+        />
+        <StatCell label="Win Rate" value={`${stats.winRate}%`} />
+        <StatCell label="Avg Turns" value={stats.avgTurns} />
+      </div>
+    </div>
+  )
+}
+
+function StatCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: number | string
+  accent?: string
+}): React.ReactNode {
+  return (
+    <div className="bg-table-row-even px-3 py-3 text-center">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={cn('mt-1 text-lg font-bold tabular-nums', accent ?? 'text-foreground')}
+      >
+        {value}
+      </div>
     </div>
   )
 }

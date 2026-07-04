@@ -42,10 +42,30 @@ export interface BattleStatsResponse {
   }
 }
 
+export interface CumulativeStatsResponse {
+  player: string
+  opponent: string
+  stats: {
+    playerWins: number
+    opponentWins: number
+    draws: number
+    totalBattles: number
+    winRate: number
+    avgTurns: number
+  }
+}
+
+/**
+ * API 서버 주소. 빌드 시 VITE_API_URL로 주입한다.
+ * 미설정 시 로컬 `wrangler dev` 기본 포트(8787)로 폴백한다.
+ */
+const DEFAULT_API_URL =
+  import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
+
 export class BattleApiClient {
   private baseUrl: string
 
-  constructor(baseUrl: string = 'http://localhost:3000') {
+  constructor(baseUrl: string = DEFAULT_API_URL) {
     this.baseUrl = baseUrl
   }
 
@@ -126,6 +146,22 @@ export class BattleApiClient {
     return (await response.json()) as BattleStatsResponse
   }
 
+  async getCumulativeStats(
+    playerId: string,
+    opponentId: string
+  ): Promise<CumulativeStatsResponse> {
+    const response = await fetch(
+      `${this.baseUrl}/api/history/stats/${playerId}/${opponentId}`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+
+    if (!response.ok) {
+      throw new Error('Cumulative stats request failed')
+    }
+
+    return (await response.json()) as CumulativeStatsResponse
+  }
+
   async checkConnection(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseUrl}/`, {
@@ -138,3 +174,6 @@ export class BattleApiClient {
     }
   }
 }
+
+/** 앱 전역에서 공유하는 API 클라이언트 인스턴스 */
+export const battleApi = new BattleApiClient()

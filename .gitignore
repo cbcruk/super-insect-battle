@@ -30,3 +30,6 @@ TODO.md
 
 .playwright-mcp
 screenshots/
+
+# Cloudflare Wrangler local state
+.wrangler/
