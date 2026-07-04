@@ -8,7 +8,7 @@ compatibility_date = "2024-11-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "super-insect-battle"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "941f0d96-fde2-481c-80e6-39d40e58f89a"
 migrations_dir = "migrations"
 
 [observability]
