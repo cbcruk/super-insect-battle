@@ -21,9 +21,11 @@ packages/engine/           # 배틀 엔진 코어
 ├── src/data/              # 데이터 (절지동물, 행동, 상성)
 └── src/engine/            # 배틀 로직 (시드 RNG 포함)
 
-packages/roguelike/        # 격자 로그라이크 코어 (P1, 헤들리스)
+packages/roguelike/        # 격자 로그라이크 코어 (헤들리스, 결정론)
 ├── map/actor/scheduler    # 타일맵, 액터, 에너지 스케줄러
+├── mapgen/fov/pathfind    # 절차 밀림 생성 · 시야(FOV) · 길찾기(rot.js)
 ├── combat.ts              # 엔진 전투 재사용 브릿지
+├── generate.ts            # 절차 레벨·존 하강·런 생성
 └── run.ts                 # 런 상태·턴 루프 (Brogue식 통합 전투)
 
 apps/simulator/            # 터미널 UI 앱

@@ -17,6 +17,7 @@ import { inBounds, isWalkable } from './map'
 import { addDir, chebyshev, equals, type Vec2 } from './geometry'
 import { resolveAttack } from './combat'
 import { nextActor, grantEnergy, spendTurn } from './scheduler'
+import { refreshFov, enterLevel } from './generate'
 
 export interface Level {
   depth: number
@@ -24,6 +25,9 @@ export interface Level {
   actors: Actor[] // 플레이어 포함
   environment: Environment // 바이옴 — 엔진 환경 보너스에 사용
   exit: Vec2 // 다음 존 하강 지점
+  /** FOV: 현재 보이는 / 한번이라도 본 타일 키. 미설정 시 안개 없음(테스트용). */
+  visible?: Set<string>
+  discovered?: Set<string>
 }
 
 export type RunStatus = 'playing' | 'won' | 'dead'
@@ -35,6 +39,7 @@ export interface RunState {
   status: RunStatus
   level: Level
   player: Actor // level.actors 에도 포함; HP는 존을 넘어 지속
+  maxDepth: number // 이 깊이의 출구 도달 시 런 승리
   log: string[]
 }
 
@@ -44,16 +49,20 @@ export function createRun(opts: {
   player: Actor
   level: Level
   seed: number
+  maxDepth?: number
 }): RunState {
-  return {
+  const run: RunState = {
     seed: opts.seed,
     rng: createRng(opts.seed),
     turn: 0,
     status: 'playing',
     level: opts.level,
     player: opts.player,
+    maxDepth: opts.maxDepth ?? opts.level.depth,
     log: [],
   }
+  refreshFov(run)
+  return run
 }
 
 /** 지금이 플레이어가 명령할 차례인가. */
@@ -76,6 +85,7 @@ export function applyCommand(run: RunState, command: Command): GridEvent[] {
   resolveActorTurn(run, run.player, command, events)
   advance(run, events)
 
+  refreshFov(run)
   record(run, events)
   return events
 }
@@ -165,8 +175,12 @@ function actOnce(
     events.push({ type: 'move', actorId: actor.id, from, to: target })
 
     if (actor.id === run.player.id && equals(target, run.level.exit)) {
-      run.status = 'won'
       events.push({ type: 'descend', depth: run.level.depth })
+      if (run.level.depth >= run.maxDepth) {
+        run.status = 'won'
+      } else {
+        enterLevel(run, run.level.depth + 1) // 다음 존 생성 + 플레이어 이동
+      }
     }
   } else {
     events.push({ type: 'blocked', actorId: actor.id, pos: target })

@@ -6,6 +6,7 @@ export {
   DIRECTION_DELTA,
   addDir,
   equals,
+  posKey,
   chebyshev,
   dirToward,
   dirAway,
@@ -42,5 +43,17 @@ export type { Level, RunStatus, RunState } from './run'
 export { createRun, applyCommand, isPlayerTurn, actorAt } from './run'
 
 export { createBasicBrain } from './ai/basic-brain'
+export { createSmartBrain } from './ai/smart-brain'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
 export { renderLevel, renderFrame } from './render'
+
+// P2: 절차 생성 · 시야 · 길찾기
+export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'
+export { computeVisible, SIGHT_RADIUS } from './fov'
+export { stepAlongPath, fleeStep, type Blocked } from './pathfind'
+export {
+  refreshFov,
+  createGeneratedLevel,
+  enterLevel,
+  createGeneratedRun,
+} from './generate'

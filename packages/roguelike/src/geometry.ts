@@ -36,6 +36,11 @@ export function equals(a: Vec2, b: Vec2): boolean {
   return a.x === b.x && a.y === b.y
 }
 
+/** Set/Map 키로 쓰는 좌표 문자열. */
+export function posKey(x: number, y: number): string {
+  return `${x},${y}`
+}
+
 /** 8방향 격자 거리 (대각선 = 1). */
 export function chebyshev(a: Vec2, b: Vec2): number {
   return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y))
