@@ -45,6 +45,21 @@ export const matchupStats = sqliteTable('matchup_stats', {
     .default(sql`(datetime('now'))`),
 })
 
+export const roguelikeRuns = sqliteTable('roguelike_runs', {
+  id: text('id').primaryKey(),
+  seed: integer('seed').notNull(),
+  dailyDate: text('daily_date'), // 'YYYY-MM-DD' if the run used the daily seed
+  playerName: text('player_name').notNull().default('anon'),
+  speciesId: text('species_id').notNull(),
+  depth: integer('depth').notNull(),
+  turns: integer('turns').notNull(),
+  outcome: text('outcome').notNull(), // 'won' | 'dead'
+  score: integer('score').notNull(),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(datetime('now'))`),
+})
+
 export type Battle = typeof battles.$inferSelect
 export type NewBattle = typeof battles.$inferInsert
 export type BattleLog = typeof battleLogs.$inferSelect

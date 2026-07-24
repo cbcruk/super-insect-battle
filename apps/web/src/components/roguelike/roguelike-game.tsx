@@ -29,9 +29,11 @@ const KEY_DIR: Record<string, Direction> = {
 export function RoguelikeGame({
   controller,
   onExit,
+  resultSlot,
 }: {
   controller: RoguelikeController
   onExit: () => void
+  resultSlot?: React.ReactNode
 }): React.ReactNode {
   const { run, version, notice, dispatch, useAbility } = controller
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -100,7 +102,7 @@ export function RoguelikeGame({
         <div className="relative overflow-auto rounded-md border border-table-border bg-[#070809]">
           <canvas ref={canvasRef} className="block" />
           {run.status !== 'playing' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-auto bg-black/80 p-4">
               <div
                 className={cn(
                   'text-2xl font-bold',
@@ -109,6 +111,7 @@ export function RoguelikeGame({
               >
                 {run.status === 'won' ? '밀림 탈출 성공!' : '쓰러졌다...'}
               </div>
+              {resultSlot}
               <Button onClick={onExit}>새 런</Button>
             </div>
           )}

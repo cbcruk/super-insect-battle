@@ -11,6 +11,10 @@ Hono 기반 배틀 API. **Cloudflare Workers + D1**로 배포한다.
 - `GET  /api/history` — 배틀 히스토리 목록
 - `GET  /api/history/:id` — 배틀 상세 + 로그
 - `GET  /api/history/stats/:playerId/:opponentId` — 누적 상성 통계
+- `GET  /api/roguelike/daily` — 오늘의 데일리 시드 (날짜 기반 결정론)
+- `POST /api/roguelike/runs` — 완료한 로그라이크 런 제출 (점수 서버 계산)
+- `GET  /api/roguelike/leaderboard?seed=` — 특정 시드 리더보드
+- `GET  /api/roguelike/daily/leaderboard` — 오늘의 데일리 리더보드
 
 ## 로컬 개발
 

@@ -17,12 +17,15 @@ import {
 export interface NewRunOptions {
   speciesId: string
   seed: number
+  /** 데일리 챌린지로 시작한 경우 해당 날짜('YYYY-MM-DD'). */
+  dailyDate?: string | null
 }
 
 export interface RoguelikeController {
   run: RunState | null
   version: number
   notice: string
+  dailyDate: string | null
   newRun: (opts: NewRunOptions) => void
   reset: () => void
   dispatch: (command: Command) => void
@@ -33,6 +36,7 @@ export function useRoguelike(): RoguelikeController {
   const runRef = useRef<RunState | null>(null)
   const [version, setVersion] = useState(0)
   const [notice, setNotice] = useState('')
+  const [dailyDate, setDailyDate] = useState<string | null>(null)
 
   const bump = useCallback(() => setVersion((v) => v + 1), [])
 
@@ -45,6 +49,7 @@ export function useRoguelike(): RoguelikeController {
         seed: opts.seed,
         maxDepth: 3,
       })
+      setDailyDate(opts.dailyDate ?? null)
       setNotice('')
       bump()
     },
@@ -53,6 +58,7 @@ export function useRoguelike(): RoguelikeController {
 
   const reset = useCallback(() => {
     runRef.current = null
+    setDailyDate(null)
     setNotice('')
     bump()
   }, [bump])
@@ -108,6 +114,7 @@ export function useRoguelike(): RoguelikeController {
     run: runRef.current,
     version,
     notice,
+    dailyDate,
     newRun,
     reset,
     dispatch,

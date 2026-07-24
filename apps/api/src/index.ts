@@ -5,6 +5,7 @@ import type { AppEnv } from './types.js'
 import { arthropods } from './routes/arthropods.js'
 import { battle } from './routes/battle.js'
 import { history } from './routes/history.js'
+import { roguelike } from './routes/roguelike.js'
 
 const app = new Hono<AppEnv>()
 
@@ -29,6 +30,10 @@ app.get('/', (c) => {
       'GET /api/history/:id': 'Get battle details with logs',
       'GET /api/history/stats/:playerId/:opponentId':
         'Get cumulative matchup stats',
+      'GET /api/roguelike/daily': "Get today's daily seed",
+      'POST /api/roguelike/runs': 'Submit a completed roguelike run',
+      'GET /api/roguelike/leaderboard?seed=': 'Leaderboard for a seed',
+      'GET /api/roguelike/daily/leaderboard': "Today's daily leaderboard",
     },
   })
 })
@@ -36,5 +41,6 @@ app.get('/', (c) => {
 app.route('/api/arthropods', arthropods)
 app.route('/api/battle', battle)
 app.route('/api/history', history)
+app.route('/api/roguelike', roguelike)
 
 export default app
