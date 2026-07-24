@@ -18,6 +18,12 @@ export interface ReplayHeader {
   playerArthropodId: string
   opponentArthropodId: string
   environment: Environment
+  /**
+   * 전투 해결에 사용된 난수 시드. 저장되어 있으면 재생 시 동일 시드로
+   * 엔진을 재구동하여 데미지·명중·상태이상까지 완전히 재현한다.
+   * 구버전 리플레이(seed 없음)는 비결정론적으로 재생된다.
+   */
+  seed?: number
 }
 
 export interface BattleReplay {

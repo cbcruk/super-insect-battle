@@ -4,6 +4,7 @@ import type { AIPersonality } from '../types/player'
 import { getStyleMatchup } from '../data/matchup'
 import { getActionsByIds } from '../data/actions'
 import { getAvailableActions } from './cooldown'
+import { defaultRng, type Rng } from './rng'
 
 interface AIContext {
   attacker: BattleArthropod
@@ -111,14 +112,14 @@ function applyPersonalityModifier(
   })
 }
 
-function selectByWeight(scoredActions: ScoredAction[]): Action {
+function selectByWeight(scoredActions: ScoredAction[], rng: Rng): Action {
   const totalScore = scoredActions.reduce((sum, sa) => sum + sa.score, 0)
 
   if (totalScore === 0) {
     return scoredActions[0].action
   }
 
-  let random = Math.random() * totalScore
+  let random = rng() * totalScore
 
   for (const { action, score } of scoredActions) {
     random -= score
@@ -142,7 +143,8 @@ export function selectStrategicAIAction(
   attacker: BattleArthropod,
   defender: BattleArthropod,
   personality: AIPersonality = 'balanced',
-  deterministic = false
+  deterministic = false,
+  rng: Rng = defaultRng
 ): Action {
   const allActions = getActionsByIds(attacker.actions)
   const availableActions = getAvailableActions(allActions, attacker)
@@ -170,5 +172,5 @@ export function selectStrategicAIAction(
     return selectBest(scoredActions)
   }
 
-  return selectByWeight(scoredActions)
+  return selectByWeight(scoredActions, rng)
 }

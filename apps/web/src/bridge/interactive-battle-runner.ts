@@ -12,6 +12,7 @@ import {
   runInteractiveBattle,
   ReplayRecorder,
   getRandomEnvironment,
+  createRng,
 } from '@super-insect-battle/engine'
 import type { Player } from '@super-insect-battle/engine'
 
@@ -42,10 +43,14 @@ export function createInteractiveBattle(
 ): InteractiveBattleHandle {
   const resolverRef: { current: ActionResolver | null } = { current: null }
   const env = getRandomEnvironment()
+  // 재현 가능한 리플레이용 시드. 전투 해결에만 쓰이는 rng와 리플레이에 함께 저장.
+  const seed = Math.floor(Math.random() * 0x100000000)
+  const rng = createRng(seed)
   const recorder = new ReplayRecorder(
     options.arthropod1,
     options.arthropod2,
-    env
+    env,
+    seed
   )
 
   let turnPlayerAction: Action | null = null
@@ -101,7 +106,8 @@ export function createInteractiveBattle(
           }
           options.callbacks.onTurnEnd(currentState)
         },
-      }
+      },
+      rng
     )
 
     const replay = recorder.finalize(state.winner ?? 'draw')

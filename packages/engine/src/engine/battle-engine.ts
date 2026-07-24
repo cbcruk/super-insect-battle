@@ -34,6 +34,7 @@ import {
 import { selectStrategicAIAction } from './ai-strategy'
 import { getEnvironmentBonus, getRandomEnvironment } from './environment'
 import { startCooldown, tickCooldowns, getAvailableActions } from './cooldown'
+import { defaultRng, type Rng } from './rng'
 
 export interface BattleLogEntry {
   turn: number
@@ -83,7 +84,8 @@ export function calculateDamage(
   attacker: BattleArthropod,
   defender: BattleArthropod,
   action: Action,
-  environment?: Environment
+  environment?: Environment,
+  rng: Rng = defaultRng
 ): { damage: number; critical: boolean; factors: DamageFactors } {
   if (action.category === 'defense' && action.power === 0) {
     return {
@@ -121,8 +123,8 @@ export function calculateDamage(
   )
   const hpRatio = attacker.maxHp / defender.maxHp
   const underdogCritBonus = hpRatio < 1 ? (1 - hpRatio) * 0.15 : 0
-  const critical = Math.random() < 0.1 + underdogCritBonus
-  const random = 0.85 + Math.random() * 0.15
+  const critical = rng() < 0.1 + underdogCritBonus
+  const random = 0.85 + rng() * 0.15
 
   const attackerEnvBonus = environment
     ? getEnvironmentBonus(attacker.base, environment)
@@ -173,7 +175,8 @@ export function calculateDamage(
 export function checkAccuracy(
   action: Action,
   defender: BattleArthropod,
-  attackerLength: number
+  attackerLength: number,
+  rng: Rng = defaultRng
 ): boolean {
   const evasionMultiplier = getStatMultiplier(defender.statStages.evasion)
   const defenderEvasion = defender.base.defense.evasion * evasionMultiplier
@@ -185,14 +188,15 @@ export function checkAccuracy(
     action.accuracy - (defenderEvasion + fleeBonus) * 0.7 + lengthBonus
   const finalHitChance = Math.max(10, Math.min(95, hitChance))
 
-  return Math.random() * 100 < finalHitChance
+  return rng() * 100 < finalHitChance
 }
 
 export function determineFirstAttacker(
   player: BattleArthropod,
   opponent: BattleArthropod,
   playerAction: Action,
-  opponentAction: Action
+  opponentAction: Action,
+  rng: Rng = defaultRng
 ): 'player' | 'opponent' {
   if (playerAction.priority !== opponentAction.priority) {
     return playerAction.priority > opponentAction.priority
@@ -207,14 +211,15 @@ export function determineFirstAttacker(
     return playerAggression > opponentAggression ? 'player' : 'opponent'
   }
 
-  return Math.random() < 0.5 ? 'player' : 'opponent'
+  return rng() < 0.5 ? 'player' : 'opponent'
 }
 
 export function applyActionEffect(
   attacker: BattleArthropod,
   defender: BattleArthropod,
   action: Action,
-  logEntry: BattleLogEntry
+  logEntry: BattleLogEntry,
+  rng: Rng = defaultRng
 ): void {
   if (!action.effect) {
     return
@@ -227,7 +232,8 @@ export function applyActionEffect(
     const applied = applyStatusCondition(
       effectTarget,
       action.effect.condition,
-      venomPotency
+      venomPotency,
+      rng
     )
 
     if (applied) {
@@ -249,7 +255,8 @@ export function applyActionEffect(
 export function executeTurn(
   state: BattleState,
   playerAction: Action,
-  opponentAction: Action
+  opponentAction: Action,
+  rng: Rng = defaultRng
 ): BattleState {
   const newState = { ...state, turn: state.turn + 1, log: [...state.log] }
 
@@ -257,7 +264,8 @@ export function executeTurn(
     state.player,
     state.opponent,
     playerAction,
-    opponentAction
+    opponentAction,
+    rng
   )
 
   const order: Array<{
@@ -301,7 +309,7 @@ export function executeTurn(
       continue
     }
 
-    const moveCheck = checkCanMove(attacker)
+    const moveCheck = checkCanMove(attacker, rng)
 
     if (moveCheck.message) {
       newState.log.push({
@@ -354,7 +362,9 @@ export function executeTurn(
       actionId: action.id,
     }
 
-    if (!checkAccuracy(action, defender, attacker.base.physical.lengthMm)) {
+    if (
+      !checkAccuracy(action, defender, attacker.base.physical.lengthMm, rng)
+    ) {
       logEntry.action += ' 그러나 빗나갔다!'
       startCooldown(attacker, action)
       newState.log.push(logEntry)
@@ -366,7 +376,8 @@ export function executeTurn(
         attacker,
         defender,
         action,
-        newState.environment
+        newState.environment,
+        rng
       )
 
       defender.currentHp = Math.max(0, defender.currentHp - damage)
@@ -384,7 +395,7 @@ export function executeTurn(
       if (factors.styleMatchup < 1) logEntry.action += ' 스타일 상성 불리...'
     }
 
-    applyActionEffect(attacker, defender, action, logEntry)
+    applyActionEffect(attacker, defender, action, logEntry, rng)
     startCooldown(attacker, action)
 
     newState.log.push(logEntry)
@@ -455,17 +466,19 @@ export function executeTurn(
 
 export function selectAIAction(
   attacker: BattleArthropod,
-  defender: BattleArthropod
+  defender: BattleArthropod,
+  rng: Rng = defaultRng
 ): Action {
-  return selectStrategicAIAction(attacker, defender)
+  return selectStrategicAIAction(attacker, defender, 'balanced', false, rng)
 }
 
 export function simulateBattle(
   arthropod1: Arthropod,
   arthropod2: Arthropod,
-  environment?: Environment
+  environment?: Environment,
+  rng: Rng = defaultRng
 ): BattleState {
-  const env = environment ?? getRandomEnvironment()
+  const env = environment ?? getRandomEnvironment(rng)
 
   let state: BattleState = {
     turn: 0,
@@ -480,9 +493,9 @@ export function simulateBattle(
   const maxTurns = 50
 
   while (state.status !== 'finished' && state.turn < maxTurns) {
-    const playerAction = selectAIAction(state.player, state.opponent)
-    const opponentAction = selectAIAction(state.opponent, state.player)
-    state = executeTurn(state, playerAction, opponentAction)
+    const playerAction = selectAIAction(state.player, state.opponent, rng)
+    const opponentAction = selectAIAction(state.opponent, state.player, rng)
+    state = executeTurn(state, playerAction, opponentAction, rng)
   }
 
   if (state.status !== 'finished') {
@@ -506,7 +519,8 @@ export function simulateMultipleBattles(
   arthropod1: Arthropod,
   arthropod2: Arthropod,
   count: number,
-  environment?: Environment
+  environment?: Environment,
+  rng: Rng = defaultRng
 ): {
   playerWins: number
   opponentWins: number
@@ -520,7 +534,7 @@ export function simulateMultipleBattles(
   let totalTurns = 0
 
   for (let i = 0; i < count; i++) {
-    const result = simulateBattle(arthropod1, arthropod2, environment)
+    const result = simulateBattle(arthropod1, arthropod2, environment, rng)
 
     totalTurns += result.turn
 
@@ -549,9 +563,10 @@ export async function runInteractiveBattle(
   player1: Player,
   player2: Player,
   environment?: Environment,
-  callbacks?: InteractiveBattleCallbacks
+  callbacks?: InteractiveBattleCallbacks,
+  rng: Rng = defaultRng
 ): Promise<BattleState> {
-  const env = environment ?? getRandomEnvironment()
+  const env = environment ?? getRandomEnvironment(rng)
 
   let state: BattleState = {
     turn: 0,
@@ -595,7 +610,7 @@ export async function runInteractiveBattle(
       }),
     ])
 
-    state = executeTurn(state, playerAction, opponentAction)
+    state = executeTurn(state, playerAction, opponentAction, rng)
 
     callbacks?.onTurnEnd?.(state)
   }

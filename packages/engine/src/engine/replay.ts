@@ -10,6 +10,7 @@ import type {
 import type { BattleState } from './battle-engine'
 import { getArthropodById } from '../data/arthropods'
 import { runInteractiveBattle } from './battle-engine'
+import { createRng } from './rng'
 import type { Player } from '../types/player'
 
 let replayCounter = 0
@@ -34,15 +35,17 @@ export class ReplayRecorder {
   constructor(
     playerArthropod: Arthropod,
     opponentArthropod: Arthropod,
-    environment: Environment
+    environment: Environment,
+    seed?: number
   ) {
     this.header = {
       id: generateReplayId(),
-      version: '1.0.0',
+      version: seed !== undefined ? '1.1.0' : '1.0.0',
       timestamp: Date.now(),
       playerArthropodId: playerArthropod.id,
       opponentArthropodId: opponentArthropod.id,
       environment,
+      seed,
     }
   }
 
@@ -70,12 +73,17 @@ export async function runReplayBattle(
   arthropod2: Arthropod,
   player1: Player,
   player2: Player,
-  environment?: Environment
+  environment?: Environment,
+  seed: number = Math.floor(Math.random() * 0x100000000)
 ): Promise<{ state: BattleState; replay: BattleReplay }> {
   const { getRandomEnvironment } = await import('./environment')
   const env = environment ?? getRandomEnvironment()
 
-  const recorder = new ReplayRecorder(arthropod1, arthropod2, env)
+  // 시드 rng는 전투 해결(executeTurn)에만 소비되도록 전용으로 둔다.
+  // 환경 생성은 위에서 별도 스트림으로 처리하고 리플레이에 저장한다.
+  const rng = createRng(seed)
+
+  const recorder = new ReplayRecorder(arthropod1, arthropod2, env, seed)
 
   let turnPlayerAction: Action | null = null
   let turnOpponentAction: Action | null = null
@@ -116,7 +124,8 @@ export async function runReplayBattle(
           turnOpponentAction = null
         }
       },
-    }
+    },
+    rng
   )
 
   const replay = recorder.finalize(state.winner ?? 'draw')
@@ -162,12 +171,19 @@ export async function replayBattle(replay: BattleReplay): Promise<BattleState> {
     },
   }
 
+  // 시드가 있으면 동일 시드로 재구동해 수치까지 완전 재현.
+  // 없으면(구버전) 비결정론적으로 재생된다.
+  const rng =
+    replay.header.seed !== undefined ? createRng(replay.header.seed) : undefined
+
   const state = await runInteractiveBattle(
     playerArthropod,
     opponentArthropod,
     replayPlayer,
     replayOpponent,
-    replay.header.environment
+    replay.header.environment,
+    undefined,
+    rng
   )
 
   return state

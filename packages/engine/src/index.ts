@@ -84,6 +84,15 @@ export {
   getStatMultiplier,
 } from './engine/stat-stages'
 
+export {
+  createRng,
+  defaultRng,
+  randInt,
+  randChance,
+  pick,
+  type Rng,
+} from './engine/rng'
+
 export { selectStrategicAIAction } from './engine/ai-strategy'
 
 export { createAIPlayer, type AIPlayerOptions } from './engine/ai-player'

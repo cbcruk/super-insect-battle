@@ -1,4 +1,5 @@
 import type { BattleArthropod, StatusCondition } from '../types/arthropod'
+import { defaultRng, type Rng } from './rng'
 
 export const statusConditionNames: Record<StatusCondition, string> = {
   poison: '독',
@@ -12,7 +13,8 @@ export const statusConditionNames: Record<StatusCondition, string> = {
 export function applyStatusCondition(
   target: BattleArthropod,
   condition: StatusCondition,
-  venomPotency: number = 50
+  venomPotency: number = 50,
+  rng: Rng = defaultRng
 ): boolean {
   if (target.statusCondition !== null) {
     return false
@@ -21,7 +23,7 @@ export function applyStatusCondition(
   target.statusCondition = condition
 
   if (condition === 'bind') {
-    target.bindTurns = Math.floor(Math.random() * 3) + 2
+    target.bindTurns = Math.floor(rng() * 3) + 2
   }
 
   if (condition === 'poison') {
@@ -29,13 +31,16 @@ export function applyStatusCondition(
   }
 
   if (condition === 'sleep') {
-    target.sleepTurns = Math.floor(Math.random() * 3) + 1
+    target.sleepTurns = Math.floor(rng() * 3) + 1
   }
 
   return true
 }
 
-export function checkCanMove(arthropod: BattleArthropod): {
+export function checkCanMove(
+  arthropod: BattleArthropod,
+  rng: Rng = defaultRng
+): {
   canMove: boolean
   message: string | null
 } {
@@ -51,7 +56,7 @@ export function checkCanMove(arthropod: BattleArthropod): {
         }
       }
 
-      if (Math.random() < 0.5) {
+      if (rng() < 0.5) {
         return {
           canMove: false,
           message: `${arthropod.base.nameKo}은(는) 속박되어 움직일 수 없다!`,
@@ -61,7 +66,7 @@ export function checkCanMove(arthropod: BattleArthropod): {
   }
 
   if (arthropod.statusCondition === 'paralysis') {
-    if (Math.random() < 0.25) {
+    if (rng() < 0.25) {
       return {
         canMove: false,
         message: `${arthropod.base.nameKo}은(는) 마비되어 움직일 수 없다!`,
@@ -70,7 +75,7 @@ export function checkCanMove(arthropod: BattleArthropod): {
   }
 
   if (arthropod.statusCondition === 'confusion') {
-    if (Math.random() < 0.33) {
+    if (rng() < 0.33) {
       const selfDamage = Math.max(1, Math.floor(arthropod.maxHp / 16))
       arthropod.currentHp = Math.max(0, arthropod.currentHp - selfDamage)
       return {

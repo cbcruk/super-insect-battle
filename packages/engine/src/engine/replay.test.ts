@@ -147,6 +147,44 @@ describe('replay', () => {
       expect(replayedState.winner).not.toBeNull()
     })
 
+    it('reproduces the original battle exactly via stored seed', async () => {
+      const { state, replay } = await runReplayBattle(
+        arthropods.rhinoceros_beetle,
+        arthropods.giant_hornet,
+        createAIPlayer('easy'),
+        createAIPlayer('easy'),
+        testEnv
+      )
+
+      expect(replay.header.seed).toBeTypeOf('number')
+
+      const replayed = await replayBattle(replay)
+
+      // 승자·턴수·최종 HP·전체 로그까지 완전 일치 (데미지/명중/상태이상 재현)
+      expect(replayed.winner).toBe(state.winner)
+      expect(replayed.turn).toBe(state.turn)
+      expect(replayed.player.currentHp).toBe(state.player.currentHp)
+      expect(replayed.opponent.currentHp).toBe(state.opponent.currentHp)
+      expect(replayed.log).toEqual(state.log)
+    })
+
+    it('reproduces after JSON round-trip', async () => {
+      const { state, replay } = await runReplayBattle(
+        arthropods.mantis,
+        arthropods.scorpion,
+        createAIPlayer('easy'),
+        createAIPlayer('easy'),
+        testEnv
+      )
+
+      const restored = deserializeReplay(serializeReplay(replay))
+      const replayed = await replayBattle(restored)
+
+      expect(replayed.winner).toBe(state.winner)
+      expect(replayed.player.currentHp).toBe(state.player.currentHp)
+      expect(replayed.opponent.currentHp).toBe(state.opponent.currentHp)
+    })
+
     it('throws error for invalid arthropod id', async () => {
       const invalidReplay = {
         header: {

@@ -6,6 +6,7 @@ import type {
   Weather,
 } from '../types/environment'
 import { TERRAINS, TIMES_OF_DAY, TERRAIN_WEATHERS } from '../types/environment'
+import { defaultRng, type Rng } from './rng'
 
 export const terrainNames: Record<Terrain, string> = {
   forest: '숲',
@@ -87,28 +88,31 @@ export function getEnvironmentBonus(
   return bonus
 }
 
-export function getRandomTerrain(): Terrain {
-  const index = Math.floor(Math.random() * TERRAINS.length)
+export function getRandomTerrain(rng: Rng = defaultRng): Terrain {
+  const index = Math.floor(rng() * TERRAINS.length)
   return TERRAINS[index]
 }
 
-export function getRandomTimeOfDay(): TimeOfDay {
-  const index = Math.floor(Math.random() * TIMES_OF_DAY.length)
+export function getRandomTimeOfDay(rng: Rng = defaultRng): TimeOfDay {
+  const index = Math.floor(rng() * TIMES_OF_DAY.length)
   return TIMES_OF_DAY[index]
 }
 
-export function getRandomWeatherForTerrain(terrain: Terrain): Weather {
+export function getRandomWeatherForTerrain(
+  terrain: Terrain,
+  rng: Rng = defaultRng
+): Weather {
   const possibleWeathers = TERRAIN_WEATHERS[terrain]
-  const index = Math.floor(Math.random() * possibleWeathers.length)
+  const index = Math.floor(rng() * possibleWeathers.length)
   return possibleWeathers[index]
 }
 
-export function getRandomEnvironment(): Environment {
-  const terrain = getRandomTerrain()
+export function getRandomEnvironment(rng: Rng = defaultRng): Environment {
+  const terrain = getRandomTerrain(rng)
   return {
     terrain,
-    timeOfDay: getRandomTimeOfDay(),
-    weather: getRandomWeatherForTerrain(terrain),
+    timeOfDay: getRandomTimeOfDay(rng),
+    weather: getRandomWeatherForTerrain(terrain, rng),
   }
 }
 
