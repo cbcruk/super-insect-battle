@@ -49,8 +49,10 @@ export { renderLevel, renderFrame } from './render'
 
 // P2: 절차 생성 · 시야 · 길찾기
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'
-export { computeVisible, SIGHT_RADIUS } from './fov'
+export { computeVisible, lineOfSight, SIGHT_RADIUS } from './fov'
 export { stepAlongPath, fleeStep, type Blocked } from './pathfind'
+export { nearestEnemyInRange } from './targeting'
+export { ITEMS, ITEM_IDS, type ItemDef } from './items'
 export {
   refreshFov,
   createGeneratedLevel,

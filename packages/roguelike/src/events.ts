@@ -11,5 +11,6 @@ export type GridEvent =
   | { type: 'blocked'; actorId: string; pos: Vec2 }
   | { type: 'status'; actorId: string; message: string }
   | { type: 'death'; actorId: string }
+  | { type: 'pickup'; actorId: string; itemId: string; message: string }
   | { type: 'descend'; depth: number }
   | { type: 'message'; text: string }

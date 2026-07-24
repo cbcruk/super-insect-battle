@@ -26,3 +26,32 @@ export function computeVisible(
 
   return visible
 }
+
+/**
+ * a → b 직선 시야 여부 (Bresenham). 중간 칸이 시야를 막으면 false.
+ * 원거리 공격이 벽·빽빽한 덤불을 관통하지 못하게 한다.
+ */
+export function lineOfSight(map: TileMap, a: Vec2, b: Vec2): boolean {
+  let x = a.x
+  let y = a.y
+  const dx = Math.abs(b.x - a.x)
+  const dy = Math.abs(b.y - a.y)
+  const sx = a.x < b.x ? 1 : -1
+  const sy = a.y < b.y ? 1 : -1
+  let err = dx - dy
+
+  for (;;) {
+    const isEndpoint = (x === a.x && y === a.y) || (x === b.x && y === b.y)
+    if (!isEndpoint && blocksSight(map, x, y)) return false
+    if (x === b.x && y === b.y) return true
+    const e2 = 2 * err
+    if (e2 > -dy) {
+      err -= dy
+      x += sx
+    }
+    if (e2 < dx) {
+      err += dx
+      y += sy
+    }
+  }
+}

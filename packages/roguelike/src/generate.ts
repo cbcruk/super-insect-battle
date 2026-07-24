@@ -11,8 +11,9 @@ import { createActor } from './actor'
 import { createSmartBrain } from './ai/smart-brain'
 import { generateJungle } from './mapgen'
 import { computeVisible } from './fov'
-import { chebyshev, type Vec2 } from './geometry'
+import { chebyshev, posKey, type Vec2 } from './geometry'
 import { ENERGY_THRESHOLD } from './scheduler'
+import { ITEM_IDS } from './items'
 
 const MAP_WIDTH = 40
 const MAP_HEIGHT = 22
@@ -73,6 +74,21 @@ export function createGeneratedLevel(
         brain: createSmartBrain(),
       })
     )
+  }
+
+  // 아이템 산포 (입구·출구에서 떨어진 floor)
+  const itemSpots = floors.filter(
+    (f) => chebyshev(f, entrance) > 3 && !(f.x === exit.x && f.y === exit.y)
+  )
+  const used = new Set<string>()
+  const itemCount = 2 + depth
+  for (let i = 0; i < itemCount && itemSpots.length > 0; i++) {
+    const spot = itemSpots[Math.floor(rng() * itemSpots.length)]
+    const key = posKey(spot.x, spot.y)
+    if (used.has(key)) continue
+    used.add(key)
+    const itemId = ITEM_IDS[Math.floor(rng() * ITEM_IDS.length)]
+    map.tiles[spot.y * map.width + spot.x].itemId = itemId
   }
 
   const level: Level = {

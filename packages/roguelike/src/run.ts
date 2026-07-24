@@ -4,18 +4,25 @@ import {
   getActionById,
   getActionsByIds,
   getAvailableActions,
+  getActionTargeting,
+  getActionRange,
+  isActionOnCooldown,
   startCooldown,
   tickCooldowns,
   checkCanMove,
   processEndOfTurnStatus,
+  applyActionEffect,
+  type BattleLogEntry,
 } from '@super-insect-battle/engine'
 import type { Actor } from './actor'
 import type { Command } from './command'
 import type { GridEvent } from './events'
 import type { TileMap } from './map'
-import { inBounds, isWalkable } from './map'
+import { inBounds, isWalkable, tileAt } from './map'
 import { addDir, chebyshev, equals, type Vec2 } from './geometry'
 import { resolveAttack } from './combat'
+import { lineOfSight } from './fov'
+import { ITEMS } from './items'
 import { nextActor, grantEnergy, spendTurn } from './scheduler'
 import { refreshFov, enterLevel } from './generate'
 
@@ -174,6 +181,24 @@ function actOnce(
     actor.pos = target
     events.push({ type: 'move', actorId: actor.id, from, to: target })
 
+    // 바닥 아이템 획득 (플레이어)
+    if (actor.id === run.player.id) {
+      const tile = tileAt(run.level.map, target.x, target.y)
+      if (tile?.itemId) {
+        const item = ITEMS[tile.itemId]
+        if (item) {
+          const message = item.apply(actor)
+          tile.itemId = undefined
+          events.push({
+            type: 'pickup',
+            actorId: actor.id,
+            itemId: item.id,
+            message,
+          })
+        }
+      }
+    }
+
     if (actor.id === run.player.id && equals(target, run.level.exit)) {
       events.push({ type: 'descend', depth: run.level.depth })
       if (run.level.depth >= run.maxDepth) {
@@ -196,35 +221,30 @@ function resolveAbility(
 ): void {
   const action = getActionById(actionId)
   if (!action) return
+  if (isActionOnCooldown(actor.combat, action)) return
 
-  // 자기 대상 버프/특수
-  if (action.effect?.target === 'self' || action.power === 0) {
-    const outcome = resolveAttack(actor, actor, action, run.level, run.rng)
+  // 자기 대상 버프/특수 — 명중 판정 없이 효과 직접 적용
+  if (getActionTargeting(action) === 'self') {
+    const scratch: BattleLogEntry = { turn: 0, actor: 'player', action: '' }
+    applyActionEffect(actor.combat, actor.combat, action, scratch, run.rng)
     startCooldown(actor.combat, action)
     events.push({
       type: 'message',
       text: `${actor.species.nameKo}: ${action.nameKo}`,
     })
-    if (outcome.statusApplied) {
-      events.push({ type: 'attack', outcome })
-    }
     return
   }
 
-  // 원거리 공격
+  // 근접/원거리 공격 — 사거리·시야선 검증
   const occupant = actorAt(run.level, target)
   if (!occupant || occupant.faction === actor.faction) return
-  if (chebyshev(actor.pos, occupant.pos) > abilityRange(action)) return
+  if (chebyshev(actor.pos, occupant.pos) > getActionRange(action)) return
+  if (!lineOfSight(run.level.map, actor.pos, occupant.pos)) return
 
   const outcome = resolveAttack(actor, occupant, action, run.level, run.rng)
   startCooldown(actor.combat, action)
   events.push({ type: 'attack', outcome })
   if (outcome.defeated) killActor(run, occupant, events)
-}
-
-/** P1: 사거리 데이터 부재 → 근접 1칸 고정. P2에서 액션 range/targeting 필드로 대체. */
-function abilityRange(_action: Action): number {
-  return 1
 }
 
 function killActor(run: RunState, actor: Actor, events: GridEvent[]): void {
@@ -251,6 +271,7 @@ function record(run: RunState, events: GridEvent[]): void {
   for (const event of events) {
     if (event.type === 'attack') run.log.push(event.outcome.note)
     else if (event.type === 'status') run.log.push(event.message)
+    else if (event.type === 'pickup') run.log.push(event.message)
     else if (event.type === 'message') run.log.push(event.text)
     else if (event.type === 'descend') run.log.push('출구에 도달했다!')
   }
