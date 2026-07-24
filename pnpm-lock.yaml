@@ -97,6 +97,9 @@ importers:
       '@super-insect-battle/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@super-insect-battle/roguelike':
+        specifier: workspace:*
+        version: link:../../packages/roguelike
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

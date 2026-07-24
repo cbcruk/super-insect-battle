@@ -21,6 +21,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@super-insect-battle/commentary": "workspace:*",
     "@super-insect-battle/engine": "workspace:*",
+    "@super-insect-battle/roguelike": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.0",

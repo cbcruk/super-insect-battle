@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
-import { Swords, Bug, BarChart3, History } from 'lucide-react'
+import { Swords, Bug, BarChart3, History, Trees } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
@@ -13,6 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/', label: 'Matchup', icon: Swords },
+  { path: '/roguelike', label: 'Roguelike', icon: Trees },
   { path: '/encyclopedia', label: 'Roster', icon: Bug },
   { path: '/statistics', label: 'Stats', icon: BarChart3 },
   { path: '/replay', label: 'History', icon: History },
