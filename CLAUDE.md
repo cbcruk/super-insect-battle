@@ -10,6 +10,7 @@ pnpm build      # 모든 패키지 빌드
 pnpm test:run   # 모든 패키지 테스트
 pnpm simulator  # 터미널 시뮬레이터 실행
 pnpm dev:web    # 웹 시뮬레이터 실행 (xterm)
+pnpm roguelike  # 격자 로그라이크 플레이 (P1, 터미널)
 ```
 
 ## 프로젝트 구조
@@ -18,7 +19,14 @@ pnpm dev:web    # 웹 시뮬레이터 실행 (xterm)
 packages/engine/           # 배틀 엔진 코어
 ├── src/types/             # 타입 정의 (Arthropod, Action)
 ├── src/data/              # 데이터 (절지동물, 행동, 상성)
-└── src/engine/            # 배틀 로직
+└── src/engine/            # 배틀 로직 (시드 RNG 포함)
+
+packages/roguelike/        # 격자 로그라이크 코어 (헤들리스, 결정론)
+├── map/actor/scheduler    # 타일맵, 액터, 에너지 스케줄러
+├── mapgen/fov/pathfind    # 절차 밀림 생성 · 시야(FOV) · 길찾기(rot.js)
+├── combat.ts              # 엔진 전투 재사용 브릿지
+├── generate.ts            # 절차 레벨·존 하강·런 생성
+└── run.ts                 # 런 상태·턴 루프 (Brogue식 통합 전투)
 
 apps/simulator/            # 터미널 UI 앱
 ├── src/ui/                # 메뉴, 렌더러

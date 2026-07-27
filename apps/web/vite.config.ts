@@ -6,6 +6,10 @@ export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/super-insect-battle/' : '/',
   plugins: [tailwindcss(), react()],
   optimizeDeps: {
-    exclude: ['@super-insect-battle/web-ui', '@super-insect-battle/engine'],
+    exclude: [
+      '@super-insect-battle/web-ui',
+      '@super-insect-battle/engine',
+      '@super-insect-battle/roguelike',
+    ],
   },
 })

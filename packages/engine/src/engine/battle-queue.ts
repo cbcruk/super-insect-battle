@@ -1,4 +1,5 @@
 import type { Action } from '../types/action'
+import { defaultRng, type Rng } from './rng'
 
 export interface QueuedAction {
   source: 'player' | 'opponent'
@@ -9,7 +10,8 @@ export interface QueuedAction {
 
 export function resolveActionOrder(
   playerAction: QueuedAction,
-  opponentAction: QueuedAction
+  opponentAction: QueuedAction,
+  rng: Rng = defaultRng
 ): [QueuedAction, QueuedAction] {
   if (playerAction.priority !== opponentAction.priority) {
     return playerAction.priority > opponentAction.priority
@@ -23,7 +25,7 @@ export function resolveActionOrder(
       : [opponentAction, playerAction]
   }
 
-  return Math.random() < 0.5
+  return rng() < 0.5
     ? [playerAction, opponentAction]
     : [opponentAction, playerAction]
 }

@@ -95,6 +95,8 @@ export const ActionSchema = z.object({
   cooldown: z.number().min(0).default(0),
   effect: ActionEffectSchema.optional(),
   description: z.string(),
+  range: z.number().min(0).optional(),
+  targeting: z.enum(['self', 'melee', 'ranged']).optional(),
 })
 
 export const StyleMatchupSchema = z.record(

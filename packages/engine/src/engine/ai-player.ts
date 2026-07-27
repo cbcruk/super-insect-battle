@@ -6,9 +6,10 @@ import type {
   AIPersonality,
 } from '../types/player'
 import { selectStrategicAIAction } from './ai-strategy'
+import { defaultRng, type Rng } from './rng'
 
-function selectRandomAction(availableActions: Action[]): Action {
-  const index = Math.floor(Math.random() * availableActions.length)
+function selectRandomAction(availableActions: Action[], rng: Rng): Action {
+  const index = Math.floor(rng() * availableActions.length)
   return availableActions[index]
 }
 
@@ -18,7 +19,8 @@ export interface AIPlayerOptions {
 }
 
 export function createAIPlayer(
-  difficultyOrOptions: AIDifficulty | AIPlayerOptions = 'medium'
+  difficultyOrOptions: AIDifficulty | AIPlayerOptions = 'medium',
+  rng: Rng = defaultRng
 ): Player {
   const options: AIPlayerOptions =
     typeof difficultyOrOptions === 'string'
@@ -33,19 +35,22 @@ export function createAIPlayer(
     async selectAction(context: BattleContext): Promise<Action> {
       switch (difficulty) {
         case 'easy':
-          return selectRandomAction(context.availableActions)
+          return selectRandomAction(context.availableActions, rng)
         case 'medium':
           return selectStrategicAIAction(
             context.self,
             context.opponent,
-            personality
+            personality,
+            false,
+            rng
           )
         case 'hard':
           return selectStrategicAIAction(
             context.self,
             context.opponent,
             personality,
-            true
+            true,
+            rng
           )
       }
     },

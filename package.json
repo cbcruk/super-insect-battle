@@ -8,6 +8,8 @@
     "simulator": "pnpm --filter @super-insect-battle/simulator start",
     "dev:web": "pnpm --filter @super-insect-battle/web dev",
     "api": "pnpm --filter @super-insect-battle/api dev",
+    "roguelike": "pnpm --filter @super-insect-battle/roguelike play",
+    "roguelike:demo": "pnpm --filter @super-insect-battle/roguelike demo",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

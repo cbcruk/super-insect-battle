@@ -169,6 +169,8 @@ web_trap:
     target: opponent
     condition: bind
   description: Traps opponent in sticky web.
+  range: 4
+  targeting: ranged
 
 hair_flick:
   id: hair_flick
@@ -422,6 +424,8 @@ sonic_chirp:
     target: opponent
     condition: confusion
   description: Loud chirping sound confuses and disorients opponent.
+  range: 4
+  targeting: ranged
 
 sting_fury:
   id: sting_fury
@@ -450,6 +454,8 @@ toxic_spray:
     target: opponent
     condition: poison
   description: Sprays toxic chemicals at opponent.
+  range: 3
+  targeting: ranged
 
 acid_spray:
   id: acid_spray
@@ -467,6 +473,8 @@ acid_spray:
       stat: defense
       stages: -2
   description: Sprays corrosive acid that melts armor.
+  range: 3
+  targeting: ranged
 
 claw_strike:
   id: claw_strike
@@ -533,6 +541,8 @@ sand_pit:
     target: opponent
     condition: bind
   description: Creates a sand pit trap to immobilize opponent.
+  range: 3
+  targeting: ranged
 
 mandible_crush:
   id: mandible_crush
@@ -598,6 +608,8 @@ chemical_bomb:
     target: opponent
     condition: burn
   description: Explosive chemical reaction burns opponent.
+  range: 4
+  targeting: ranged
 
 wing_slash:
   id: wing_slash

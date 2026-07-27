@@ -13,7 +13,12 @@ export type {
   BattleArthropod,
 } from './types/arthropod'
 
-export type { ActionCategory, ActionEffect, Action } from './types/action'
+export type {
+  ActionCategory,
+  ActionEffect,
+  ActionTargeting,
+  Action,
+} from './types/action'
 
 export type {
   Terrain,
@@ -35,6 +40,8 @@ export {
   actionList,
   getActionById,
   getActionsByIds,
+  getActionTargeting,
+  getActionRange,
 } from './data/actions'
 export {
   getStyleMatchup,
@@ -83,6 +90,15 @@ export {
   applyStatStageChange,
   getStatMultiplier,
 } from './engine/stat-stages'
+
+export {
+  createRng,
+  defaultRng,
+  randInt,
+  randChance,
+  pick,
+  type Rng,
+} from './engine/rng'
 
 export { selectStrategicAIAction } from './engine/ai-strategy'
 

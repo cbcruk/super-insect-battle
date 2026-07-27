@@ -97,6 +97,9 @@ importers:
       '@super-insect-battle/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@super-insect-battle/roguelike':
+        specifier: workspace:*
+        version: link:../../packages/roguelike
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -187,6 +190,28 @@ importers:
       js-yaml:
         specifier: ^4.1.1
         version: 4.1.1
+      tsx:
+        specifier: ^4.19.2
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/roguelike:
+    dependencies:
+      '@super-insect-battle/engine':
+        specifier: workspace:*
+        version: link:../engine
+      rot-js:
+        specifier: ^2.2.1
+        version: 2.2.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.3
       tsx:
         specifier: ^4.19.2
         version: 4.21.0
@@ -2247,6 +2272,9 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
+  rot-js@2.2.1:
+    resolution: {integrity: sha512-lItXH31vj4ebdypayCx9dh98qPr57E7jGW2lVMKxtBHooU3xpGRtLS8kdJIni232tvPJ8Sl0+aqXZj8c6W0MGw==}
+
   scheduler@0.27.0:
     resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
@@ -4217,6 +4245,8 @@ snapshots:
       '@rollup/rollup-win32-x64-gnu': 4.54.0
       '@rollup/rollup-win32-x64-msvc': 4.54.0
       fsevents: 2.3.3
+
+  rot-js@2.2.1: {}
 
   scheduler@0.27.0: {}
 
