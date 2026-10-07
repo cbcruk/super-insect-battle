@@ -18,9 +18,7 @@ function SelectGroup({
 
 function SelectValue({
   ...props
-}: React.ComponentProps<
-  typeof SelectPrimitive.Value
->): React.ReactElement {
+}: React.ComponentProps<typeof SelectPrimitive.Value>): React.ReactElement {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
@@ -56,9 +54,7 @@ function SelectContent({
   position = 'item-aligned',
   align = 'center',
   ...props
-}: React.ComponentProps<
-  typeof SelectPrimitive.Content
->): React.ReactElement {
+}: React.ComponentProps<typeof SelectPrimitive.Content>): React.ReactElement {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -92,9 +88,7 @@ function SelectContent({
 function SelectLabel({
   className,
   ...props
-}: React.ComponentProps<
-  typeof SelectPrimitive.Label
->): React.ReactElement {
+}: React.ComponentProps<typeof SelectPrimitive.Label>): React.ReactElement {
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
@@ -134,16 +128,11 @@ function SelectItem({
 function SelectSeparator({
   className,
   ...props
-}: React.ComponentProps<
-  typeof SelectPrimitive.Separator
->): React.ReactElement {
+}: React.ComponentProps<typeof SelectPrimitive.Separator>): React.ReactElement {
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn(
-        'bg-border pointer-events-none -mx-1 my-1 h-px',
-        className
-      )}
+      className={cn('bg-border pointer-events-none -mx-1 my-1 h-px', className)}
       {...props}
     />
   )

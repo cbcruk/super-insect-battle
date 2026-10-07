@@ -59,8 +59,7 @@ export interface CumulativeStatsResponse {
  * API 서버 주소. 빌드 시 VITE_API_URL로 주입한다.
  * 미설정 시 로컬 `wrangler dev` 기본 포트(8787)로 폴백한다.
  */
-const DEFAULT_API_URL =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
+const DEFAULT_API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
 
 export class BattleApiClient {
   private baseUrl: string

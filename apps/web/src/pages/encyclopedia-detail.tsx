@@ -5,7 +5,11 @@ import {
   getActionsByIds,
   getStyleMatchup,
 } from '@super-insect-battle/engine'
-import type { Arthropod, Action, BehaviorStyle } from '@super-insect-battle/engine'
+import type {
+  Arthropod,
+  Action,
+  BehaviorStyle,
+} from '@super-insect-battle/engine'
 import { Button } from '../components/ui/button.tsx'
 import { DataTable } from '../components/ui/data-table.tsx'
 import type { Column } from '../components/ui/data-table.tsx'
@@ -62,7 +66,11 @@ const actionColumns: Column<Action>[] = [
     sortable: true,
     sortValue: (item) => item.power,
     render: (item) => (
-      <span className={item.power > 0 ? 'text-foreground' : 'text-muted-foreground/50'}>
+      <span
+        className={
+          item.power > 0 ? 'text-foreground' : 'text-muted-foreground/50'
+        }
+      >
         {item.power || '—'}
       </span>
     ),
@@ -102,7 +110,8 @@ const actionColumns: Column<Action>[] = [
     header: 'Effect',
     hideBelow: 'sm',
     render: (item) => {
-      if (!item.effect) return <span className="text-muted-foreground/50">—</span>
+      if (!item.effect)
+        return <span className="text-muted-foreground/50">—</span>
       if (item.effect.type === 'status' && item.effect.condition) {
         return (
           <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] text-purple-400">
@@ -124,8 +133,7 @@ const actionColumns: Column<Action>[] = [
                 : 'bg-red-500/15 text-red-400'
             )}
           >
-            {item.effect.statChange.stat}{' '}
-            {isPositive ? '+' : ''}
+            {item.effect.statChange.stat} {isPositive ? '+' : ''}
             {item.effect.statChange.stages}
           </span>
         )
@@ -174,10 +182,7 @@ export function EncyclopediaDetailPage(): React.ReactNode {
         </h1>
         <span className="text-lg text-muted-foreground">{arthropod.name}</span>
         <span
-          className={cn(
-            'rounded px-2 py-0.5 text-xs font-bold',
-            style.badge
-          )}
+          className={cn('rounded px-2 py-0.5 text-xs font-bold', style.badge)}
         >
           {arthropod.behavior.style}
         </span>
@@ -236,7 +241,11 @@ function CombatStatsTable({
       value: arthropod.weapon.power,
       color: 'bg-amber-500',
     },
-    { label: 'Aggression', value: arthropod.behavior.aggression, color: 'bg-orange-500' },
+    {
+      label: 'Aggression',
+      value: arthropod.behavior.aggression,
+      color: 'bg-orange-500',
+    },
   ]
 
   return (
@@ -249,9 +258,7 @@ function CombatStatsTable({
           {stats.map((s, i) => (
             <tr
               key={s.label}
-              className={
-                i % 2 === 0 ? 'bg-table-row-even' : 'bg-table-row-odd'
-              }
+              className={i % 2 === 0 ? 'bg-table-row-even' : 'bg-table-row-odd'}
             >
               <td className="border-b border-table-border/50 px-3 py-2 text-muted-foreground">
                 {s.label}
@@ -267,7 +274,8 @@ function CombatStatsTable({
         </tbody>
       </table>
       <div className="border-t border-table-border/50 bg-table-row-even px-3 py-2 text-xs text-muted-foreground">
-        Weight: {arthropod.physical.weightG}g · Length: {arthropod.physical.lengthMm}mm
+        Weight: {arthropod.physical.weightG}g · Length:{' '}
+        {arthropod.physical.lengthMm}mm
         {' · '}
         Habitat: {arthropod.habitat.preferredTerrains.join(', ')}
         {' · '}
@@ -277,11 +285,7 @@ function CombatStatsTable({
   )
 }
 
-function WeaponTable({
-  arthropod,
-}: {
-  arthropod: Arthropod
-}): React.ReactNode {
+function WeaponTable({ arthropod }: { arthropod: Arthropod }): React.ReactNode {
   return (
     <div className="overflow-hidden rounded-md border border-table-border">
       <div className="bg-table-header px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -294,7 +298,8 @@ function WeaponTable({
               Type
             </td>
             <td className="border-b border-table-border/50 px-3 py-2 text-right font-medium">
-              {WEAPON_TYPE_NAMES[arthropod.weapon.type] ?? arthropod.weapon.type}
+              {WEAPON_TYPE_NAMES[arthropod.weapon.type] ??
+                arthropod.weapon.type}
             </td>
           </tr>
           <tr className="bg-table-row-odd">

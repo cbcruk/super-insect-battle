@@ -13,9 +13,7 @@ function Dialog({
 
 function DialogTrigger({
   ...props
-}: React.ComponentProps<
-  typeof DialogPrimitive.Trigger
->): React.ReactElement {
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>): React.ReactElement {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
@@ -34,9 +32,7 @@ function DialogClose({
 function DialogOverlay({
   className,
   ...props
-}: React.ComponentProps<
-  typeof DialogPrimitive.Overlay
->): React.ReactElement {
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>): React.ReactElement {
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
@@ -90,10 +86,7 @@ function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      className={cn(
-        'flex flex-col gap-2 text-center sm:text-left',
-        className
-      )}
+      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
       {...props}
     />
   )
@@ -129,9 +122,7 @@ function DialogFooter({
 function DialogTitle({
   className,
   ...props
-}: React.ComponentProps<
-  typeof DialogPrimitive.Title
->): React.ReactElement {
+}: React.ComponentProps<typeof DialogPrimitive.Title>): React.ReactElement {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"

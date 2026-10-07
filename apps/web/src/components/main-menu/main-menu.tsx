@@ -12,7 +12,8 @@ const menuItems: MenuItem[] = [
   {
     path: '/battle/setup',
     title: 'Battle Mode',
-    description: 'Player vs AI interactive battle with real arthropod characteristics',
+    description:
+      'Player vs AI interactive battle with real arthropod characteristics',
     span: 'wide',
   },
   {
@@ -34,7 +35,10 @@ export function MainMenu(): React.ReactNode {
         <h1 className="text-4xl text-foreground sm:text-5xl lg:text-6xl">
           Super Insect Battle
         </h1>
-        <p className="mt-3 text-base text-gray-400 sm:text-lg" style={{ opacity: 0.7 }}>
+        <p
+          className="mt-3 text-base text-gray-400 sm:text-lg"
+          style={{ opacity: 0.7 }}
+        >
           실제 절지동물 특성 기반 1:1 배틀 시뮬레이터
         </p>
       </div>
@@ -51,9 +55,7 @@ export function MainMenu(): React.ReactNode {
             <h2 className="text-lg tracking-tight text-gray-100 sm:text-xl">
               {item.title}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              {item.description}
-            </p>
+            <p className="mt-2 text-sm text-gray-500">{item.description}</p>
           </Link>
         ))}
       </div>

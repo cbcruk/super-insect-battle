@@ -27,8 +27,7 @@ export function calculateTier(arthropod: Arthropod): TierInfo {
     arthropod.defense.evasion +
     arthropod.weapon.power
 
-  const tierInfo =
-    TIER_THRESHOLDS.find((t) => score >= t.min) ?? DEFAULT_TIER
+  const tierInfo = TIER_THRESHOLDS.find((t) => score >= t.min) ?? DEFAULT_TIER
 
   return {
     tier: tierInfo.tier,

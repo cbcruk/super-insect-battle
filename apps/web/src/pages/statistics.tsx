@@ -49,8 +49,9 @@ export function StatisticsPage(): React.ReactNode {
   > | null>(null)
   const [running, setRunning] = useState(false)
   const [source, setSource] = useState<'local' | 'server'>('local')
-  const [cumulative, setCumulative] =
-    useState<CumulativeStatsResponse | null>(null)
+  const [cumulative, setCumulative] = useState<CumulativeStatsResponse | null>(
+    null
+  )
   const [serverError, setServerError] = useState<string | null>(null)
 
   const runMatchup = useCallback((): void => {
@@ -300,7 +301,11 @@ function CumulativeStatsCard({
         누적 통계 (서버 저장 · 총 {stats.totalBattles.toLocaleString()}전)
       </div>
       <div className="grid grid-cols-2 gap-px bg-table-border sm:grid-cols-4">
-        <StatCell label="Player Wins" value={stats.playerWins} accent="text-cyan-400" />
+        <StatCell
+          label="Player Wins"
+          value={stats.playerWins}
+          accent="text-cyan-400"
+        />
         <StatCell
           label="Opponent Wins"
           value={stats.opponentWins}
@@ -328,7 +333,10 @@ function StatCell({
         {label}
       </div>
       <div
-        className={cn('mt-1 text-lg font-bold tabular-nums', accent ?? 'text-foreground')}
+        className={cn(
+          'mt-1 text-lg font-bold tabular-nums',
+          accent ?? 'text-foreground'
+        )}
       >
         {value}
       </div>

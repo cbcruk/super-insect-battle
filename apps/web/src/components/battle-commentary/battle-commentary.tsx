@@ -97,7 +97,14 @@ export function BattleCommentary({
       environment,
       winner: finished ? winner : null,
     })
-  }, [displayedLogs, playerBattle, opponentBattle, environment, finished, winner])
+  }, [
+    displayedLogs,
+    playerBattle,
+    opponentBattle,
+    environment,
+    finished,
+    winner,
+  ])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -159,7 +166,11 @@ export function BattleCommentary({
           </div>
           <div className="flex gap-2">
             {onSaveReplay && (
-              <Button variant="outline" onClick={onSaveReplay} disabled={replaySaved}>
+              <Button
+                variant="outline"
+                onClick={onSaveReplay}
+                disabled={replaySaved}
+              >
                 {replaySaved ? '저장됨' : '리플레이 저장'}
               </Button>
             )}

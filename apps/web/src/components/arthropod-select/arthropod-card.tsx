@@ -40,7 +40,12 @@ export function ArthropodCard({
       )}
     >
       {badge && (
-        <Badge className={cn('absolute -right-1 -top-1 rounded px-1.5 py-0.5 text-[10px] font-black', badge.className)}>
+        <Badge
+          className={cn(
+            'absolute -right-1 -top-1 rounded px-1.5 py-0.5 text-[10px] font-black',
+            badge.className
+          )}
+        >
           {badge.text}
         </Badge>
       )}
@@ -48,7 +53,14 @@ export function ArthropodCard({
         <span className="text-sm font-bold text-gray-200">
           {arthropod.nameKo}
         </span>
-        <Badge variant="outline" className={cn('rounded px-1.5 py-0.5 text-[10px] font-bold border-transparent', style.text, style.bg)}>
+        <Badge
+          variant="outline"
+          className={cn(
+            'rounded px-1.5 py-0.5 text-[10px] font-bold border-transparent',
+            style.text,
+            style.bg
+          )}
+        >
           {arthropod.behavior.style}
         </Badge>
       </div>

@@ -1,4 +1,7 @@
-import { formatEnvironment, type BattleState } from '@super-insect-battle/engine'
+import {
+  formatEnvironment,
+  type BattleState,
+} from '@super-insect-battle/engine'
 import { deriveEvents } from './events'
 import { createNarrator } from './narrator'
 import type { FeedItem, Hp, MatchFeed } from './types'

@@ -43,7 +43,11 @@ export const RESULT_LINES: Record<Magnitude, ((def: string) => string)[]> = {
   ],
 }
 
-export const CRIT_PREFIXES = ['급소다!', '정확히 급소를 노렸다!', '약점을 파고들었다!']
+export const CRIT_PREFIXES = [
+  '급소다!',
+  '정확히 급소를 노렸다!',
+  '약점을 파고들었다!',
+]
 
 export const MATCHUP_UP = [
   ' 상성의 우위를 제대로 살렸다.',
@@ -64,8 +68,10 @@ export const LOW_HP_LINES = [
 ]
 
 export const STATUS_APPLIED_LINES = [
-  (def: string, status: string): string => `그리고 ${def}, ${status} 상태에 빠진다!`,
-  (def: string, status: string): string => `설상가상 — ${def}, ${status}에 걸렸다!`,
+  (def: string, status: string): string =>
+    `그리고 ${def}, ${status} 상태에 빠진다!`,
+  (def: string, status: string): string =>
+    `설상가상 — ${def}, ${status}에 걸렸다!`,
   (def: string, status: string): string => `${def}, ${status}의 늪에 빠진다.`,
 ]
 
@@ -77,11 +83,15 @@ export const MISS_LINES = [
   (atk: string): string => `${atk}, 빗맞았다. 기회를 날린다.`,
 ]
 
-export const MOVE_LINES: Record<MoveIntent, ((atk: string, move: string) => string)[]> = {
+export const MOVE_LINES: Record<
+  MoveIntent,
+  ((atk: string, move: string) => string)[]
+> = {
   guard: [
     (atk: string, move: string): string =>
       `${atk}, ${move}${euroRo(move)} 자세를 가다듬는다.`,
-    (atk: string, move: string): string => `${atk} — ${move}. 다음 수를 노린다.`,
+    (atk: string, move: string): string =>
+      `${atk} — ${move}. 다음 수를 노린다.`,
   ],
   brace: [
     (atk: string): string => `${atk}, 잔뜩 웅크린다 — 다가올 공격에 대비한다!`,
@@ -92,36 +102,44 @@ export const MOVE_LINES: Record<MoveIntent, ((atk: string, move: string) => stri
     (atk: string): string => `${atk}, 슬그머니 발을 뺀다 — 회피에 전념한다.`,
   ],
   defenseUp: [
-    (atk: string, move: string): string => `${atk}, ${move}! 방어를 단단히 굳힌다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 방어를 단단히 굳힌다.`,
     (atk: string, move: string): string =>
       `${atk}, ${move}${euroRo(move)} 수비를 끌어올린다.`,
   ],
   evasionUp: [
-    (atk: string, move: string): string => `${atk}, ${move}! 몸놀림이 한층 날래진다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 몸놀림이 한층 날래진다.`,
     (atk: string): string => `${atk}, 자세를 낮춘다 — 회피 태세를 가다듬는다.`,
   ],
   strengthUp: [
-    (atk: string, move: string): string => `${atk}, ${move}! 투지를 끌어올린다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 투지를 끌어올린다.`,
     (atk: string): string => `${atk}, 기세를 폭발시킨다 — 공격력이 치솟는다!`,
   ],
   weaken: [
-    (atk: string, move: string): string => `${atk}, ${move}! 상대의 기세를 꺾는다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 상대의 기세를 꺾는다.`,
     (atk: string): string => `${atk}, 상대를 윽박지른다 — 힘이 빠지게 만든다.`,
   ],
   blind: [
-    (atk: string, move: string): string => `${atk}, ${move}! 상대의 시야를 흐린다.`,
-    (atk: string): string => `${atk}, 상대의 감각을 교란한다 — 회피가 둔해진다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 상대의 시야를 흐린다.`,
+    (atk: string): string =>
+      `${atk}, 상대의 감각을 교란한다 — 회피가 둔해진다.`,
   ],
   ensnare: [
     (atk: string, move: string): string => `${atk}, ${move}! 상대를 옭아맨다.`,
     (atk: string): string => `${atk}, 덫을 친다 — 상대의 발이 묶인다!`,
   ],
   confuse: [
-    (atk: string, move: string): string => `${atk}, ${move}! 상대의 정신을 뒤흔든다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 상대의 정신을 뒤흔든다.`,
     (atk: string): string => `${atk}, 상대를 교란한다 — 혼란에 빠뜨린다!`,
   ],
   envenom: [
-    (atk: string, move: string): string => `${atk}, ${move}! 상대에게 독을 퍼뜨린다.`,
+    (atk: string, move: string): string =>
+      `${atk}, ${move}! 상대에게 독을 퍼뜨린다.`,
     (atk: string): string => `${atk}, 은밀히 독을 흘려넣는다.`,
   ],
 }
@@ -165,7 +183,8 @@ export const NOTE_LINES: Record<
 }
 
 export const STREAK_LINES = [
-  (name: string): string => `${name}, 완전히 흐름을 휘어잡았다! 파상공세가 멈추질 않는다.`,
+  (name: string): string =>
+    `${name}, 완전히 흐름을 휘어잡았다! 파상공세가 멈추질 않는다.`,
   (name: string): string => `${name}, 연이은 적중 — 상대가 손쓸 틈이 없다!`,
   (name: string): string => `몰아치는 ${name}! 경기를 완전히 지배한다.`,
 ]
