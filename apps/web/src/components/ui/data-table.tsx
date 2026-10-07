@@ -119,9 +119,7 @@ export function DataTable<T>({
                   {col.sortable && (
                     <SortIcon
                       active={sort?.key === col.key}
-                      direction={
-                        sort?.key === col.key ? sort.direction : null
-                      }
+                      direction={sort?.key === col.key ? sort.direction : null}
                     />
                   )}
                 </span>
@@ -144,9 +142,7 @@ export function DataTable<T>({
               <tr
                 key={rowKey(item)}
                 className={cn(
-                  index % 2 === 0
-                    ? 'bg-table-row-even'
-                    : 'bg-table-row-odd',
+                  index % 2 === 0 ? 'bg-table-row-even' : 'bg-table-row-odd',
                   onRowClick &&
                     'cursor-pointer transition-colors hover:bg-table-row-hover'
                 )}
@@ -158,8 +154,7 @@ export function DataTable<T>({
                     className={cn(
                       'border-b border-table-border/50 text-sm',
                       cellPx,
-                      col.align === 'right' &&
-                        'text-right tabular-nums',
+                      col.align === 'right' && 'text-right tabular-nums',
                       col.align === 'center' && 'text-center',
                       col.hideBelow === 'sm' && 'hidden sm:table-cell',
                       col.hideBelow === 'md' && 'hidden md:table-cell',

@@ -49,22 +49,24 @@ export function ActionButton({
         'rounded-lg border p-3 text-left transition-colors',
         style.bg,
         style.border,
-        onCooldown
-          ? 'cursor-not-allowed opacity-40'
-          : [style.hoverBg]
+        onCooldown ? 'cursor-not-allowed opacity-40' : [style.hoverBg]
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-gray-200">
-          {action.nameKo}
-        </span>
+        <span className="text-sm font-bold text-gray-200">{action.nameKo}</span>
         <div className="flex items-center gap-1.5">
           {shortcutKey != null && (
-            <Badge variant="secondary" className="rounded bg-gray-700 px-1 py-0.5 text-[10px] font-bold text-gray-400">
+            <Badge
+              variant="secondary"
+              className="rounded bg-gray-700 px-1 py-0.5 text-[10px] font-bold text-gray-400"
+            >
               {shortcutKey}
             </Badge>
           )}
-          <Badge variant="secondary" className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold text-gray-400">
+          <Badge
+            variant="secondary"
+            className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] font-bold text-gray-400"
+          >
             {action.category.toUpperCase()}
           </Badge>
         </div>

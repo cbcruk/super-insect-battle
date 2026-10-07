@@ -61,10 +61,7 @@ export interface BattleStore {
   setBattleContext: (context: BattleContext | null) => void
   enqueueAnimations: (events: AnimationEvent[]) => void
   dequeueAnimation: () => AnimationEvent | undefined
-  updateDisplayedHp: (
-    target: 'player' | 'opponent',
-    hp: number
-  ) => void
+  updateDisplayedHp: (target: 'player' | 'opponent', hp: number) => void
   addDisplayedLog: (entry: BattleLogEntry) => void
   setFinalReplay: (replay: BattleReplay) => void
   reset: () => void

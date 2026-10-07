@@ -19,9 +19,7 @@ export function ActionPanel({
     <div className="rounded-lg border border-white/8 bg-card p-3">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-bold text-cyan-400">Select Action</h3>
-        {disabled && (
-          <span className="text-xs text-gray-500">Waiting...</span>
-        )}
+        {disabled && <span className="text-xs text-gray-500">Waiting...</span>}
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {actions.map((action, index) => (

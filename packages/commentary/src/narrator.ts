@@ -58,11 +58,14 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
       ]
 
     case 'turn':
-      return [{ text: `── ${event.turn}턴 ──`, emphasis: 'header', turn: event.turn }]
+      return [
+        { text: `── ${event.turn}턴 ──`, emphasis: 'header', turn: event.turn },
+      ]
 
     case 'attack': {
       const lines: CommentaryLine[] = []
-      const strong = event.magnitude === 'heavy' || event.magnitude === 'crushing'
+      const strong =
+        event.magnitude === 'heavy' || event.magnitude === 'crushing'
 
       lines.push({
         text: r.pick('action', ACTION_LINES)(event.attackerName, event.move),
@@ -151,9 +154,10 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
         event.cause === 'confusion'
       return [
         {
-          text: r.pick(`note:${event.cause}`, NOTE_LINES[event.cause])(
-            event.name
-          ),
+          text: r.pick(
+            `note:${event.cause}`,
+            NOTE_LINES[event.cause]
+          )(event.name),
           emphasis: damaging ? 'normal' : 'system',
           actor: event.side,
           turn: event.turn,

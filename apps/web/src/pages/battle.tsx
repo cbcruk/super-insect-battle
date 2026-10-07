@@ -1,7 +1,18 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { simulateBattle, serializeReplay, getArthropodById } from '@super-insect-battle/engine'
-import type { BattleState, BattleLogEntry, Action, Arthropod, AIDifficulty, AIPersonality } from '@super-insect-battle/engine'
+import {
+  simulateBattle,
+  serializeReplay,
+  getArthropodById,
+} from '@super-insect-battle/engine'
+import type {
+  BattleState,
+  BattleLogEntry,
+  Action,
+  Arthropod,
+  AIDifficulty,
+  AIPersonality,
+} from '@super-insect-battle/engine'
 import {
   BattleCommentary,
   PLAYBACK_SPEEDS,
@@ -67,19 +78,28 @@ function useBattleParams(): BattleParams {
     }
 
     const validModes: BattleMode[] = ['ai-vs-ai', 'player-vs-ai']
-    const mode = modeParam && validModes.includes(modeParam as BattleMode)
-      ? (modeParam as BattleMode)
-      : storeMode
+    const mode =
+      modeParam && validModes.includes(modeParam as BattleMode)
+        ? (modeParam as BattleMode)
+        : storeMode
 
     const validDifficulties: AIDifficulty[] = ['easy', 'medium', 'hard']
-    const difficulty = difficultyParam && validDifficulties.includes(difficultyParam as AIDifficulty)
-      ? (difficultyParam as AIDifficulty)
-      : storeAiConfig.difficulty
+    const difficulty =
+      difficultyParam &&
+      validDifficulties.includes(difficultyParam as AIDifficulty)
+        ? (difficultyParam as AIDifficulty)
+        : storeAiConfig.difficulty
 
-    const validPersonalities: AIPersonality[] = ['aggressive', 'defensive', 'balanced']
-    const personality = personalityParam && validPersonalities.includes(personalityParam as AIPersonality)
-      ? (personalityParam as AIPersonality)
-      : storeAiConfig.personality
+    const validPersonalities: AIPersonality[] = [
+      'aggressive',
+      'defensive',
+      'balanced',
+    ]
+    const personality =
+      personalityParam &&
+      validPersonalities.includes(personalityParam as AIPersonality)
+        ? (personalityParam as AIPersonality)
+        : storeAiConfig.personality
 
     return {
       player,
@@ -94,7 +114,8 @@ function useBattleParams(): BattleParams {
 
 export function BattlePage(): React.ReactNode {
   const navigate = useNavigate()
-  const { player, opponent, mode, difficulty, personality, error } = useBattleParams()
+  const { player, opponent, mode, difficulty, personality, error } =
+    useBattleParams()
 
   useEffect(() => {
     if (!error && !player && !opponent) {
@@ -149,7 +170,6 @@ function AiVsAiBattle({
   opponent: Arthropod
   onClose: () => void
 }): React.ReactNode {
-
   const [battleState, setBattleState] = useState<BattleState | null>(null)
   const [cursor, setCursor] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -235,7 +255,6 @@ function InteractiveBattle({
   aiPersonality: AIPersonality
   onClose: () => void
 }): React.ReactNode {
-
   const phase = useBattleStore((s) => s.phase)
   const battleState = useBattleStore((s) => s.battleState)
   const battleContext = useBattleStore((s) => s.battleContext)
@@ -337,7 +356,10 @@ function InteractiveBattle({
         totalTurns: finalReplay.turns.length,
         data: serializeReplay(finalReplay),
       }
-      localStorage.setItem(REPLAY_STORAGE_KEY, JSON.stringify([entry, ...existing]))
+      localStorage.setItem(
+        REPLAY_STORAGE_KEY,
+        JSON.stringify([entry, ...existing])
+      )
       setReplaySaved(true)
     } catch {
       // storage full or unavailable
@@ -384,7 +406,13 @@ function InteractiveBattle({
           opponent={opponent}
           playerBattle={battleState?.player ?? null}
           opponentBattle={battleState?.opponent ?? null}
-          environment={battleState?.environment ?? { terrain: 'forest', weather: 'clear', timeOfDay: 'day' }}
+          environment={
+            battleState?.environment ?? {
+              terrain: 'forest',
+              weather: 'clear',
+              timeOfDay: 'day',
+            }
+          }
           displayedPlayerHp={displayedPlayerHp}
           displayedOpponentHp={displayedOpponentHp}
           displayedLogs={displayedLogs}
