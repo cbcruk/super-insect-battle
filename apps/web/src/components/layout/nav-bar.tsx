@@ -12,8 +12,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/', label: 'Matchup', icon: Swords },
   { path: '/roguelike', label: 'Roguelike', icon: Trees },
+  { path: '/', label: 'Matchup', icon: Swords },
   { path: '/encyclopedia', label: 'Roster', icon: Bug },
   { path: '/statistics', label: 'Stats', icon: BarChart3 },
   { path: '/replay', label: 'History', icon: History },
