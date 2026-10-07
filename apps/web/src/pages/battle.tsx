@@ -98,7 +98,7 @@ export function BattlePage(): React.ReactNode {
 
   useEffect(() => {
     if (!error && !player && !opponent) {
-      navigate('/')
+      navigate('/matchup')
     }
   }, [player, opponent, error, navigate])
 
@@ -108,7 +108,7 @@ export function BattlePage(): React.ReactNode {
         <div className="text-destructive text-lg font-semibold">Error</div>
         <div className="text-muted-foreground text-center">{error}</div>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/matchup')}
           className="mt-4 rounded-lg bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90"
         >
           Go to Setup
@@ -124,7 +124,7 @@ export function BattlePage(): React.ReactNode {
       <AiVsAiBattle
         player={player}
         opponent={opponent}
-        onClose={() => navigate('/')}
+        onClose={() => navigate('/matchup')}
       />
     )
   }
@@ -135,7 +135,7 @@ export function BattlePage(): React.ReactNode {
       opponent={opponent}
       aiDifficulty={difficulty}
       aiPersonality={personality}
-      onClose={() => navigate('/')}
+      onClose={() => navigate('/matchup')}
     />
   )
 }
