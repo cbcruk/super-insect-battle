@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   assessThreat,
   visibleEnemies,
@@ -12,7 +12,8 @@ import {
   getCooldownRemaining,
 } from '@super-insect-battle/engine'
 import type { RoguelikeController } from '../../hooks/use-roguelike.ts'
-import { drawRoguelike, CELL_SIZE } from '../../lib/roguelike-render.ts'
+import { CELL_SIZE } from '../../lib/roguelike-cell.ts'
+import { RoguelikeStage } from '../../lib/roguelike-stage.ts'
 import { Button } from '../ui/button.tsx'
 import { cn } from '../../lib/utils.ts'
 import { replayAnimation } from '../../lib/replay-animation.ts'
@@ -47,7 +48,9 @@ export function RoguelikeGame({
 }): React.ReactNode {
   const { run, version, notice, feed, effects, hurt, dispatch, useAbility } =
     controller
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const stageHostRef = useRef<HTMLDivElement>(null)
+  const [stage, setStage] = useState<RoguelikeStage | null>(null)
+  const lastEffectId = useRef(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
 
@@ -80,21 +83,36 @@ export function RoguelikeGame({
   )
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !run) return
-    const cell = CELL_SIZE
-    const w = run.level.map.width * cell
-    const h = run.level.map.height * cell
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = w * dpr
-    canvas.height = h * dpr
-    canvas.style.width = `${w}px`
-    canvas.style.height = `${h}px`
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    drawRoguelike(ctx, run, cell, threatLevels)
-  }, [run, version, threatLevels])
+    const host = stageHostRef.current
+    if (!host) return
+    let cancelled = false
+    let created: RoguelikeStage | null = null
+    void RoguelikeStage.create(host, CELL_SIZE).then((s) => {
+      if (cancelled) {
+        s.destroy()
+        return
+      }
+      created = s
+      setStage(s)
+    })
+    return () => {
+      cancelled = true
+      created?.destroy()
+      setStage(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (stage && run) stage.draw(run, threatLevels)
+  }, [stage, run, version, threatLevels])
+
+  useEffect(() => {
+    for (const effect of effects) {
+      if (effect.id <= lastEffectId.current) continue
+      lastEffectId.current = effect.id
+      if (effect.kind === 'venom') stage?.emitVenom(effect.pos, effect.delayMs)
+    }
+  }, [stage, effects])
 
   if (!run) return null
 
@@ -138,7 +156,7 @@ export function RoguelikeGame({
           className="relative overflow-auto rounded-md border border-table-border bg-[#070809]"
         >
           <div className="relative w-fit">
-            <canvas ref={canvasRef} className="block" />
+            <div ref={stageHostRef} />
             <CombatEffects effects={effects} cell={CELL_SIZE} />
           </div>
           {lowHp && run.status === 'playing' && (
