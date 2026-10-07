@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import { AppLayout } from './components/layout/app-layout.tsx'
 import { BattleSetupPage } from './pages/battle-setup.tsx'
 import { BattlePage } from './pages/battle.tsx'
@@ -19,7 +19,8 @@ export default function App(): React.ReactNode {
     <BrowserRouter basename={basename}>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route index element={<BattleSetupPage />} />
+          <Route index element={<Navigate to="/roguelike" replace />} />
+          <Route path="matchup" element={<BattleSetupPage />} />
           <Route path="battle" element={<BattlePage />} />
           <Route path="encyclopedia" element={<EncyclopediaPage />} />
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />

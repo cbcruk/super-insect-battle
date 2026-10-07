@@ -13,7 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/roguelike', label: 'Roguelike', icon: Trees },
-  { path: '/', label: 'Matchup', icon: Swords },
+  { path: '/matchup', label: 'Matchup', icon: Swords },
   { path: '/encyclopedia', label: 'Roster', icon: Bug },
   { path: '/statistics', label: 'Stats', icon: BarChart3 },
   { path: '/replay', label: 'History', icon: History },
@@ -26,10 +26,7 @@ export function NavBar(): React.ReactNode {
     <nav className="flex h-13 items-center gap-4 border-b border-table-border bg-background px-2 sm:h-16">
       <div className="flex gap-0.5 overflow-x-auto sm:gap-1">
         {navItems.map((item) => {
-          const isActive =
-            item.path === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(item.path)
+          const isActive = location.pathname.startsWith(item.path)
 
           const Icon = item.icon
           return (
