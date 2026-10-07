@@ -1,4 +1,4 @@
-import type { GridEvent } from '@super-insect-battle/roguelike'
+import type { GridEvent, Vec2 } from '@super-insect-battle/roguelike'
 import { statusConditionNames } from '@super-insect-battle/engine'
 import type {
   CombatFeedback,
@@ -13,7 +13,8 @@ const EFFECT_STAGGER_MS = 140
  * 코어 이벤트를 로그 줄·맵 연출·피격 요약으로 변환한다.
  *
  * 공격마다 돌진·투사체 움직임을 만들고, 그 공격의 피격 연출은 움직임이 대상에 닿는
- * 순간까지 늦춘다. 층을 내려간 명령에서는 이전 층 좌표의 연출이 의미가 없으므로
+ * 순간까지 늦춘다. 액터가 쓰러지면 마지막 피해가 닿는 시각에 맞춰 쓰러짐 연출을 만든다.
+ * 층을 내려간 명령에서는 이전 층 좌표의 연출이 의미가 없으므로
  * 맵 연출을 버린다.
  */
 export function toCombatFeedback(
@@ -24,16 +25,23 @@ export function toCombatFeedback(
     lines: [],
     effects: [],
     motions: [],
+    falls: [],
     playerDamage: 0,
     playerCritical: false,
   }
   let impactLead = 0
+  const lastBlow = new Map<
+    string,
+    { pos: Vec2; from: Vec2 | null; delayMs: number }
+  >()
+  const nextDelay = (): number =>
+    feedback.effects.length * EFFECT_STAGGER_MS + impactLead
   const pushEffect = (
     effect: Omit<HitEffect, 'id' | 'delayMs' | 'stack'>
   ): void => {
     feedback.effects.push({
       ...effect,
-      delayMs: feedback.effects.length * EFFECT_STAGGER_MS + impactLead,
+      delayMs: nextDelay(),
       stack: feedback.effects.filter(
         (e) => e.pos.x === effect.pos.x && e.pos.y === effect.pos.y
       ).length,
@@ -57,6 +65,13 @@ export function toCombatFeedback(
             delayMs: feedback.effects.length * EFFECT_STAGGER_MS,
           })
           impactLead = impactLeadMs(kind, o.attackerPos, o.defenderPos)
+        }
+        if (o.hit) {
+          lastBlow.set(o.defenderId, {
+            pos: o.defenderPos,
+            from: kind ? o.attackerPos : null,
+            delayMs: nextDelay(),
+          })
         }
         feedback.lines.push({
           text: o.note,
@@ -103,6 +118,11 @@ export function toCombatFeedback(
           critical: false,
         })
         if (event.damage > 0) {
+          lastBlow.set(event.actorId, {
+            pos: event.pos,
+            from: null,
+            delayMs: nextDelay(),
+          })
           pushEffect({
             pos: event.pos,
             label: `-${event.damage}`,
@@ -111,6 +131,11 @@ export function toCombatFeedback(
           })
           if (onPlayer) feedback.playerDamage += event.damage
         }
+        break
+      }
+      case 'death': {
+        const blow = lastBlow.get(event.actorId)
+        if (blow) feedback.falls.push(blow)
         break
       }
       case 'pickup':
@@ -131,6 +156,7 @@ export function toCombatFeedback(
         })
         feedback.effects = []
         feedback.motions = []
+        feedback.falls = []
         break
     }
   }

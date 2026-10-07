@@ -16,6 +16,7 @@ import {
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
 import type { AttackMotion } from '../lib/attack-motion.types.ts'
+import type { Fall } from '../lib/fall-motion.types.ts'
 
 const FEED_LIMIT = 60
 const EFFECT_LIFETIME_MS = 900
@@ -43,6 +44,8 @@ export interface RoguelikeController {
   effects: HitEffect[]
   /** 가장 최근 명령에서 나온 공격 움직임. 무대는 처음 보는 `id`만 재생한다. */
   motions: AttackMotion[]
+  /** 가장 최근 명령에서 쓰러진 액터들. 무대는 처음 보는 `id`만 재생한다. */
+  falls: Fall[]
   hurt: HurtPulse
   newRun: (opts: NewRunOptions) => void
   reset: () => void
@@ -58,6 +61,7 @@ export function useRoguelike(): RoguelikeController {
   const [feed, setFeed] = useState<FeedLine[]>([])
   const [effects, setEffects] = useState<HitEffect[]>([])
   const [motions, setMotions] = useState<AttackMotion[]>([])
+  const [falls, setFalls] = useState<Fall[]>([])
   const [hurt, setHurt] = useState<HurtPulse>({
     key: 0,
     damage: 0,
@@ -74,6 +78,7 @@ export function useRoguelike(): RoguelikeController {
     setFeed([])
     setEffects([])
     setMotions([])
+    setFalls([])
   }, [])
 
   useEffect(() => clearFeedback, [clearFeedback])
@@ -128,6 +133,12 @@ export function useRoguelike(): RoguelikeController {
             ...motion,
             id: nextId.current++,
           }))
+        )
+      }
+
+      if (feedback.falls.length > 0) {
+        setFalls(
+          feedback.falls.map((fall) => ({ ...fall, id: nextId.current++ }))
         )
       }
 
@@ -217,6 +228,7 @@ export function useRoguelike(): RoguelikeController {
     feed,
     effects,
     motions,
+    falls,
     hurt,
     newRun,
     reset,

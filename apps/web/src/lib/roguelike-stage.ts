@@ -25,10 +25,26 @@ import type { CellFlash } from './stage-effects.types.ts'
 import type { HitEffect } from './combat-feedback.types.ts'
 import { motionFrame } from './attack-motion.ts'
 import type { AttackMotion } from './attack-motion.types.ts'
+import { fallFrame } from './fall-motion.ts'
+import type { Fall } from './fall-motion.types.ts'
 
 interface LiveParticle {
   state: HitParticle
   sprite: Graphics
+}
+
+interface GlyphSnapshot {
+  glyph: string
+  tint: number
+}
+
+interface LiveFall {
+  fall: Fall
+  ghost: Text
+  /** 잔상이 서 있던 칸 중심(px). */
+  home: Vec2
+  /** 마지막 피해가 닿은 뒤 흐른 시간(ms). 닿기 전이면 음수. */
+  sinceImpactMs: number
 }
 
 interface LiveMotion {
@@ -45,23 +61,27 @@ const ENEMY_SHOT = '#f87171'
  * 로그라이크 맵을 PixiJS로 그리는 무대.
  *
  * 게임 상태는 들고 있지 않는다. {@linkcode RoguelikeStage.draw}에 런 상태를 넘길 때마다
- * 타일과 글리프를 다시 그리고, 공격 움직임·칸 번쩍임·입자처럼 프레임 단위로 움직이는
+ * 타일과 글리프를 다시 그리고, 공격 움직임·쓰러짐·칸 번쩍임·입자처럼 프레임 단위로 움직이는
  * 연출이 남아 있는 동안에만 ticker를 돌린다. 화면이 멈춰 있을 때는 다시 그리지 않는다.
  */
 export class RoguelikeStage {
   private readonly tiles = new Graphics()
   private readonly glyphLayer = new Container()
+  private readonly ghostLayer = new Container()
   private readonly flashLayer = new Graphics()
   private readonly shotLayer = new Graphics()
   private readonly particleLayer = new Container()
   private readonly glyphPool: Text[] = []
   private readonly glyphByCell = new Map<number, Text>()
+  /** 직전 그리기의 칸별 글리프. 이번 그리기에서 사라진 액터의 잔상을 만들 때 쓴다. */
+  private previousGlyphs = new Map<number, GlyphSnapshot>()
   /** 움직임 때문에 제자리를 벗어난 글리프와 그 원래 위치(px). */
   private readonly displaced = new Map<Text, Vec2>()
   private mapWidth = 0
   private readonly particles: LiveParticle[] = []
   private readonly flashes: CellFlash[] = []
   private readonly motions: LiveMotion[] = []
+  private readonly falls: LiveFall[] = []
   private readonly reducedMotion = window.matchMedia(
     '(prefers-reduced-motion: reduce)'
   ).matches
@@ -81,6 +101,7 @@ export class RoguelikeStage {
     app.stage.addChild(
       this.tiles,
       this.glyphLayer,
+      this.ghostLayer,
       this.flashLayer,
       this.shotLayer,
       this.particleLayer
@@ -126,6 +147,12 @@ export class RoguelikeStage {
     }
 
     this.tiles.clear()
+    this.previousGlyphs = new Map(
+      [...this.glyphByCell].map(([key, text]) => [
+        key,
+        { glyph: text.text, tint: text.tint },
+      ])
+    )
     this.glyphByCell.clear()
     this.displaced.clear()
     this.mapWidth = width
@@ -212,6 +239,31 @@ export class RoguelikeStage {
     if (!this.app.ticker.started) this.app.ticker.start()
   }
 
+  /**
+   * 쓰러진 액터의 잔상을 세워 두었다가 마지막 피해가 닿으면 쓰러뜨린다.
+   *
+   * 코어는 쓰러진 액터를 즉시 지우므로, 직전 그리기에서 그 칸에 있던 글리프로 잔상을
+   * 만든다. 기억된 글리프가 없으면 재생하지 않는다.
+   */
+  playFall(fall: Fall): void {
+    const { cell } = this
+    const snapshot = this.previousGlyphs.get(
+      fall.pos.y * this.mapWidth + fall.pos.x
+    )
+    if (!snapshot) return
+    const ghost = new Text({ text: snapshot.glyph, style: this.glyphStyle })
+    ghost.anchor.set(0.5)
+    ghost.tint = snapshot.tint
+    const home = {
+      x: fall.pos.x * cell + cell / 2,
+      y: fall.pos.y * cell + cell / 2 + 1,
+    }
+    ghost.position.set(home.x, home.y)
+    this.ghostLayer.addChild(ghost)
+    this.falls.push({ fall, ghost, home, sinceImpactMs: -fall.delayMs })
+    if (!this.app.ticker.started) this.app.ticker.start()
+  }
+
   /** ticker와 GPU 자원을 해제하고 캔버스를 DOM에서 떼어낸다. */
   destroy(): void {
     this.app.ticker.remove(this.tick)
@@ -265,11 +317,13 @@ export class RoguelikeStage {
     }
 
     this.stepMotions(dt)
+    this.stepFalls(dt)
 
     if (
       this.flashes.length === 0 &&
       this.particles.length === 0 &&
-      this.motions.length === 0
+      this.motions.length === 0 &&
+      this.falls.length === 0
     ) {
       ticker.stop()
     }
@@ -305,6 +359,32 @@ export class RoguelikeStage {
           .circle((head.x + 0.5) * cell, (head.y + 0.5) * cell, 2.5)
           .fill(color)
       }
+    }
+  }
+
+  private stepFalls(dt: number): void {
+    const { cell } = this
+    for (let i = this.falls.length - 1; i >= 0; i--) {
+      const live = this.falls[i]
+      live.sinceImpactMs += dt
+      const frame = fallFrame(
+        live.sinceImpactMs,
+        live.fall.pos,
+        live.fall.from,
+        this.reducedMotion
+      )
+      if (frame.done) {
+        live.ghost.destroy()
+        this.falls.splice(i, 1)
+        continue
+      }
+      live.ghost.position.set(
+        live.home.x + frame.offset.x * cell,
+        live.home.y + frame.offset.y * cell
+      )
+      live.ghost.alpha = frame.alpha
+      live.ghost.rotation = frame.rotation
+      live.ghost.scale.set(frame.scale)
     }
   }
 
