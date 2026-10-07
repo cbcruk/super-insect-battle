@@ -4,7 +4,9 @@ import {
   posKey,
   type RunState,
   type TerrainType,
+  type ThreatLevel,
 } from '@super-insect-battle/roguelike'
+import { THREAT_COLORS } from './threat-colors.ts'
 
 interface TileStyle {
   bg: string
@@ -27,11 +29,16 @@ const UNKNOWN_BG = '#070809'
 
 export const CELL_SIZE = 20
 
-/** RunState를 캔버스에 2D 타일로 렌더. FOV 안개(보임/발견/미발견) 반영. */
+/**
+ * RunState를 캔버스에 2D 타일로 렌더. FOV 안개(보임/발견/미발견) 반영.
+ *
+ * `threats`에 위협 단계가 있는 적은 그 색으로 그리고, 치명 단계는 칸 테두리로 강조한다.
+ */
 export function drawRoguelike(
   ctx: CanvasRenderingContext2D,
   run: RunState,
-  cell: number = CELL_SIZE
+  cell: number = CELL_SIZE,
+  threats: ReadonlyMap<string, ThreatLevel> = new Map()
 ): void {
   const { map, actors, exit, visible, discovered } = run.level
 
@@ -67,9 +74,21 @@ export function drawRoguelike(
           )
         : undefined
 
+      const threat = actor ? threats.get(actor.id) : undefined
+
       if (actor) {
         glyph = actor.glyph
-        fg = actor.faction === 'player' ? PLAYER_FG : HOSTILE_FG
+        fg =
+          actor.faction === 'player'
+            ? PLAYER_FG
+            : threat
+              ? THREAT_COLORS[threat].hex
+              : HOSTILE_FG
+        if (threat === 'deadly') {
+          ctx.strokeStyle = THREAT_COLORS.deadly.hex
+          ctx.lineWidth = 1.5
+          ctx.strokeRect(px + 1, py + 1, cell - 2, cell - 2)
+        }
       } else if (exit.x === x && exit.y === y) {
         glyph = '>'
         fg = EXIT_FG

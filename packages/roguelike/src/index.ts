@@ -45,7 +45,7 @@ export { createRun, applyCommand, isPlayerTurn, actorAt } from './run'
 export { createBasicBrain } from './ai/basic-brain'
 export { createSmartBrain } from './ai/smart-brain'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
-export { renderLevel, renderFrame } from './render'
+export { renderLevel, renderFrame, enemyList } from './render'
 
 // P2: 절차 생성 · 시야 · 길찾기
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'
@@ -58,4 +58,13 @@ export {
   createGeneratedLevel,
   enterLevel,
   createGeneratedRun,
+  HOSTILE_GLYPHS,
 } from './generate'
+export {
+  assessThreat,
+  describeThreat,
+  visibleEnemies,
+  THREAT_LABELS,
+  type ThreatLevel,
+  type ThreatAssessment,
+} from './threat'

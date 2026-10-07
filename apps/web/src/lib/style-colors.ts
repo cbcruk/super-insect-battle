@@ -47,3 +47,10 @@ export const WEAPON_TYPE_NAMES: Record<string, string> = {
   foreleg: 'Foreleg',
   leg: 'Leg',
 }
+
+export const STYLE_LABELS_KO: Record<BehaviorStyle, string> = {
+  grappler: '격투형',
+  striker: '타격형',
+  venomous: '독형',
+  defensive: '방어형',
+}

@@ -23,16 +23,19 @@ const JUNGLE: Environment = {
   weather: 'clear',
 }
 
-const HOSTILE_IDS = [
-  'scorpion',
-  'centipede',
-  'giant_hornet',
-  'tarantula',
-  'assassin_bug',
-  'black_widow',
-  'earwig',
-  'antlion',
-]
+/** 적 종별 고유 글리프. 같은 글자를 공유하면 맵에서 종을 구별할 수 없다. */
+export const HOSTILE_GLYPHS: Record<string, string> = {
+  scorpion: 'S',
+  centipede: 'C',
+  giant_hornet: 'H',
+  tarantula: 'T',
+  assassin_bug: 'A',
+  black_widow: 'W',
+  earwig: 'E',
+  antlion: 'L',
+}
+
+const HOSTILE_IDS = Object.keys(HOSTILE_GLYPHS)
 
 /** 플레이어 시야를 다시 계산하고 발견 영역에 누적. */
 export function refreshFov(run: RunState): void {
@@ -70,7 +73,7 @@ export function createGeneratedLevel(
     const species = pool[Math.floor(rng() * pool.length)]
     enemies.push(
       createActor(`e${depth}_${i}`, species, spot, 'hostile', {
-        glyph: species.name[0].toUpperCase(),
+        glyph: HOSTILE_GLYPHS[species.id] ?? species.name[0].toUpperCase(),
         brain: createSmartBrain(),
       })
     )

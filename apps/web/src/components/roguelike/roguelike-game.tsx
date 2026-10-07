@@ -1,5 +1,10 @@
-import React, { useEffect, useRef } from 'react'
-import type { Direction } from '@super-insect-battle/roguelike'
+import React, { useEffect, useMemo, useRef } from 'react'
+import {
+  assessThreat,
+  visibleEnemies,
+  type Direction,
+  type ThreatLevel,
+} from '@super-insect-battle/roguelike'
 import {
   getActionsByIds,
   getActionTargeting,
@@ -10,6 +15,7 @@ import type { RoguelikeController } from '../../hooks/use-roguelike.ts'
 import { drawRoguelike, CELL_SIZE } from '../../lib/roguelike-render.ts'
 import { Button } from '../ui/button.tsx'
 import { cn } from '../../lib/utils.ts'
+import { EnemyPanel, type SightedEnemy } from './enemy-panel.tsx'
 
 const KEY_DIR: Record<string, Direction> = {
   ArrowUp: 'n',
@@ -43,6 +49,22 @@ export function RoguelikeGame({
     containerRef.current?.focus()
   }, [])
 
+  const sighted = useMemo<SightedEnemy[]>(() => {
+    if (!run) return []
+    return visibleEnemies(run).map((actor) => ({
+      actor,
+      threat: assessThreat(run.player, actor, run.level.environment),
+    }))
+  }, [run, version])
+
+  const threatLevels = useMemo(
+    () =>
+      new Map<string, ThreatLevel>(
+        sighted.map(({ actor, threat }) => [actor.id, threat.level])
+      ),
+    [sighted]
+  )
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !run) return
@@ -57,8 +79,8 @@ export function RoguelikeGame({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    drawRoguelike(ctx, run, cell)
-  }, [run, version])
+    drawRoguelike(ctx, run, cell, threatLevels)
+  }, [run, version, threatLevels])
 
   if (!run) return null
 
@@ -165,6 +187,8 @@ export function RoguelikeGame({
             )
           })}
         </div>
+
+        <EnemyPanel enemies={sighted} />
 
         {notice && (
           <div className="rounded bg-amber-500/10 px-2 py-1 text-[11px] text-amber-400">
