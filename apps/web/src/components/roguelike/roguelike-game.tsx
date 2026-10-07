@@ -110,7 +110,7 @@ export function RoguelikeGame({
     for (const effect of effects) {
       if (effect.id <= lastEffectId.current) continue
       lastEffectId.current = effect.id
-      if (effect.kind === 'venom') stage?.emitVenom(effect.pos, effect.delayMs)
+      stage?.playHit(effect)
     }
   }, [stage, effects])
 

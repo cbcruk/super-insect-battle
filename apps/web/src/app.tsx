@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import { AppLayout } from './components/layout/app-layout.tsx'
 import { BattleSetupPage } from './pages/battle-setup.tsx'
@@ -7,7 +7,10 @@ import { EncyclopediaPage } from './pages/encyclopedia.tsx'
 import { EncyclopediaDetailPage } from './pages/encyclopedia-detail.tsx'
 import { StatisticsPage } from './pages/statistics.tsx'
 import { ReplayPage } from './pages/replay.tsx'
-import { RoguelikePage } from './pages/roguelike.tsx'
+
+const RoguelikePage = lazy(() =>
+  import('./pages/roguelike.tsx').then((m) => ({ default: m.RoguelikePage }))
+)
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
 
@@ -22,7 +25,14 @@ export default function App(): React.ReactNode {
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
           <Route path="replay" element={<ReplayPage />} />
-          <Route path="roguelike" element={<RoguelikePage />} />
+          <Route
+            path="roguelike"
+            element={
+              <Suspense fallback={null}>
+                <RoguelikePage />
+              </Suspense>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>
