@@ -7,7 +7,11 @@ import {
   TextStyle,
   type Ticker,
 } from 'pixi.js'
-import type { RunState, ThreatLevel } from '@super-insect-battle/roguelike'
+import type {
+  RunState,
+  ThreatLevel,
+  Vec2,
+} from '@super-insect-battle/roguelike'
 import { describeCell, CELL_SIZE, UNKNOWN_BG } from './roguelike-cell.ts'
 import { particleFade, spawnBurst, stepParticle } from './hit-particles.ts'
 import type { HitParticle } from './hit-particles.types.ts'
@@ -19,29 +23,45 @@ import {
 } from './stage-effects.ts'
 import type { CellFlash } from './stage-effects.types.ts'
 import type { HitEffect } from './combat-feedback.types.ts'
+import { motionFrame } from './attack-motion.ts'
+import type { AttackMotion } from './attack-motion.types.ts'
 
 interface LiveParticle {
   state: HitParticle
   sprite: Graphics
 }
 
+interface LiveMotion {
+  motion: AttackMotion
+  /** 움직임 시작 후 흐른 시간(ms). 지연 중이면 음수. */
+  elapsedMs: number
+}
+
 const DEADLY_STROKE = '#ef4444'
+const PLAYER_SHOT = '#22d3ee'
+const ENEMY_SHOT = '#f87171'
 
 /**
  * 로그라이크 맵을 PixiJS로 그리는 무대.
  *
  * 게임 상태는 들고 있지 않는다. {@linkcode RoguelikeStage.draw}에 런 상태를 넘길 때마다
- * 타일과 글리프를 다시 그리고, 칸 번쩍임·입자처럼 프레임 단위로 움직이는 연출이 남아 있는
- * 동안에만 ticker를 돌린다. 화면이 멈춰 있을 때는 다시 그리지 않는다.
+ * 타일과 글리프를 다시 그리고, 공격 움직임·칸 번쩍임·입자처럼 프레임 단위로 움직이는
+ * 연출이 남아 있는 동안에만 ticker를 돌린다. 화면이 멈춰 있을 때는 다시 그리지 않는다.
  */
 export class RoguelikeStage {
   private readonly tiles = new Graphics()
   private readonly glyphLayer = new Container()
   private readonly flashLayer = new Graphics()
+  private readonly shotLayer = new Graphics()
   private readonly particleLayer = new Container()
   private readonly glyphPool: Text[] = []
+  private readonly glyphByCell = new Map<number, Text>()
+  /** 움직임 때문에 제자리를 벗어난 글리프와 그 원래 위치(px). */
+  private readonly displaced = new Map<Text, Vec2>()
+  private mapWidth = 0
   private readonly particles: LiveParticle[] = []
   private readonly flashes: CellFlash[] = []
+  private readonly motions: LiveMotion[] = []
   private readonly reducedMotion = window.matchMedia(
     '(prefers-reduced-motion: reduce)'
   ).matches
@@ -62,6 +82,7 @@ export class RoguelikeStage {
       this.tiles,
       this.glyphLayer,
       this.flashLayer,
+      this.shotLayer,
       this.particleLayer
     )
     app.ticker.add(this.tick)
@@ -105,6 +126,9 @@ export class RoguelikeStage {
     }
 
     this.tiles.clear()
+    this.glyphByCell.clear()
+    this.displaced.clear()
+    this.mapWidth = width
     let used = 0
 
     for (let y = 0; y < height; y++) {
@@ -135,6 +159,7 @@ export class RoguelikeStage {
           text.alpha = view.alpha
           text.position.set(px + cell / 2, py + cell / 2 + 1)
           text.visible = true
+          this.glyphByCell.set(y * width + x, text)
         }
       }
     }
@@ -173,6 +198,17 @@ export class RoguelikeStage {
         this.particles.push({ state, sprite })
       }
     }
+    if (!this.app.ticker.started) this.app.ticker.start()
+  }
+
+  /**
+   * 공격 움직임 하나를 재생한다. 돌진이면 공격자 글리프가, 투사체면 탄이 대상까지 간다.
+   *
+   * 움직임 줄이기 설정이 켜져 있으면 재생하지 않는다.
+   */
+  playMotion(motion: AttackMotion): void {
+    if (this.reducedMotion) return
+    this.motions.push({ motion, elapsedMs: -motion.delayMs })
     if (!this.app.ticker.started) this.app.ticker.start()
   }
 
@@ -228,8 +264,58 @@ export class RoguelikeStage {
       sprite.alpha = fade
     }
 
-    if (this.flashes.length === 0 && this.particles.length === 0) {
+    this.stepMotions(dt)
+
+    if (
+      this.flashes.length === 0 &&
+      this.particles.length === 0 &&
+      this.motions.length === 0
+    ) {
       ticker.stop()
     }
+  }
+
+  private stepMotions(dt: number): void {
+    const { cell } = this
+    for (const [text, home] of this.displaced) {
+      text.position.set(home.x, home.y)
+    }
+    this.displaced.clear()
+    this.shotLayer.clear()
+
+    for (let i = this.motions.length - 1; i >= 0; i--) {
+      const live = this.motions[i]
+      live.elapsedMs += dt
+      if (live.elapsedMs < 0) continue
+      const { motion } = live
+      const frame = motionFrame(motion, live.elapsedMs)
+      if (frame.done) {
+        this.motions.splice(i, 1)
+        continue
+      }
+      this.nudgeGlyph(motion.from.x, motion.from.y, frame.attacker)
+      this.nudgeGlyph(motion.to.x, motion.to.y, frame.defender)
+      if (frame.projectile) {
+        const color = motion.byPlayer ? PLAYER_SHOT : ENEMY_SHOT
+        const { head, tail } = frame.projectile
+        this.shotLayer
+          .moveTo((tail.x + 0.5) * cell, (tail.y + 0.5) * cell)
+          .lineTo((head.x + 0.5) * cell, (head.y + 0.5) * cell)
+          .stroke({ width: 2, color, alpha: 0.5 })
+          .circle((head.x + 0.5) * cell, (head.y + 0.5) * cell, 2.5)
+          .fill(color)
+      }
+    }
+  }
+
+  private nudgeGlyph(x: number, y: number, offset: Vec2): void {
+    if (offset.x === 0 && offset.y === 0) return
+    const text = this.glyphByCell.get(y * this.mapWidth + x)
+    if (!text) return
+    if (!this.displaced.has(text)) {
+      this.displaced.set(text, { x: text.position.x, y: text.position.y })
+    }
+    text.position.x += offset.x * this.cell
+    text.position.y += offset.y * this.cell
   }
 }

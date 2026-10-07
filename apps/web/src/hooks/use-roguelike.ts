@@ -15,6 +15,7 @@ import {
 } from '@super-insect-battle/engine'
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
+import type { AttackMotion } from '../lib/attack-motion.types.ts'
 
 const FEED_LIMIT = 60
 const EFFECT_LIFETIME_MS = 900
@@ -40,6 +41,8 @@ export interface RoguelikeController {
   dailyDate: string | null
   feed: FeedLine[]
   effects: HitEffect[]
+  /** 가장 최근 명령에서 나온 공격 움직임. 무대는 처음 보는 `id`만 재생한다. */
+  motions: AttackMotion[]
   hurt: HurtPulse
   newRun: (opts: NewRunOptions) => void
   reset: () => void
@@ -54,6 +57,7 @@ export function useRoguelike(): RoguelikeController {
   const [dailyDate, setDailyDate] = useState<string | null>(null)
   const [feed, setFeed] = useState<FeedLine[]>([])
   const [effects, setEffects] = useState<HitEffect[]>([])
+  const [motions, setMotions] = useState<AttackMotion[]>([])
   const [hurt, setHurt] = useState<HurtPulse>({
     key: 0,
     damage: 0,
@@ -69,6 +73,7 @@ export function useRoguelike(): RoguelikeController {
     timers.current = []
     setFeed([])
     setEffects([])
+    setMotions([])
   }, [])
 
   useEffect(() => clearFeedback, [clearFeedback])
@@ -114,6 +119,15 @@ export function useRoguelike(): RoguelikeController {
               id: nextId.current++,
             })),
           ].slice(-FEED_LIMIT)
+        )
+      }
+
+      if (feedback.motions.length > 0) {
+        setMotions(
+          feedback.motions.map((motion) => ({
+            ...motion,
+            id: nextId.current++,
+          }))
         )
       }
 
@@ -202,6 +216,7 @@ export function useRoguelike(): RoguelikeController {
     dailyDate,
     feed,
     effects,
+    motions,
     hurt,
     newRun,
     reset,
