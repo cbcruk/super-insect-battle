@@ -14,10 +14,13 @@ import type { Actor } from './actor'
 import type { Level } from './run'
 import { tileAt } from './map'
 import { TERRAIN } from './terrain'
+import type { Vec2 } from './geometry'
 
 export interface CombatOutcome {
   attackerId: string
   defenderId: string
+  /** 공격이 해결된 시점의 방어자 위치. 피격 연출 좌표로 쓴다. */
+  defenderPos: Vec2
   actionId: string
   hit: boolean
   damage: number
@@ -47,6 +50,7 @@ export function resolveAttack(
     return {
       attackerId: attacker.id,
       defenderId: defender.id,
+      defenderPos: { ...defender.pos },
       actionId: action.id,
       hit: false,
       damage: 0,
@@ -93,6 +97,7 @@ export function resolveAttack(
   return {
     attackerId: attacker.id,
     defenderId: defender.id,
+    defenderPos: { ...defender.pos },
     actionId: action.id,
     hit: true,
     damage,

@@ -135,6 +135,8 @@ function resolveActorTurn(
         type: 'status',
         actorId: actor.id,
         message: status.message,
+        damage: status.damage,
+        pos: { ...actor.pos },
       })
       if (actor.combat.currentHp <= 0) killActor(run, actor, events)
     }

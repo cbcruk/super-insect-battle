@@ -15,7 +15,11 @@ import type { RoguelikeController } from '../../hooks/use-roguelike.ts'
 import { drawRoguelike, CELL_SIZE } from '../../lib/roguelike-render.ts'
 import { Button } from '../ui/button.tsx'
 import { cn } from '../../lib/utils.ts'
+import { replayAnimation } from '../../lib/replay-animation.ts'
 import { EnemyPanel, type SightedEnemy } from './enemy-panel.tsx'
+import { CombatEffects } from './combat-effects.tsx'
+import { CombatFeed } from './combat-feed.tsx'
+import { PlayerHp } from './player-hp.tsx'
 
 const KEY_DIR: Record<string, Direction> = {
   ArrowUp: 'n',
@@ -41,9 +45,19 @@ export function RoguelikeGame({
   onExit: () => void
   resultSlot?: React.ReactNode
 }): React.ReactNode {
-  const { run, version, notice, dispatch, useAbility } = controller
+  const { run, version, notice, feed, effects, hurt, dispatch, useAbility } =
+    controller
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (hurt.key === 0) return
+    replayAnimation(
+      mapRef.current,
+      hurt.heavy ? 'animate-screen-shake-heavy' : 'animate-screen-shake'
+    )
+  }, [hurt])
 
   useEffect(() => {
     containerRef.current?.focus()
@@ -86,9 +100,7 @@ export function RoguelikeGame({
 
   const player = run.player
   const abilities = getActionsByIds(player.combat.actions)
-  const hpPct = Math.round(
-    (player.combat.currentHp / player.combat.maxHp) * 100
-  )
+  const lowHp = player.combat.currentHp / player.combat.maxHp <= 0.25
 
   const handleKey = (e: React.KeyboardEvent): void => {
     if (run.status !== 'playing') return
@@ -121,8 +133,23 @@ export function RoguelikeGame({
             이동 방향키·hjkl · 스킬 숫자 · 대기 .
           </span>
         </div>
-        <div className="relative overflow-auto rounded-md border border-table-border bg-[#070809]">
-          <canvas ref={canvasRef} className="block" />
+        <div
+          ref={mapRef}
+          className="relative overflow-auto rounded-md border border-table-border bg-[#070809]"
+        >
+          <div className="relative w-fit">
+            <canvas ref={canvasRef} className="block" />
+            <CombatEffects effects={effects} cell={CELL_SIZE} />
+          </div>
+          {lowHp && run.status === 'playing' && (
+            <div className="pointer-events-none absolute inset-0 animate-pulse shadow-[inset_0_0_48px_rgba(239,68,68,0.45)]" />
+          )}
+          {hurt.key > 0 && (
+            <div
+              key={hurt.key}
+              className="pointer-events-none absolute inset-0 animate-hurt-vignette shadow-[inset_0_0_64px_rgba(239,68,68,0.7)]"
+            />
+          )}
           {run.status !== 'playing' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-auto bg-black/80 p-4">
               <div
@@ -141,22 +168,12 @@ export function RoguelikeGame({
       </div>
 
       <div className="flex w-full flex-col gap-3 lg:w-72">
-        <div>
-          <div className="mb-1 flex justify-between text-xs">
-            <span className="font-medium text-cyan-400">
-              {player.species.nameKo}
-            </span>
-            <span className="tabular-nums text-muted-foreground">
-              {player.combat.currentHp}/{player.combat.maxHp}
-            </span>
-          </div>
-          <div className="h-3 overflow-hidden rounded-full bg-table-row-even">
-            <div
-              className="h-full bg-emerald-500 transition-all"
-              style={{ width: `${hpPct}%` }}
-            />
-          </div>
-        </div>
+        <PlayerHp
+          name={player.species.nameKo}
+          hp={player.combat.currentHp}
+          maxHp={player.combat.maxHp}
+          hurt={hurt}
+        />
 
         <div className="grid grid-cols-2 gap-1.5">
           {abilities.map((action, i) => {
@@ -196,11 +213,7 @@ export function RoguelikeGame({
           </div>
         )}
 
-        <div className="max-h-64 flex-1 overflow-y-auto rounded-md border border-table-border bg-table-row-even p-2 text-[11px] leading-relaxed text-muted-foreground">
-          {run.log.slice(-14).map((line, i) => (
-            <div key={i}>{line}</div>
-          ))}
-        </div>
+        <CombatFeed lines={feed} />
       </div>
     </div>
   )
