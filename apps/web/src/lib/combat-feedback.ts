@@ -5,13 +5,16 @@ import type {
   FeedTone,
   HitEffect,
 } from './combat-feedback.types.ts'
+import { impactLeadMs, motionKind } from './attack-motion.ts'
 
 const EFFECT_STAGGER_MS = 140
 
 /**
  * 코어 이벤트를 로그 줄·맵 연출·피격 요약으로 변환한다.
  *
- * 층을 내려간 명령에서는 이전 층 좌표의 연출이 의미가 없으므로 맵 연출을 버린다.
+ * 공격마다 돌진·투사체 움직임을 만들고, 그 공격의 피격 연출은 움직임이 대상에 닿는
+ * 순간까지 늦춘다. 층을 내려간 명령에서는 이전 층 좌표의 연출이 의미가 없으므로
+ * 맵 연출을 버린다.
  */
 export function toCombatFeedback(
   events: GridEvent[],
@@ -20,15 +23,17 @@ export function toCombatFeedback(
   const feedback: CombatFeedback = {
     lines: [],
     effects: [],
+    motions: [],
     playerDamage: 0,
     playerCritical: false,
   }
+  let impactLead = 0
   const pushEffect = (
     effect: Omit<HitEffect, 'id' | 'delayMs' | 'stack'>
   ): void => {
     feedback.effects.push({
       ...effect,
-      delayMs: feedback.effects.length * EFFECT_STAGGER_MS,
+      delayMs: feedback.effects.length * EFFECT_STAGGER_MS + impactLead,
       stack: feedback.effects.filter(
         (e) => e.pos.x === effect.pos.x && e.pos.y === effect.pos.y
       ).length,
@@ -40,6 +45,19 @@ export function toCombatFeedback(
       case 'attack': {
         const o = event.outcome
         const onPlayer = o.defenderId === playerId
+        const kind = motionKind(o.attackerPos, o.defenderPos)
+        impactLead = 0
+        if (kind) {
+          feedback.motions.push({
+            kind,
+            from: o.attackerPos,
+            to: o.defenderPos,
+            byPlayer: o.attackerId === playerId,
+            hit: o.hit,
+            delayMs: feedback.effects.length * EFFECT_STAGGER_MS,
+          })
+          impactLead = impactLeadMs(kind, o.attackerPos, o.defenderPos)
+        }
         feedback.lines.push({
           text: o.note,
           tone: attackTone(o.hit, o.defeated, onPlayer),
@@ -78,6 +96,7 @@ export function toCombatFeedback(
       }
       case 'status': {
         const onPlayer = event.actorId === playerId
+        impactLead = 0
         feedback.lines.push({
           text: event.message,
           tone: onPlayer && event.damage > 0 ? 'taken' : 'status',
@@ -111,6 +130,7 @@ export function toCombatFeedback(
           critical: false,
         })
         feedback.effects = []
+        feedback.motions = []
         break
     }
   }

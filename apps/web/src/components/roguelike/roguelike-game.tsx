@@ -46,11 +46,21 @@ export function RoguelikeGame({
   onExit: () => void
   resultSlot?: React.ReactNode
 }): React.ReactNode {
-  const { run, version, notice, feed, effects, hurt, dispatch, useAbility } =
-    controller
+  const {
+    run,
+    version,
+    notice,
+    feed,
+    effects,
+    motions,
+    hurt,
+    dispatch,
+    useAbility,
+  } = controller
   const stageHostRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState<RoguelikeStage | null>(null)
   const lastEffectId = useRef(-1)
+  const lastMotionId = useRef(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
 
@@ -113,6 +123,14 @@ export function RoguelikeGame({
       stage?.playHit(effect)
     }
   }, [stage, effects])
+
+  useEffect(() => {
+    for (const motion of motions) {
+      if (motion.id <= lastMotionId.current) continue
+      lastMotionId.current = motion.id
+      stage?.playMotion(motion)
+    }
+  }, [stage, motions])
 
   if (!run) return null
 

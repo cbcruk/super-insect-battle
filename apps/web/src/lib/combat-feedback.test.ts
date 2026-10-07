@@ -8,6 +8,7 @@ function attack(overrides: Partial<CombatOutcome>): GridEvent {
     outcome: {
       attackerId: 'e1',
       defenderId: 'player',
+      attackerPos: { x: 2, y: 4 },
       defenderPos: { x: 3, y: 4 },
       actionId: 'fang_bite',
       hit: true,
@@ -28,7 +29,7 @@ describe('toCombatFeedback', () => {
       'player'
     )
     expect(fb.effects.map((e) => e.label)).toEqual(['-30', '-50!'])
-    expect(fb.effects.map((e) => e.delayMs)).toEqual([0, 140])
+    expect(fb.effects.map((e) => e.delayMs)).toEqual([70, 210])
     expect(fb.effects.map((e) => e.stack)).toEqual([0, 1])
     expect(fb.effects.every((e) => e.onPlayer)).toBe(true)
     expect(fb.playerDamage).toBe(80)
@@ -79,6 +80,36 @@ describe('toCombatFeedback', () => {
       'player'
     )
     expect(fb.effects).toEqual([])
+    expect(fb.motions).toEqual([])
     expect(fb.lines).toHaveLength(2)
+  })
+
+  it('lunges at adjacent targets and lands the hit on impact', () => {
+    const fb = toCombatFeedback([attack({})], 'player')
+    expect(fb.motions).toEqual([
+      {
+        kind: 'lunge',
+        from: { x: 2, y: 4 },
+        to: { x: 3, y: 4 },
+        byPlayer: false,
+        hit: true,
+        delayMs: 0,
+      },
+    ])
+    expect(fb.effects[0].delayMs).toBe(70)
+  })
+
+  it('fires projectiles at range and skips self-targeted skills', () => {
+    const fb = toCombatFeedback(
+      [
+        attack({ attackerId: 'player', attackerPos: { x: 0, y: 4 } }),
+        attack({ attackerPos: { x: 3, y: 4 } }),
+      ],
+      'player'
+    )
+    expect(fb.motions).toHaveLength(1)
+    expect(fb.motions[0]).toMatchObject({ kind: 'projectile', byPlayer: true })
+    expect(fb.effects[0].delayMs).toBeGreaterThan(70)
+    expect(fb.effects[1].delayMs).toBe(140)
   })
 })

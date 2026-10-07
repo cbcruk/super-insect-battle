@@ -20,6 +20,8 @@ import { scaleAppliedVenom } from './venom'
 export interface CombatOutcome {
   attackerId: string
   defenderId: string
+  /** 공격이 해결된 시점의 공격자 위치. 돌진·투사체 연출의 출발점으로 쓴다. */
+  attackerPos: Vec2
   /** 공격이 해결된 시점의 방어자 위치. 피격 연출 좌표로 쓴다. */
   defenderPos: Vec2
   actionId: string
@@ -51,6 +53,7 @@ export function resolveAttack(
     return {
       attackerId: attacker.id,
       defenderId: defender.id,
+      attackerPos: { ...attacker.pos },
       defenderPos: { ...defender.pos },
       actionId: action.id,
       hit: false,
@@ -99,6 +102,7 @@ export function resolveAttack(
   return {
     attackerId: attacker.id,
     defenderId: defender.id,
+    attackerPos: { ...attacker.pos },
     defenderPos: { ...defender.pos },
     actionId: action.id,
     hit: true,
