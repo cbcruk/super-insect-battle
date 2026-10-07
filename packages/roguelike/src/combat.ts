@@ -15,6 +15,7 @@ import type { Level } from './run'
 import { tileAt } from './map'
 import { TERRAIN } from './terrain'
 import type { Vec2 } from './geometry'
+import { scaleAppliedVenom } from './venom'
 
 export interface CombatOutcome {
   attackerId: string
@@ -83,6 +84,7 @@ export function resolveAttack(
   applyActionEffect(attacker.combat, defender.combat, action, scratch, rng)
   const after = defender.combat.statusCondition
   const statusApplied = after !== null && after !== before ? after : undefined
+  if (statusApplied === 'poison') scaleAppliedVenom(defender.combat)
 
   const defeated = defender.combat.currentHp <= 0
 

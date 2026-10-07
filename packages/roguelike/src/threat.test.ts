@@ -26,10 +26,10 @@ describe('hostile glyphs', () => {
 describe('assessThreat', () => {
   it('rates the giant hornet above the earwig', () => {
     const player = actor('rhinoceros_beetle', 'player')
-    const rank = { low: 0, moderate: 1, high: 2, deadly: 3 }
     const hornet = assessThreat(player, actor('giant_hornet', 'hostile'), ENV)
     const earwig = assessThreat(player, actor('earwig', 'hostile'), ENV)
-    expect(rank[hornet.level]).toBeGreaterThan(rank[earwig.level])
+    expect(hornet.winChance).toBeLessThan(earwig.winChance)
+    expect(hornet.hitsToKillPlayer).toBeLessThan(earwig.hitsToKillPlayer)
     expect(hornet.venomous).toBe(true)
   })
 
