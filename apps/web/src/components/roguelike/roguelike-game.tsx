@@ -53,6 +53,7 @@ export function RoguelikeGame({
     feed,
     effects,
     motions,
+    falls,
     hurt,
     dispatch,
     useAbility,
@@ -61,6 +62,7 @@ export function RoguelikeGame({
   const [stage, setStage] = useState<RoguelikeStage | null>(null)
   const lastEffectId = useRef(-1)
   const lastMotionId = useRef(-1)
+  const lastFallId = useRef(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<HTMLDivElement>(null)
 
@@ -131,6 +133,14 @@ export function RoguelikeGame({
       stage?.playMotion(motion)
     }
   }, [stage, motions])
+
+  useEffect(() => {
+    for (const fall of falls) {
+      if (fall.id <= lastFallId.current) continue
+      lastFallId.current = fall.id
+      stage?.playFall(fall)
+    }
+  }, [stage, falls])
 
   if (!run) return null
 

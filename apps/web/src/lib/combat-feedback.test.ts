@@ -112,4 +112,42 @@ describe('toCombatFeedback', () => {
     expect(fb.effects[0].delayMs).toBeGreaterThan(70)
     expect(fb.effects[1].delayMs).toBe(140)
   })
+
+  it('topples the defender when the killing blow lands', () => {
+    const fb = toCombatFeedback(
+      [
+        attack({ attackerId: 'player', defenderId: 'e1', defeated: true }),
+        { type: 'death', actorId: 'e1' },
+      ],
+      'player'
+    )
+    expect(fb.falls).toEqual([
+      { pos: { x: 3, y: 4 }, from: { x: 2, y: 4 }, delayMs: 70 },
+    ])
+  })
+
+  it('lets venom deaths sink in place', () => {
+    const fb = toCombatFeedback(
+      [
+        attack({ defenderId: 'e1' }),
+        {
+          type: 'status',
+          actorId: 'e1',
+          message: '독 데미지',
+          damage: 10,
+          pos: { x: 3, y: 4 },
+        },
+        { type: 'death', actorId: 'e1' },
+      ],
+      'player'
+    )
+    expect(fb.falls).toEqual([
+      { pos: { x: 3, y: 4 }, from: null, delayMs: 140 },
+    ])
+  })
+
+  it('ignores deaths it never saw land', () => {
+    const fb = toCombatFeedback([{ type: 'death', actorId: 'ghost' }], 'player')
+    expect(fb.falls).toEqual([])
+  })
 })

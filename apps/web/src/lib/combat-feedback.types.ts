@@ -1,5 +1,6 @@
 import type { Vec2 } from '@super-insect-battle/roguelike'
 import type { AttackMotion } from './attack-motion.types.ts'
+import type { Fall } from './fall-motion.types.ts'
 
 /** 로그 한 줄의 의미. 색으로 구분해 내가 때린 것과 맞은 것을 한눈에 가른다. */
 export type FeedTone =
@@ -45,6 +46,7 @@ export interface CombatFeedback {
   lines: Omit<FeedLine, 'id'>[]
   effects: Omit<HitEffect, 'id'>[]
   motions: Omit<AttackMotion, 'id'>[]
+  falls: Omit<Fall, 'id'>[]
   /** 이번 명령으로 플레이어가 입은 총 피해. */
   playerDamage: number
   /** 플레이어가 급소를 맞았는가. 화면 흔들림 강도에 쓴다. */
