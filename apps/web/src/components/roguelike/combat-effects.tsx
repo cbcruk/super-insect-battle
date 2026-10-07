@@ -13,13 +13,11 @@ const LABEL_CLASS: Record<HitEffectKind, string> = {
   condition: 'text-[10px] text-purple-300',
 }
 
-const FLASH_COLOR: Partial<Record<HitEffectKind, string>> = {
-  damage: 'bg-white/70',
-  critical: 'bg-amber-300/80',
-  venom: 'bg-purple-500/60',
-}
-
-/** 맵 캔버스 위에 겹쳐 피격 칸 번쩍임과 떠오르는 피해 숫자를 그린다. */
+/**
+ * 맵 캔버스 위에 겹쳐 떠오르는 피해 숫자를 그린다.
+ *
+ * 칸 번쩍임과 입자는 Pixi 무대가 맡고, 글자는 선명하게 보이도록 DOM에 남긴다.
+ */
 export function CombatEffects({
   effects,
   cell,
@@ -29,47 +27,25 @@ export function CombatEffects({
 }): React.ReactNode {
   return (
     <div className="pointer-events-none absolute inset-0">
-      {effects.map((effect) => {
-        const flash = effect.onPlayer
-          ? effect.kind === 'miss' || effect.kind === 'condition'
-            ? undefined
-            : 'bg-red-500/80'
-          : FLASH_COLOR[effect.kind]
-        const style = { animationDelay: `${effect.delayMs}ms` }
-
-        return (
-          <React.Fragment key={effect.id}>
-            {flash && (
-              <div
-                className={cn('absolute animate-cell-flash', flash)}
-                style={{
-                  ...style,
-                  left: effect.pos.x * cell,
-                  top: effect.pos.y * cell,
-                  width: cell,
-                  height: cell,
-                }}
-              />
-            )}
-            <span
-              className={cn(
-                'absolute animate-float-damage whitespace-nowrap font-mono font-bold [text-shadow:0_1px_2px_#000,0_0_4px_#000]',
-                LABEL_CLASS[effect.kind],
-                effect.onPlayer &&
-                  (effect.kind === 'damage' || effect.kind === 'critical') &&
-                  'text-red-400'
-              )}
-              style={{
-                ...style,
-                left: effect.pos.x * cell + cell / 2,
-                top: effect.pos.y * cell - cell * (0.3 + effect.stack * 0.7),
-              }}
-            >
-              {effect.label}
-            </span>
-          </React.Fragment>
-        )
-      })}
+      {effects.map((effect) => (
+        <span
+          key={effect.id}
+          className={cn(
+            'absolute animate-float-damage whitespace-nowrap font-mono font-bold [text-shadow:0_1px_2px_#000,0_0_4px_#000]',
+            LABEL_CLASS[effect.kind],
+            effect.onPlayer &&
+              (effect.kind === 'damage' || effect.kind === 'critical') &&
+              'text-red-400'
+          )}
+          style={{
+            animationDelay: `${effect.delayMs}ms`,
+            left: effect.pos.x * cell + cell / 2,
+            top: effect.pos.y * cell - cell * (0.3 + effect.stack * 0.7),
+          }}
+        >
+          {effect.label}
+        </span>
+      ))}
     </div>
   )
 }
