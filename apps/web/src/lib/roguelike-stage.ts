@@ -98,11 +98,12 @@ export class RoguelikeStage {
       fontSize: Math.floor(cell * 0.78),
       fill: 0xffffff,
     })
+    // 지속 피해로 쓰러지면 잔상이 제자리에서 가라앉으므로, 같은 칸의 번쩍임에 가리지 않게 위에 둔다.
     app.stage.addChild(
       this.tiles,
       this.glyphLayer,
-      this.ghostLayer,
       this.flashLayer,
+      this.ghostLayer,
       this.shotLayer,
       this.particleLayer
     )
