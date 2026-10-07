@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createGeneratedRun,
   applyCommand,
@@ -13,6 +13,18 @@ import {
   getActionRange,
   isActionOnCooldown,
 } from '@super-insect-battle/engine'
+import { toCombatFeedback } from '../lib/combat-feedback.ts'
+import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
+
+const FEED_LIMIT = 60
+const EFFECT_LIFETIME_MS = 900
+
+/** 플레이어가 피해를 입을 때마다 바뀌는 신호. `key`가 바뀌면 피격 연출을 다시 재생한다. */
+export interface HurtPulse {
+  key: number
+  damage: number
+  heavy: boolean
+}
 
 export interface NewRunOptions {
   speciesId: string
@@ -26,6 +38,9 @@ export interface RoguelikeController {
   version: number
   notice: string
   dailyDate: string | null
+  feed: FeedLine[]
+  effects: HitEffect[]
+  hurt: HurtPulse
   newRun: (opts: NewRunOptions) => void
   reset: () => void
   dispatch: (command: Command) => void
@@ -37,8 +52,26 @@ export function useRoguelike(): RoguelikeController {
   const [version, setVersion] = useState(0)
   const [notice, setNotice] = useState('')
   const [dailyDate, setDailyDate] = useState<string | null>(null)
+  const [feed, setFeed] = useState<FeedLine[]>([])
+  const [effects, setEffects] = useState<HitEffect[]>([])
+  const [hurt, setHurt] = useState<HurtPulse>({
+    key: 0,
+    damage: 0,
+    heavy: false,
+  })
+  const nextId = useRef(0)
+  const timers = useRef<number[]>([])
 
   const bump = useCallback(() => setVersion((v) => v + 1), [])
+
+  const clearFeedback = useCallback(() => {
+    for (const timer of timers.current) window.clearTimeout(timer)
+    timers.current = []
+    setFeed([])
+    setEffects([])
+  }, [])
+
+  useEffect(() => clearFeedback, [clearFeedback])
 
   const newRun = useCallback(
     (opts: NewRunOptions) => {
@@ -51,23 +84,75 @@ export function useRoguelike(): RoguelikeController {
       })
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
+      clearFeedback()
       bump()
     },
-    [bump]
+    [bump, clearFeedback]
   )
 
   const reset = useCallback(() => {
     runRef.current = null
     setDailyDate(null)
     setNotice('')
+    clearFeedback()
     bump()
-  }, [bump])
+  }, [bump, clearFeedback])
 
   const dispatch = useCallback(
     (command: Command) => {
       const run = runRef.current
       if (!run || run.status !== 'playing') return
-      applyCommand(run, command)
+      const events = applyCommand(run, command)
+      const feedback = toCombatFeedback(events, run.player.id)
+
+      if (feedback.lines.length > 0) {
+        setFeed((prev) =>
+          [
+            ...prev,
+            ...feedback.lines.map((line) => ({
+              ...line,
+              id: nextId.current++,
+            })),
+          ].slice(-FEED_LIMIT)
+        )
+      }
+
+      if (feedback.effects.length > 0) {
+        const spawned = feedback.effects.map((effect) => ({
+          ...effect,
+          id: nextId.current++,
+        }))
+        const ids = new Set(spawned.map((e) => e.id))
+        const lifetime =
+          EFFECT_LIFETIME_MS + Math.max(...spawned.map((e) => e.delayMs))
+        setEffects((prev) => [
+          ...prev,
+          ...spawned.map((effect) => ({
+            ...effect,
+            stack:
+              effect.stack +
+              prev.filter(
+                (e) => e.pos.x === effect.pos.x && e.pos.y === effect.pos.y
+              ).length,
+          })),
+        ])
+        const timer = window.setTimeout(() => {
+          timers.current = timers.current.filter((t) => t !== timer)
+          setEffects((prev) => prev.filter((e) => !ids.has(e.id)))
+        }, lifetime)
+        timers.current.push(timer)
+      }
+
+      if (feedback.playerDamage > 0) {
+        setHurt((prev) => ({
+          key: prev.key + 1,
+          damage: feedback.playerDamage,
+          heavy:
+            feedback.playerCritical ||
+            feedback.playerDamage >= run.player.combat.maxHp * 0.25,
+        }))
+      }
+
       setNotice('')
       bump()
     },
@@ -115,6 +200,9 @@ export function useRoguelike(): RoguelikeController {
     version,
     notice,
     dailyDate,
+    feed,
+    effects,
+    hurt,
     newRun,
     reset,
     dispatch,

@@ -9,7 +9,14 @@ export type GridEvent =
   | { type: 'move'; actorId: string; from: Vec2; to: Vec2 }
   | { type: 'attack'; outcome: CombatOutcome }
   | { type: 'blocked'; actorId: string; pos: Vec2 }
-  | { type: 'status'; actorId: string; message: string }
+  | {
+      type: 'status'
+      actorId: string
+      message: string
+      /** 턴 종료 지속 피해(독·화상). 없으면 0. */
+      damage: number
+      pos: Vec2
+    }
   | { type: 'death'; actorId: string }
   | { type: 'pickup'; actorId: string; itemId: string; message: string }
   | { type: 'descend'; depth: number }

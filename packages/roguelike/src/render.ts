@@ -8,6 +8,7 @@ import type { RunState } from './run'
 import { TERRAIN } from './terrain'
 import { ITEMS } from './items'
 import { posKey } from './geometry'
+import { assessThreat, describeThreat, visibleEnemies } from './threat'
 
 /**
  * 레벨을 ASCII 그리드로 렌더. FOV가 설정된 경우:
@@ -66,8 +67,19 @@ export function renderFrame(run: RunState): string {
     `밀림 ${run.level.depth}층 / ${run.maxDepth}  ·  턴 ${run.turn}  ·  ${statusLabel(run.status)}`,
     hp,
     abilityBar(run),
+    enemyList(run),
     recent ? `\n${recent}` : '',
   ].join('\n')
+}
+
+/** 시야 안 적 목록과 위협도. 보이는 적이 없으면 빈 문자열. */
+export function enemyList(run: RunState): string {
+  return visibleEnemies(run)
+    .map((enemy) => {
+      const threat = assessThreat(run.player, enemy, run.level.environment)
+      return `${enemy.glyph} ${enemy.species.nameKo} HP ${enemy.combat.currentHp}/${enemy.combat.maxHp} [${describeThreat(threat)}]`
+    })
+    .join('\n')
 }
 
 /** 플레이어 스킬 목록 (숫자키로 사용). */

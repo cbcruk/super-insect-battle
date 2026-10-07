@@ -23,16 +23,39 @@ const JUNGLE: Environment = {
   weather: 'clear',
 }
 
-const HOSTILE_IDS = [
-  'scorpion',
-  'centipede',
-  'giant_hornet',
-  'tarantula',
-  'assassin_bug',
-  'black_widow',
-  'earwig',
-  'antlion',
-]
+/** 적 종별 고유 글리프. 같은 글자를 공유하면 맵에서 종을 구별할 수 없다. */
+export const HOSTILE_GLYPHS: Record<string, string> = {
+  scorpion: 'S',
+  centipede: 'C',
+  giant_hornet: 'H',
+  tarantula: 'T',
+  assassin_bug: 'A',
+  black_widow: 'W',
+  earwig: 'E',
+  antlion: 'L',
+}
+
+/**
+ * 적 종별 첫 등장 층. 1:1 교전 시뮬레이션 승률로 나눈 3단계로,
+ * 장수말벌·전갈 같은 강적이 1층부터 나와 런이 초반에 끝나는 것을 막는다.
+ */
+export const HOSTILE_MIN_DEPTH: Record<string, number> = {
+  earwig: 1,
+  antlion: 1,
+  black_widow: 1,
+  centipede: 2,
+  tarantula: 2,
+  assassin_bug: 2,
+  scorpion: 3,
+  giant_hornet: 3,
+}
+
+const HOSTILE_IDS = Object.keys(HOSTILE_GLYPHS)
+
+/** depth 층에 등장할 수 있는 적 종 id 목록. */
+export function hostilePoolFor(depth: number): string[] {
+  return HOSTILE_IDS.filter((id) => (HOSTILE_MIN_DEPTH[id] ?? 1) <= depth)
+}
 
 /** 플레이어 시야를 다시 계산하고 발견 영역에 누적. */
 export function refreshFov(run: RunState): void {
@@ -56,9 +79,9 @@ export function createGeneratedLevel(
   const entrance = floors[Math.floor(rng() * floors.length)]
   const exit = farthestFrom(floors, entrance)
 
-  const pool = HOSTILE_IDS.map((id) => getArthropodById(id)).filter(
-    (a): a is Arthropod => a !== undefined
-  )
+  const pool = hostilePoolFor(depth)
+    .map((id) => getArthropodById(id))
+    .filter((a): a is Arthropod => a !== undefined)
   const spawnable = floors.filter(
     (f) => chebyshev(f, entrance) > 6 && !(f.x === exit.x && f.y === exit.y)
   )
@@ -70,7 +93,7 @@ export function createGeneratedLevel(
     const species = pool[Math.floor(rng() * pool.length)]
     enemies.push(
       createActor(`e${depth}_${i}`, species, spot, 'hostile', {
-        glyph: species.name[0].toUpperCase(),
+        glyph: HOSTILE_GLYPHS[species.id] ?? species.name[0].toUpperCase(),
         brain: createSmartBrain(),
       })
     )

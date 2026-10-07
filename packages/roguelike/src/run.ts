@@ -21,10 +21,13 @@ import type { TileMap } from './map'
 import { inBounds, isWalkable, tileAt } from './map'
 import { addDir, chebyshev, equals, type Vec2 } from './geometry'
 import { resolveAttack } from './combat'
+import { decayVenom } from './venom'
 import { lineOfSight } from './fov'
 import { ITEMS } from './items'
 import { nextActor, grantEnergy, spendTurn } from './scheduler'
 import { refreshFov, enterLevel } from './generate'
+
+const DESCEND_HEAL_RATIO = 0.3
 
 export interface Level {
   depth: number
@@ -135,8 +138,14 @@ function resolveActorTurn(
         type: 'status',
         actorId: actor.id,
         message: status.message,
+        damage: status.damage,
+        pos: { ...actor.pos },
       })
       if (actor.combat.currentHp <= 0) killActor(run, actor, events)
+    }
+    const cured = decayVenom(actor.combat)
+    if (cured && actor.combat.currentHp > 0) {
+      events.push({ type: 'message', text: cured })
     }
     tickCooldowns(actor.combat)
   }
@@ -205,6 +214,8 @@ function actOnce(
         run.status = 'won'
       } else {
         enterLevel(run, run.level.depth + 1) // 다음 존 생성 + 플레이어 이동
+        const recovery = recoverOnDescend(actor)
+        if (recovery) events.push({ type: 'message', text: recovery })
       }
     }
   } else {
@@ -245,6 +256,31 @@ function resolveAbility(
   startCooldown(actor.combat, action)
   events.push({ type: 'attack', outcome })
   if (outcome.defeated) killActor(run, occupant, events)
+}
+
+/**
+ * 새 층에 들어서며 숨을 고른다: 최대 HP 일부를 회복하고 독·화상을 털어낸다.
+ * HP가 연전으로만 깎여 후반 층에 도달하기 전에 런이 끝나는 것을 완화한다.
+ */
+function recoverOnDescend(actor: Actor): string | null {
+  const combat = actor.combat
+  const before = combat.currentHp
+  combat.currentHp = Math.min(
+    combat.maxHp,
+    before + Math.floor(combat.maxHp * DESCEND_HEAL_RATIO)
+  )
+  const cured =
+    combat.statusCondition === 'poison' || combat.statusCondition === 'burn'
+  if (cured) {
+    combat.statusCondition = null
+    combat.appliedVenomPotency = 0
+  }
+
+  const parts: string[] = []
+  const healed = combat.currentHp - before
+  if (healed > 0) parts.push(`HP +${healed}`)
+  if (cured) parts.push('독이 빠졌다')
+  return parts.length > 0 ? `숨을 고른다 (${parts.join(', ')})` : null
 }
 
 function killActor(run: RunState, actor: Actor, events: GridEvent[]): void {
