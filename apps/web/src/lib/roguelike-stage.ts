@@ -179,12 +179,12 @@ export class RoguelikeStage {
         if (view.glyph === '.') {
           this.tiles
             .rect(px + cell / 2 - 1, py + cell / 2, 2, 2)
-            .fill({ color: view.fg, alpha: view.alpha })
+            .fill({ color: view.fg, alpha: view.glyphAlpha })
         } else if (view.glyph && view.glyph !== ' ') {
           const text = this.glyphAt(used++)
           text.text = view.glyph
           text.tint = view.fg
-          text.alpha = view.alpha
+          text.alpha = view.glyphAlpha
           text.position.set(px + cell / 2, py + cell / 2 + 1)
           text.visible = true
           this.glyphByCell.set(y * width + x, text)
