@@ -82,6 +82,7 @@ export function describeCell(
   if (actor) {
     const threat = threats.get(actor.id)
     view.glyph = actor.glyph
+    view.species = actor.species
     view.fg =
       actor.faction === 'player'
         ? PLAYER_FG
