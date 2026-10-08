@@ -9,6 +9,7 @@ import {
 import { getArthropodById } from '@super-insect-battle/engine'
 import { describeCell } from './roguelike-cell.ts'
 import { EDGE_LIGHT, REMEMBERED_LIGHT } from './sight-light.ts'
+import { NEIGHBOUR, terrainMark } from './tile-marks.ts'
 
 function corridor(): RunState {
   const species = getArthropodById('black_widow')!
@@ -59,5 +60,22 @@ describe('describeCell lighting', () => {
     const run = corridor()
     run.level.visible = undefined
     expect(describeCell(run, 8, 1)?.alpha).toBe(1)
+  })
+})
+
+describe('describeCell terrain marks', () => {
+  it('joins a wall to neighbouring walls and the map edge', () => {
+    const run = corridor()
+    const joined = NEIGHBOUR.n | NEIGHBOUR.e | NEIGHBOUR.w
+    expect(describeCell(run, 3, 0)?.mark).toBe(
+      terrainMark('wall', 3, 0, joined)
+    )
+  })
+
+  it('treats undiscovered neighbours as joined so the mark reveals nothing', () => {
+    const run = corridor()
+    run.level.discovered!.delete(posKey(3, 1))
+    const all = NEIGHBOUR.n | NEIGHBOUR.e | NEIGHBOUR.s | NEIGHBOUR.w
+    expect(describeCell(run, 3, 0)?.mark).toBe(terrainMark('wall', 3, 0, all))
   })
 })
