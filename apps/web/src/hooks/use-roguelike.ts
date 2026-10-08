@@ -14,6 +14,7 @@ import {
   isActionOnCooldown,
 } from '@super-insect-battle/engine'
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
+import { nextFacings } from '../lib/facing.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
 import type { AttackMotion } from '../lib/attack-motion.types.ts'
 import type { Fall } from '../lib/fall-motion.types.ts'
@@ -46,6 +47,8 @@ export interface RoguelikeController {
   motions: AttackMotion[]
   /** 가장 최근 명령에서 쓰러진 액터들. 무대는 처음 보는 `id`만 재생한다. */
   falls: Fall[]
+  /** 액터 id별 바라보는 방향(라디안, 위가 0). 명령마다 갱신된다. */
+  facings: ReadonlyMap<string, number>
   hurt: HurtPulse
   newRun: (opts: NewRunOptions) => void
   reset: () => void
@@ -68,6 +71,7 @@ export function useRoguelike(): RoguelikeController {
     heavy: false,
   })
   const nextId = useRef(0)
+  const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
   const timers = useRef<number[]>([])
 
   const bump = useCallback(() => setVersion((v) => v + 1), [])
@@ -92,6 +96,7 @@ export function useRoguelike(): RoguelikeController {
         seed: opts.seed,
         maxDepth: 3,
       })
+      facingsRef.current = new Map()
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
       clearFeedback()
@@ -102,6 +107,7 @@ export function useRoguelike(): RoguelikeController {
 
   const reset = useCallback(() => {
     runRef.current = null
+    facingsRef.current = new Map()
     setDailyDate(null)
     setNotice('')
     clearFeedback()
@@ -114,6 +120,7 @@ export function useRoguelike(): RoguelikeController {
       if (!run || run.status !== 'playing') return
       const events = applyCommand(run, command)
       const feedback = toCombatFeedback(events, run.player.id)
+      facingsRef.current = nextFacings(facingsRef.current, events)
 
       if (feedback.lines.length > 0) {
         setFeed((prev) =>
@@ -229,6 +236,7 @@ export function useRoguelike(): RoguelikeController {
     effects,
     motions,
     falls,
+    facings: facingsRef.current,
     hurt,
     newRun,
     reset,
