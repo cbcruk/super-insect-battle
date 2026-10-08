@@ -54,6 +54,7 @@ export function RoguelikeGame({
     effects,
     motions,
     falls,
+    facings,
     hurt,
     dispatch,
     useAbility,
@@ -115,8 +116,8 @@ export function RoguelikeGame({
   }, [])
 
   useEffect(() => {
-    if (stage && run) stage.draw(run, threatLevels)
-  }, [stage, run, version, threatLevels])
+    if (stage && run) stage.draw(run, threatLevels, facings)
+  }, [stage, run, version, threatLevels, facings])
 
   useEffect(() => {
     for (const effect of effects) {

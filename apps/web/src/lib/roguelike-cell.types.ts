@@ -13,6 +13,8 @@ export interface CellView {
   glyphAlpha: number
   /** 지형·아이템·출구 무늬. 있으면 렌더러는 글리프 대신 이 무늬를 `fg` 색으로 그린다. */
   mark?: Silhouette
+  /** 칸에 서 있는 액터의 id. */
+  actorId?: string
   /** 칸에 서 있는 곤충의 종. 렌더러는 글리프 대신 이 종의 실루엣을 그린다. */
   species?: Arthropod
   /** 치명 위협 적이 서 있어 테두리로 강조할 칸인가. */

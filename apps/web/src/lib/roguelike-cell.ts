@@ -85,6 +85,7 @@ export function describeCell(
     const threat = threats.get(actor.id)
     view.glyph = actor.glyph
     view.species = actor.species
+    view.actorId = actor.id
     view.mark = undefined
     view.fg =
       actor.faction === 'player'

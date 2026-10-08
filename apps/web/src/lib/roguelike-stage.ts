@@ -39,6 +39,7 @@ interface LiveParticle {
 interface GlyphSnapshot {
   glyph: string
   tint: number
+  rotation: number
   species?: Arthropod
 }
 
@@ -47,6 +48,8 @@ interface LiveFall {
   ghost: Container
   /** 잔상이 서 있던 칸 중심(px). */
   home: Vec2
+  /** 쓰러지기 전 바라보던 방향(라디안). 쓰러짐 기울기는 여기에 더한다. */
+  facing: number
   /** 마지막 피해가 닿은 뒤 흐른 시간(ms). 닿기 전이면 음수. */
   sinceImpactMs: number
 }
@@ -145,7 +148,8 @@ export class RoguelikeStage {
   /** 런 상태를 FOV·위협 단계를 반영해 다시 그린다. */
   draw(
     run: RunState,
-    threats: ReadonlyMap<string, ThreatLevel> = new Map()
+    threats: ReadonlyMap<string, ThreatLevel> = new Map(),
+    facings: ReadonlyMap<string, number> = new Map()
   ): void {
     const { cell } = this
     const { width, height } = run.level.map
@@ -163,6 +167,7 @@ export class RoguelikeStage {
         {
           glyph: glyph instanceof Text ? glyph.text : '',
           tint: glyph.tint,
+          rotation: glyph.rotation,
           species: this.speciesByCell.get(key),
         },
       ])
@@ -196,6 +201,7 @@ export class RoguelikeStage {
           sprite.tint = view.fg
           sprite.alpha = view.glyphAlpha
           sprite.position.set(px + cell / 2, py + cell / 2)
+          sprite.rotation = view.actorId ? (facings.get(view.actorId) ?? 0) : 0
           sprite.visible = true
           this.glyphByCell.set(y * width + x, sprite)
           this.speciesByCell.set(y * width + x, view.species)
@@ -295,7 +301,14 @@ export class RoguelikeStage {
     }
     ghost.position.set(home.x, home.y)
     this.ghostLayer.addChild(ghost)
-    this.falls.push({ fall, ghost, home, sinceImpactMs: -fall.delayMs })
+    ghost.rotation = snapshot.rotation
+    this.falls.push({
+      fall,
+      ghost,
+      home,
+      facing: snapshot.rotation,
+      sinceImpactMs: -fall.delayMs,
+    })
     if (!this.app.ticker.started) this.app.ticker.start()
   }
 
@@ -441,7 +454,7 @@ export class RoguelikeStage {
         live.home.y + frame.offset.y * cell
       )
       live.ghost.alpha = frame.alpha
-      live.ghost.rotation = frame.rotation
+      live.ghost.rotation = live.facing + frame.rotation
       live.ghost.scale.set(frame.scale)
     }
   }
