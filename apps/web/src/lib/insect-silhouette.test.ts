@@ -26,12 +26,10 @@ describe('silhouetteFor', () => {
   })
 
   it('gives every hostile species a distinct outline', () => {
-    const outlines = Object.keys(HOSTILE_GLYPHS)
-      .filter((id) => id !== 'black_widow' && id !== 'tarantula')
-      .map((id) => {
-        const species = arthropodList.find((a) => a.id === id)!
-        return JSON.stringify(silhouetteFor(species))
-      })
+    const outlines = Object.keys(HOSTILE_GLYPHS).map((id) => {
+      const species = arthropodList.find((a) => a.id === id)!
+      return JSON.stringify(silhouetteFor(species))
+    })
     expect(new Set(outlines).size).toBe(outlines.length)
   })
 

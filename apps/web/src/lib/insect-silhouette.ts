@@ -67,17 +67,53 @@ function beetle(head: Head): Silhouette {
   ]
 }
 
-function spider(): Silhouette {
+/** 타란툴라: 굵고 짧은 털북숭이 다리와 큰 몸집. */
+function tarantula(): Silhouette {
+  return [
+    ...legs(
+      [
+        [2.4, -4, 4.8, -6.4, 6, -8.6],
+        [3, -3, 6, -4, 7.6, -3],
+        [3, -1.6, 6, -0.2, 7.4, 1.8],
+        [2.4, -0.4, 4.6, 2.6, 5.4, 5.6],
+      ],
+      1.7
+    ),
+    ellipse(0, 3.4, 4.4, 4.6),
+    ellipse(0, -2.4, 3.4, 3),
+    ...pair(line([1.2, -5, 1.6, -6.8], 1.6)),
+  ]
+}
+
+/** 검은과부거미: 아주 가늘고 긴 다리와 크고 둥근 배. */
+function blackWidow(): Silhouette {
+  return [
+    ...legs(
+      [
+        [1.4, -4, 4.4, -7.4, 7, -9.6],
+        [1.8, -3.2, 6, -5, 9.4, -4.6],
+        [1.8, -2.4, 6, -1, 9.4, 1.4],
+        [1.4, -1.6, 4.4, 1.6, 6.4, 6],
+      ],
+      0.7
+    ),
+    ellipse(0, 3.4, 5, 5.6),
+    ellipse(0, -3, 1.8, 1.8),
+  ]
+}
+
+/** 늑대거미: 앞뒤로 길게 뻗은 다리와 갸름한 배. */
+function wolfSpider(): Silhouette {
   return [
     ...legs([
-      [2, -4, 5, -7, 7.4, -9],
-      [2.6, -3, 6.4, -4.4, 9, -3.6],
-      [2.6, -1.8, 6.4, -0.2, 8.8, 2],
-      [2, -0.8, 5, 2.4, 6.6, 6.4],
+      [1.8, -4, 3.6, -7.4, 4.6, -9.8],
+      [2.2, -3, 6, -5.4, 8.6, -6.4],
+      [2.2, -1.6, 6, 0.6, 8.6, 3.4],
+      [1.8, -0.4, 3.8, 4, 4.4, 8.6],
     ]),
-    ellipse(0, 3.6, 4.2, 4.8),
-    ellipse(0, -2.6, 3, 2.8),
-    ...pair(line([0.9, -5, 1.2, -6.6], 1.2)),
+    ellipse(0, 3.8, 2.8, 4.8),
+    ellipse(0, -2.4, 2.4, 3),
+    ...pair(line([0.8, -5.2, 1, -6.4], 1)),
   ]
 }
 
@@ -251,9 +287,9 @@ const SPECIES_SILHOUETTES: Record<string, () => Silhouette> = {
   stag_beetle: () => beetle('mandible'),
   titan_beetle: () => beetle('mandible'),
   bombardier_beetle: () => beetle('none'),
-  tarantula: spider,
-  black_widow: spider,
-  wolf_spider: spider,
+  tarantula,
+  black_widow: blackWidow,
+  wolf_spider: wolfSpider,
   scorpion: () => scorpion(false),
   vinegaroon: () => scorpion(true),
   mantis,
@@ -274,7 +310,7 @@ const WEAPON_SILHOUETTES: Record<WeaponType, () => Silhouette> = {
   horn: () => beetle('horn'),
   mandible: () => beetle('mandible'),
   stinger: wasp,
-  fang: spider,
+  fang: tarantula,
   foreleg: mantis,
   leg: roach,
 }
