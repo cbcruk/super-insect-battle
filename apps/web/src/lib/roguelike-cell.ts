@@ -8,6 +8,7 @@ import {
 } from '@super-insect-battle/roguelike'
 import { THREAT_COLORS } from './threat-colors.ts'
 import { lightAt, REMEMBERED_LIGHT } from './sight-light.ts'
+import { EXIT_MARK, itemMark, terrainMark } from './tile-marks.ts'
 import type { CellView } from './roguelike-cell.types.ts'
 
 interface TileStyle {
@@ -68,6 +69,7 @@ export function describeCell(
     fg: style.fg,
     alpha: light,
     glyphAlpha: light,
+    mark: terrainMark(tile.terrain, x, y),
     deadly: false,
   }
   const standOut = seen ? 1 : REMEMBERED_LIGHT
@@ -83,6 +85,7 @@ export function describeCell(
     const threat = threats.get(actor.id)
     view.glyph = actor.glyph
     view.species = actor.species
+    view.mark = undefined
     view.fg =
       actor.faction === 'player'
         ? PLAYER_FG
@@ -94,10 +97,12 @@ export function describeCell(
   } else if (exit.x === x && exit.y === y) {
     view.glyph = '>'
     view.fg = EXIT_FG
+    view.mark = EXIT_MARK
     view.glyphAlpha = standOut
   } else if (item) {
     view.glyph = item.glyph
     view.fg = ITEM_FG
+    view.mark = itemMark(item.id) ?? undefined
     view.glyphAlpha = standOut
   }
 
