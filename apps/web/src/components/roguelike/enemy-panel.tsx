@@ -7,6 +7,7 @@ import {
 import { THREAT_COLORS } from '../../lib/threat-colors.ts'
 import { STYLE_COLORS, STYLE_LABELS_KO } from '../../lib/style-colors.ts'
 import { cn } from '../../lib/utils.ts'
+import { InsectIcon } from './insect-icon.tsx'
 
 export interface SightedEnemy {
   actor: Actor
@@ -49,12 +50,7 @@ function EnemyRow({ actor, threat }: SightedEnemy): React.ReactNode {
       )}
     >
       <div className="flex items-center gap-1.5">
-        <span
-          className="w-3 text-center font-mono font-bold"
-          style={{ color: colors.hex }}
-        >
-          {actor.glyph}
-        </span>
+        <InsectIcon species={actor.species} color={colors.hex} />
         <span className="font-medium">{actor.species.nameKo}</span>
         <span
           className={cn('rounded px-1 text-[10px]', STYLE_COLORS[style].badge)}

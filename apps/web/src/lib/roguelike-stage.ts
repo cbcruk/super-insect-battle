@@ -7,6 +7,7 @@ import {
   TextStyle,
   type Ticker,
 } from 'pixi.js'
+import type { Arthropod } from '@super-insect-battle/engine'
 import type {
   RunState,
   ThreatLevel,
@@ -27,6 +28,8 @@ import { motionFrame } from './attack-motion.ts'
 import type { AttackMotion } from './attack-motion.types.ts'
 import { fallFrame } from './fall-motion.ts'
 import type { Fall } from './fall-motion.types.ts'
+import { silhouetteFor } from './insect-silhouette.ts'
+import { silhouetteContext } from './silhouette-context.ts'
 
 interface LiveParticle {
   state: HitParticle
@@ -36,11 +39,12 @@ interface LiveParticle {
 interface GlyphSnapshot {
   glyph: string
   tint: number
+  species?: Arthropod
 }
 
 interface LiveFall {
   fall: Fall
-  ghost: Text
+  ghost: Container
   /** 잔상이 서 있던 칸 중심(px). */
   home: Vec2
   /** 마지막 피해가 닿은 뒤 흐른 시간(ms). 닿기 전이면 음수. */
@@ -61,7 +65,7 @@ const ENEMY_SHOT = '#f87171'
  * 로그라이크 맵을 PixiJS로 그리는 무대.
  *
  * 게임 상태는 들고 있지 않는다. {@linkcode RoguelikeStage.draw}에 런 상태를 넘길 때마다
- * 타일과 글리프를 다시 그리고, 공격 움직임·쓰러짐·칸 번쩍임·입자처럼 프레임 단위로 움직이는
+ * 타일·글리프·곤충 실루엣을 다시 그리고, 공격 움직임·쓰러짐·칸 번쩍임·입자처럼 프레임 단위로 움직이는
  * 연출이 남아 있는 동안에만 ticker를 돌린다. 화면이 멈춰 있을 때는 다시 그리지 않는다.
  */
 export class RoguelikeStage {
@@ -72,11 +76,16 @@ export class RoguelikeStage {
   private readonly shotLayer = new Graphics()
   private readonly particleLayer = new Container()
   private readonly glyphPool: Text[] = []
-  private readonly glyphByCell = new Map<number, Text>()
+  private readonly spritePool: Graphics[] = []
+  /** 종별 실루엣 그래픽. 같은 종의 곤충은 컨텍스트 하나를 함께 쓴다. */
+  private readonly silhouettes = new Map<string, GraphicsContext>()
+  /** 칸별 글리프 또는 곤충 실루엣. */
+  private readonly glyphByCell = new Map<number, Container>()
+  private readonly speciesByCell = new Map<number, Arthropod>()
   /** 직전 그리기의 칸별 글리프. 이번 그리기에서 사라진 액터의 잔상을 만들 때 쓴다. */
   private previousGlyphs = new Map<number, GlyphSnapshot>()
   /** 움직임 때문에 제자리를 벗어난 글리프와 그 원래 위치(px). */
-  private readonly displaced = new Map<Text, Vec2>()
+  private readonly displaced = new Map<Container, Vec2>()
   private mapWidth = 0
   private readonly particles: LiveParticle[] = []
   private readonly flashes: CellFlash[] = []
@@ -149,15 +158,21 @@ export class RoguelikeStage {
 
     this.tiles.clear()
     this.previousGlyphs = new Map(
-      [...this.glyphByCell].map(([key, text]) => [
+      [...this.glyphByCell].map(([key, glyph]) => [
         key,
-        { glyph: text.text, tint: text.tint },
+        {
+          glyph: glyph instanceof Text ? glyph.text : '',
+          tint: glyph.tint,
+          species: this.speciesByCell.get(key),
+        },
       ])
     )
     this.glyphByCell.clear()
+    this.speciesByCell.clear()
     this.displaced.clear()
     this.mapWidth = width
     let used = 0
+    let usedSprites = 0
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -180,6 +195,14 @@ export class RoguelikeStage {
           this.tiles
             .rect(px + cell / 2 - 1, py + cell / 2, 2, 2)
             .fill({ color: view.fg, alpha: view.glyphAlpha })
+        } else if (view.species) {
+          const sprite = this.spriteAt(usedSprites++, view.species)
+          sprite.tint = view.fg
+          sprite.alpha = view.glyphAlpha
+          sprite.position.set(px + cell / 2, py + cell / 2)
+          sprite.visible = true
+          this.glyphByCell.set(y * width + x, sprite)
+          this.speciesByCell.set(y * width + x, view.species)
         } else if (view.glyph && view.glyph !== ' ') {
           const text = this.glyphAt(used++)
           text.text = view.glyph
@@ -194,6 +217,9 @@ export class RoguelikeStage {
 
     for (let i = used; i < this.glyphPool.length; i++) {
       this.glyphPool[i].visible = false
+    }
+    for (let i = usedSprites; i < this.spritePool.length; i++) {
+      this.spritePool[i].visible = false
     }
 
     this.app.render()
@@ -230,7 +256,7 @@ export class RoguelikeStage {
   }
 
   /**
-   * 공격 움직임 하나를 재생한다. 돌진이면 공격자 글리프가, 투사체면 탄이 대상까지 간다.
+   * 공격 움직임 하나를 재생한다. 돌진이면 공격자가, 투사체면 탄이 대상까지 간다.
    *
    * 움직임 줄이기 설정이 켜져 있으면 재생하지 않는다.
    */
@@ -243,7 +269,7 @@ export class RoguelikeStage {
   /**
    * 쓰러진 액터의 잔상을 세워 두었다가 마지막 피해가 닿으면 쓰러뜨린다.
    *
-   * 코어는 쓰러진 액터를 즉시 지우므로, 직전 그리기에서 그 칸에 있던 글리프로 잔상을
+   * 코어는 쓰러진 액터를 즉시 지우므로, 직전 그리기에서 그 칸에 있던 글리프나 실루엣으로 잔상을
    * 만든다. 기억된 글리프가 없으면 재생하지 않는다.
    */
   playFall(fall: Fall): void {
@@ -252,12 +278,14 @@ export class RoguelikeStage {
       fall.pos.y * this.mapWidth + fall.pos.x
     )
     if (!snapshot) return
-    const ghost = new Text({ text: snapshot.glyph, style: this.glyphStyle })
-    ghost.anchor.set(0.5)
+    const ghost = snapshot.species
+      ? new Graphics(this.silhouetteOf(snapshot.species))
+      : new Text({ text: snapshot.glyph, style: this.glyphStyle })
+    if (ghost instanceof Text) ghost.anchor.set(0.5)
     ghost.tint = snapshot.tint
     const home = {
       x: fall.pos.x * cell + cell / 2,
-      y: fall.pos.y * cell + cell / 2 + 1,
+      y: fall.pos.y * cell + cell / 2 + (snapshot.species ? 0 : 1),
     }
     ghost.position.set(home.x, home.y)
     this.ghostLayer.addChild(ghost)
@@ -270,7 +298,30 @@ export class RoguelikeStage {
     this.app.ticker.remove(this.tick)
     this.app.destroy({ removeView: true }, { children: true })
     this.dot.destroy()
+    for (const ctx of this.silhouettes.values()) ctx.destroy()
     this.glyphStyle.destroy()
+  }
+
+  private silhouetteOf(species: Arthropod): GraphicsContext {
+    let ctx = this.silhouettes.get(species.id)
+    if (!ctx) {
+      ctx = silhouetteContext(silhouetteFor(species), this.cell)
+      this.silhouettes.set(species.id, ctx)
+    }
+    return ctx
+  }
+
+  private spriteAt(index: number, species: Arthropod): Graphics {
+    const context = this.silhouetteOf(species)
+    let sprite = this.spritePool[index]
+    if (!sprite) {
+      sprite = new Graphics(context)
+      this.spritePool.push(sprite)
+      this.glyphLayer.addChild(sprite)
+    } else if (sprite.context !== context) {
+      sprite.context = context
+    }
+    return sprite
   }
 
   private glyphAt(index: number): Text {
@@ -332,8 +383,8 @@ export class RoguelikeStage {
 
   private stepMotions(dt: number): void {
     const { cell } = this
-    for (const [text, home] of this.displaced) {
-      text.position.set(home.x, home.y)
+    for (const [glyph, home] of this.displaced) {
+      glyph.position.set(home.x, home.y)
     }
     this.displaced.clear()
     this.shotLayer.clear()
@@ -391,12 +442,12 @@ export class RoguelikeStage {
 
   private nudgeGlyph(x: number, y: number, offset: Vec2): void {
     if (offset.x === 0 && offset.y === 0) return
-    const text = this.glyphByCell.get(y * this.mapWidth + x)
-    if (!text) return
-    if (!this.displaced.has(text)) {
-      this.displaced.set(text, { x: text.position.x, y: text.position.y })
+    const glyph = this.glyphByCell.get(y * this.mapWidth + x)
+    if (!glyph) return
+    if (!this.displaced.has(glyph)) {
+      this.displaced.set(glyph, { x: glyph.position.x, y: glyph.position.y })
     }
-    text.position.x += offset.x * this.cell
-    text.position.y += offset.y * this.cell
+    glyph.position.x += offset.x * this.cell
+    glyph.position.y += offset.y * this.cell
   }
 }

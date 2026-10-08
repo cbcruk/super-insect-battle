@@ -1,3 +1,5 @@
+import type { Arthropod } from '@super-insect-battle/engine'
+
 /** 맵 한 칸을 그리는 데 필요한 모든 것. 렌더러는 이 값만 보고 그린다. */
 export interface CellView {
   bg: string
@@ -8,6 +10,8 @@ export interface CellView {
   alpha: number
   /** 글리프의 밝기. 곤충·아이템·출구는 보이는 동안 거리와 무관하게 1. */
   glyphAlpha: number
+  /** 칸에 서 있는 곤충의 종. 렌더러는 글리프 대신 이 종의 실루엣을 그린다. */
+  species?: Arthropod
   /** 치명 위협 적이 서 있어 테두리로 강조할 칸인가. */
   deadly: boolean
 }
