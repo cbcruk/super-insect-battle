@@ -2,13 +2,14 @@ import {
   TERRAIN,
   ITEMS,
   posKey,
+  tileAt,
   type RunState,
   type TerrainType,
   type ThreatLevel,
 } from '@super-insect-battle/roguelike'
 import { THREAT_COLORS } from './threat-colors.ts'
 import { lightAt, REMEMBERED_LIGHT } from './sight-light.ts'
-import { EXIT_MARK, itemMark, terrainMark } from './tile-marks.ts'
+import { EXIT_MARK, NEIGHBOUR, itemMark, terrainMark } from './tile-marks.ts'
 import type { CellView } from './roguelike-cell.types.ts'
 
 interface TileStyle {
@@ -32,6 +33,33 @@ const ITEM_FG = '#e879f9'
 export const UNKNOWN_BG = '#070809'
 
 export const CELL_SIZE = 20
+
+const NEIGHBOUR_STEPS = [
+  [0, -1, NEIGHBOUR.n],
+  [1, 0, NEIGHBOUR.e],
+  [0, 1, NEIGHBOUR.s],
+  [-1, 0, NEIGHBOUR.w],
+] as const
+
+/**
+ * 같은 지형으로 이어지는 이웃 방향의 마스크를 구한다.
+ *
+ * 맵 밖이나 아직 발견하지 못한 칸도 이어진 것으로 쳐서, 무늬 모양으로 안 본 지형이
+ * 드러나지 않게 한다.
+ */
+function sameTerrainMask(run: RunState, x: number, y: number): number {
+  const { map, discovered } = run.level
+  const terrain = map.tiles[y * map.width + x].terrain
+  let mask = 0
+  for (const [dx, dy, bit] of NEIGHBOUR_STEPS) {
+    const nx = x + dx
+    const ny = y + dy
+    const tile = tileAt(map, nx, ny)
+    const hidden = discovered !== undefined && !discovered.has(posKey(nx, ny))
+    if (!tile || hidden || tile.terrain === terrain) mask |= bit
+  }
+  return mask
+}
 
 /**
  * 맵 한 칸의 표시 내용을 FOV 안개(보임/발견/미발견)를 반영해 결정한다.
@@ -69,7 +97,7 @@ export function describeCell(
     fg: style.fg,
     alpha: light,
     glyphAlpha: light,
-    mark: terrainMark(tile.terrain, x, y),
+    mark: terrainMark(tile.terrain, x, y, sameTerrainMask(run, x, y)),
     deadly: false,
   }
   const standOut = seen ? 1 : REMEMBERED_LIGHT
