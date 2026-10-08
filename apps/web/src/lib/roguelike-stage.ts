@@ -29,7 +29,7 @@ import type { AttackMotion } from './attack-motion.types.ts'
 import { fallFrame } from './fall-motion.ts'
 import type { Fall } from './fall-motion.types.ts'
 import { silhouetteFor } from './insect-silhouette.ts'
-import { silhouetteContext } from './silhouette-context.ts'
+import { drawShapes, silhouetteContext } from './silhouette-context.ts'
 
 interface LiveParticle {
   state: HitParticle
@@ -191,11 +191,7 @@ export class RoguelikeStage {
             .stroke({ width: 1.5, color: DEADLY_STROKE })
         }
 
-        if (view.glyph === '.') {
-          this.tiles
-            .rect(px + cell / 2 - 1, py + cell / 2, 2, 2)
-            .fill({ color: view.fg, alpha: view.glyphAlpha })
-        } else if (view.species) {
+        if (view.species) {
           const sprite = this.spriteAt(usedSprites++, view.species)
           sprite.tint = view.fg
           sprite.alpha = view.glyphAlpha
@@ -203,6 +199,16 @@ export class RoguelikeStage {
           sprite.visible = true
           this.glyphByCell.set(y * width + x, sprite)
           this.speciesByCell.set(y * width + x, view.species)
+        } else if (view.mark) {
+          drawShapes(
+            this.tiles.context,
+            view.mark,
+            px + cell / 2,
+            py + cell / 2,
+            cell,
+            view.fg,
+            view.glyphAlpha
+          )
         } else if (view.glyph && view.glyph !== ' ') {
           const text = this.glyphAt(used++)
           text.text = view.glyph
