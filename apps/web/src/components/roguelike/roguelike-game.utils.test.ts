@@ -14,7 +14,7 @@ describe('progressLabel', () => {
     const showdown = createShowdownRun({ playerSpecies: mantis, seed: 1 })
     expect(progressLabel(descent)).toBe('밀림 1층 / 3')
     expect(progressLabel(showdown)).toBe(
-      '쇼다운 · 생존 9마리 · ◆ 0 · 가스 12턴 후 축소'
+      '쇼다운 · 생존 9마리 · ◆ 0 · 가스 24턴 후 축소'
     )
   })
 })

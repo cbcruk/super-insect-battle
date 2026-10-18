@@ -15,12 +15,13 @@ import { generateJungle } from './mapgen'
 import { emptyStats, survivorCount, type Level, type RunState } from './run'
 import type { SafeZone } from './zone'
 
-const ARENA_SIZE = 30
+const ARENA_SIZE = 36
 const DEFAULT_RIVALS = 9
 const ITEM_COUNT = 3
 const CUBE_COUNT = 12
-const GAS_SHRINK_START = 12
-const GAS_SHRINK_EVERY = 3
+const GAS_SHRINK_START = 24
+const GAS_SHRINK_EVERY = 4
+const HUNT_RADIUS = 6
 const ARENA_ENV: Environment = {
   terrain: 'forest',
   timeOfDay: 'day',
@@ -40,10 +41,13 @@ export interface ShowdownOptions {
  * 서로 싸우고, 마지막까지 살아남으면 승리한다.
  *
  * 라이벌은 저마다 고유한 진영이라 플레이어뿐 아니라 서로도 적이다. 아무도 보이지
- * 않으면 파워 큐브를 줍거나 가장 가까운 상대를 찾아 나선다.
+ * 않으면 파워 큐브를 줍거나 근처(6칸)의 상대를 찾아 나서고, 멀리 있는 상대는
+ * 독가스가 몰아줄 때까지 기다린다. 초반에 모두가 한꺼번에 맞붙지 않게 해서 탐색과
+ * 큐브 수집 구간을 만든다.
  *
- * 12턴부터 독가스가 바깥에서 조여 와 결국 중심 한 칸만
- * 남으므로, 숨거나 도망치기만 해서는 판을 끌 수 없다.
+ * 24턴부터 4턴마다 독가스가 한 칸씩 조여 와 결국 중심 한 칸만 남으므로, 숨거나
+ * 도망치기만 해서는 판을 끌 수 없다. 시드 30개 시뮬레이션 기준 한 판은 평균 약
+ * 78턴이다.
  *
  * @example
  * ```ts
@@ -82,7 +86,7 @@ export function createShowdownRun(opts: ShowdownOptions): RunState {
     const id = `rival_${i}`
     return createActor(id, species, spot, id, {
       glyph: HOSTILE_GLYPHS[species.id] ?? species.name[0].toUpperCase(),
-      brain: createSmartBrain({ hunt: true }),
+      brain: createSmartBrain({ hunt: true, huntRadius: HUNT_RADIUS }),
     })
   })
 
