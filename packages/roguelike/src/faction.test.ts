@@ -132,3 +132,25 @@ describe('isEventVisible', () => {
     ).toBe(false)
   })
 })
+
+describe('hunt radius', () => {
+  it('only goes looking for unseen enemies within the radius', () => {
+    const rows = ['############', '#...""""...#', '############']
+    const setup = (huntRadius?: number) => {
+      const player = createActor(
+        'p',
+        species('mantis'),
+        { x: 1, y: 1 },
+        'player'
+      )
+      const far = createActor('f', species('cricket'), { x: 10, y: 1 }, 'f', {
+        brain: createSmartBrain({ hunt: true, huntRadius }),
+      })
+      const run = makeRun(rows, [player, far])
+      return far.brain?.decide(far, run, run.rng)
+    }
+
+    expect(setup(6)).toEqual({ type: 'wait' })
+    expect(setup()).toEqual({ type: 'move', dir: 'w' })
+  })
+})

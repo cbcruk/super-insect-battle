@@ -25,6 +25,8 @@ export interface SmartBrainOptions {
    * 적이 안 보이는 동안 시야 안에 파워 큐브가 있으면 먼저 줍는다.
    */
   hunt?: boolean
+  /** `hunt`가 찾아 나설 적의 최대 거리 (체비셰프). 기본은 제한 없음. */
+  huntRadius?: number
 }
 
 /**
@@ -74,7 +76,7 @@ export function createSmartBrain(options: SmartBrainOptions = {}): ActorBrain {
       }
 
       if (!target && options.hunt) {
-        target = nearestEnemy(run, actor)
+        target = nearestEnemy(run, actor, options.huntRadius)
         targetId = target?.id ?? null
       }
       if (!target) return { type: 'wait' }
