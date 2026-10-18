@@ -4,7 +4,8 @@ import { createActor } from './actor'
 import { chebyshev } from './geometry'
 import { tileMapFromStrings } from './map'
 import { applyCommand, createRun, type Level } from './run'
-import { createShowdownRun, showdownPlacement, survivorCount } from './showdown'
+import { survivorCount } from './run'
+import { createShowdownRun, showdownPlacement } from './showdown'
 
 const ENV: Environment = {
   terrain: 'forest',

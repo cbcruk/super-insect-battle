@@ -23,6 +23,8 @@ import { CombatFeed } from './combat-feed.tsx'
 import { PlayerHp } from './player-hp.tsx'
 import { outcomeTitle, progressLabel } from './roguelike-game.utils.ts'
 
+const SPECTATE_STEP_MS = 450
+
 const KEY_DIR: Record<string, Direction> = {
   ArrowUp: 'n',
   ArrowDown: 's',
@@ -59,6 +61,9 @@ export function RoguelikeGame({
     hurt,
     dispatch,
     useAbility,
+    spectating,
+    spectate,
+    skipSpectate,
   } = controller
   const stageHostRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState<RoguelikeStage | null>(null)
@@ -80,8 +85,14 @@ export function RoguelikeGame({
     containerRef.current?.focus()
   }, [])
 
+  useEffect(() => {
+    if (!spectating) return
+    const timer = window.setTimeout(spectate, SPECTATE_STEP_MS)
+    return () => window.clearTimeout(timer)
+  }, [spectating, spectate, version])
+
   const sighted = useMemo<SightedEnemy[]>(() => {
-    if (!run) return []
+    if (!run || run.status !== 'playing') return []
     return visibleEnemies(run).map((actor) => ({
       actor,
       threat: assessThreat(run.player, actor, run.level.environment),
@@ -151,6 +162,11 @@ export function RoguelikeGame({
   const lowHp = player.combat.currentHp / player.combat.maxHp <= 0.25
 
   const handleKey = (e: React.KeyboardEvent): void => {
+    if (spectating && e.key === 'f') {
+      e.preventDefault()
+      skipSpectate()
+      return
+    }
     if (run.status !== 'playing') return
     const key = e.key
     if (KEY_DIR[key]) {
@@ -198,7 +214,17 @@ export function RoguelikeGame({
               className="pointer-events-none absolute inset-0 animate-hurt-vignette shadow-[inset_0_0_64px_rgba(239,68,68,0.7)]"
             />
           )}
-          {run.status !== 'playing' && (
+          {spectating && (
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 bg-black/70 px-3 py-2 text-xs">
+              <span className="text-red-400">
+                {outcomeTitle(run)} · 관전 중
+              </span>
+              <Button size="sm" variant="secondary" onClick={skipSpectate}>
+                끝까지 건너뛰기 (f)
+              </Button>
+            </div>
+          )}
+          {run.status !== 'playing' && !spectating && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-auto bg-black/80 p-4">
               <div
                 className={cn(

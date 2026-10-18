@@ -5,7 +5,7 @@ import {
   type Environment,
   type Rng,
 } from '@super-insect-battle/engine'
-import type { Level, RunState } from './run'
+import { emptyStats, type Level, type RunState } from './run'
 import type { Actor } from './actor'
 import { createActor } from './actor'
 import { createSmartBrain } from './ai/smart-brain'
@@ -167,6 +167,7 @@ export function createGeneratedRun(opts: {
       }
     ),
     log: [],
+    stats: emptyStats(),
     maxDepth: opts.maxDepth ?? 3,
   }
   enterLevel(run, 1)

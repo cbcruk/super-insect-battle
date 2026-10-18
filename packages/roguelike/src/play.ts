@@ -10,9 +10,9 @@ import type { Command } from './command'
 import type { Direction } from './geometry'
 import { createGeneratedRun } from './generate'
 import { createShowdownRun } from './showdown'
-import { applyCommand } from './run'
+import { applyCommand, canSpectate, spectateTurn } from './run'
 import { nearestEnemyInRange } from './targeting'
-import { renderFrame } from './render'
+import { renderFrame, showdownReport } from './render'
 
 const KEY_DIR: Record<string, Direction> = {
   k: 'n',
@@ -61,7 +61,16 @@ function draw(): void {
       showdown ? '\n최후의 1마리! (q로 종료)' : '\n밀림 탈출 성공! (q로 종료)'
     )
   }
-  if (run.status === 'dead') console.log('\n쓰러졌다... (q로 종료)')
+  if (run.status === 'dead') {
+    console.log(
+      canSpectate(run)
+        ? '\n쓰러졌다... 관전: 스페이스 1턴 · f 끝까지 · q 종료'
+        : '\n쓰러졌다... (q로 종료)'
+    )
+  }
+  if (showdown && run.status !== 'playing' && !canSpectate(run)) {
+    console.log(showdownReport(run))
+  }
 }
 
 /** 숫자키 → 스킬 명령. 대상 없음/쿨다운이면 notice 설정 후 null. */
@@ -97,6 +106,12 @@ process.stdin.on('keypress', (_str, key) => {
   if (key.name === 'q' || (key.ctrl && key.name === 'c')) {
     if (process.stdin.isTTY) process.stdin.setRawMode(false)
     process.exit(0)
+  }
+  if (canSpectate(run)) {
+    if (key.name === 'space' || key.sequence === '.') spectateTurn(run)
+    if (key.name === 'f') while (canSpectate(run)) spectateTurn(run)
+    draw()
+    return
   }
   if (run.status !== 'playing') return
 

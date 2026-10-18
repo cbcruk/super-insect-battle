@@ -12,7 +12,7 @@ import { HOSTILE_GLYPHS, refreshFov } from './generate'
 import { chebyshev, posKey, type Vec2 } from './geometry'
 import { ITEM_IDS } from './items'
 import { generateJungle } from './mapgen'
-import type { Level, RunState } from './run'
+import { emptyStats, survivorCount, type Level, type RunState } from './run'
 import type { SafeZone } from './zone'
 
 const ARENA_SIZE = 30
@@ -125,26 +125,32 @@ export function createShowdownRun(opts: ShowdownOptions): RunState {
     player,
     maxDepth: 1,
     log: [],
+    stats: emptyStats(),
   }
   refreshFov(run)
   return run
 }
 
-/** 플레이어를 제외하고 아직 살아있는 라이벌 수. */
-export function survivorCount(run: RunState): number {
-  return run.level.actors.filter(
-    (a) => a.combat.currentHp > 0 && isHostile(run.player, a)
-  ).length
-}
-
 /**
  * 쇼다운에서 플레이어의 순위.
  *
- * 쓰러진 순간 살아남은 라이벌 수 + 1이 순위다. 진행 중이면 지금 쓰러졌을 때의
- * 순위, 승리했으면 1이다.
+ * 승패가 갈리면 그때 고정된 순위(쓰러진 순간 살아남은 라이벌 수 + 1, 승리면 1)이고,
+ * 관전으로 라이벌이 더 줄어도 바뀌지 않는다. 진행 중이면 지금 쓰러졌을 때의 순위다.
  */
 export function showdownPlacement(run: RunState): number {
-  return run.status === 'won' ? 1 : survivorCount(run) + 1
+  return run.stats.placement ?? survivorCount(run) + 1
+}
+
+/**
+ * 플레이어가 쓰러진 뒤 끝까지 살아남은 라이벌. 아직 둘 이상 살아있거나 플레이어가
+ * 이겼으면 null.
+ */
+export function showdownWinner(run: RunState): Actor | null {
+  if (run.status !== 'dead') return null
+  const alive = run.level.actors.filter(
+    (a) => a.combat.currentHp > 0 && isHostile(run.player, a)
+  )
+  return alive.length === 1 ? alive[0] : null
 }
 
 /**
