@@ -79,3 +79,19 @@ describe('describeCell terrain marks', () => {
     expect(describeCell(run, 3, 0)?.mark).toBe(terrainMark('wall', 3, 0, all))
   })
 })
+
+describe('describeCell gas', () => {
+  it('tints walkable tiles outside the safe zone but never walls', () => {
+    const run = corridor()
+    run.level.visible = undefined
+    run.level.zone = {
+      center: { x: 1, y: 1 },
+      initialRadius: 2,
+      shrinkStart: 99,
+      shrinkEvery: 1,
+    }
+    expect(describeCell(run, 2, 1)?.gas).toBe(false)
+    expect(describeCell(run, 5, 1)?.gas).toBe(true)
+    expect(describeCell(run, 5, 0)?.gas).toBe(false)
+  })
+})

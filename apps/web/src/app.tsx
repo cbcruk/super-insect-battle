@@ -11,6 +11,9 @@ import { ReplayPage } from './pages/replay.tsx'
 const RoguelikePage = lazy(() =>
   import('./pages/roguelike.tsx').then((m) => ({ default: m.RoguelikePage }))
 )
+const ArenaPage = lazy(() =>
+  import('./pages/arena.tsx').then((m) => ({ default: m.ArenaPage }))
+)
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
 
@@ -22,6 +25,14 @@ export default function App(): React.ReactNode {
           <Route index element={<Navigate to="/roguelike" replace />} />
           <Route path="matchup" element={<BattleSetupPage />} />
           <Route path="battle" element={<BattlePage />} />
+          <Route
+            path="arena"
+            element={
+              <Suspense fallback={null}>
+                <ArenaPage />
+              </Suspense>
+            }
+          />
           <Route path="encyclopedia" element={<EncyclopediaPage />} />
           <Route path="encyclopedia/:id" element={<EncyclopediaDetailPage />} />
           <Route path="statistics" element={<StatisticsPage />} />

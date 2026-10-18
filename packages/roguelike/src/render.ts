@@ -112,8 +112,10 @@ function statusLabel(run: RunState): string {
     case 'playing':
       return '진행 중'
     case 'won':
+      if (run.mode === 'duel') return '승리!'
       return run.mode === 'showdown' ? '최후의 1마리!' : '밀림 탈출 성공!'
     case 'dead':
+      if (run.mode === 'duel') return '패배...'
       return run.mode === 'showdown'
         ? `쓰러짐... (${showdownPlacement(run)}위)`
         : '쓰러짐...'
@@ -121,13 +123,24 @@ function statusLabel(run: RunState): string {
 }
 
 function progressLabel(run: RunState): string {
-  if (run.mode !== 'showdown') {
+  if (run.mode === 'descent') {
     return `밀림 ${run.level.depth}층 / ${run.maxDepth}`
   }
   const { zone } = run.level
   const shrink = zone ? turnsUntilShrink(zone, run.turn) : null
   const gas = shrink === null ? '' : `  ·  가스 ${shrink}턴 후 축소`
-  return `쇼다운 · 생존 ${survivorCount(run)}마리${gas}`
+  const head =
+    run.mode === 'duel'
+      ? `격자 매치업 · ${duelOpponentLabel(run)}`
+      : `쇼다운 · 생존 ${survivorCount(run)}마리`
+  return `${head}${gas}`
+}
+
+function duelOpponentLabel(run: RunState): string {
+  const opponent = run.level.actors.find((a) => a !== run.player)
+  return opponent
+    ? `상대 ${opponent.species.nameKo} HP ${opponent.combat.currentHp}/${opponent.combat.maxHp}`
+    : '상대 쓰러짐'
 }
 
 /**

@@ -49,6 +49,7 @@ export {
   actorAt,
   canSpectate,
   emptyStats,
+  isLastStanding,
   spectateTurn,
   survivorCount,
 } from './run'
@@ -61,6 +62,7 @@ export {
   showdownWinner,
   type ShowdownOptions,
 } from './showdown'
+export { createDuelRun, isAutopilot, type DuelOptions } from './duel'
 export {
   absorbCubes,
   CUBE_GLYPH,

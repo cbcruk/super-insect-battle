@@ -54,8 +54,14 @@ export type RunStatus = 'playing' | 'won' | 'dead'
  *
  * - `descent`: 층을 내려가 마지막 층 출구에 도달하면 승리.
  * - `showdown`: 한 아레나에서 플레이어에게 적대적인 액터가 모두 쓰러지면 승리.
+ * - `duel`: 쇼다운과 같은 규칙의 1:1 격자 매치업.
  */
-export type RunMode = 'descent' | 'showdown'
+export type RunMode = 'descent' | 'showdown' | 'duel'
+
+/** 마지막까지 살아남는 쪽이 이기는 모드인가 (쇼다운·격자 매치업). */
+export function isLastStanding(mode: RunMode): boolean {
+  return mode !== 'descent'
+}
 
 /** 플레이어의 런 기록. 결과 화면에 쓴다. */
 export interface RunStats {
@@ -85,6 +91,8 @@ export interface RunState {
   maxDepth: number // 이 깊이의 출구 도달 시 런 승리
   log: string[]
   stats: RunStats
+  /** 참이면 시야 제한 없이 맵 전체가 보인다. AI 대 AI 관전용. */
+  fullVision?: boolean
 }
 
 const LOG_LIMIT = 50
@@ -400,14 +408,20 @@ function killActor(
   if (actor.id === run.player.id) {
     run.status = 'dead'
     run.stats.endTurn = run.turn
-    if (run.mode === 'showdown') run.stats.placement = survivorCount(run) + 1
+    if (isLastStanding(run.mode)) run.stats.placement = survivorCount(run) + 1
     return
   }
-  if (run.mode === 'showdown' && survivorCount(run) === 0) {
+  if (isLastStanding(run.mode) && survivorCount(run) === 0) {
     run.status = 'won'
     run.stats.placement = 1
     run.stats.endTurn = run.turn
-    events.push({ type: 'message', text: '최후의 1마리로 살아남았다!' })
+    events.push({
+      type: 'message',
+      text:
+        run.mode === 'duel'
+          ? `${run.player.species.nameKo}의 승리!`
+          : '최후의 1마리로 살아남았다!',
+    })
   }
 }
 
@@ -424,7 +438,7 @@ export function survivorCount(run: RunState): number {
  */
 export function canSpectate(run: RunState): boolean {
   return (
-    run.mode === 'showdown' && run.status === 'dead' && survivorCount(run) > 1
+    isLastStanding(run.mode) && run.status === 'dead' && survivorCount(run) > 1
   )
 }
 

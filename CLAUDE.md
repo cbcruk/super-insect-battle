@@ -28,6 +28,7 @@ packages/roguelike/        # 격자 로그라이크 코어 (헤들리스, 결정
 ├── combat.ts              # 엔진 전투 재사용 브릿지
 ├── generate.ts            # 절차 레벨·존 하강·런 생성
 ├── showdown.ts            # 쇼다운 아레나·순위 (모두가 적)
+├── duel.ts                # 격자 매치업 (1:1 아레나, AI 대 AI)
 └── run.ts                 # 런 상태·턴 루프 (Brogue식 통합 전투)
 
 apps/simulator/            # 터미널 UI 앱

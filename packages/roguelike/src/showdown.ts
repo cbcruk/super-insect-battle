@@ -9,11 +9,11 @@ import { createActor, type Actor } from './actor'
 import { createSmartBrain } from './ai/smart-brain'
 import { isHostile } from './faction'
 import { HOSTILE_GLYPHS, refreshFov } from './generate'
-import { chebyshev, posKey, type Vec2 } from './geometry'
+import { posKey, type Vec2 } from './geometry'
 import { ITEM_IDS } from './items'
 import { generateJungle } from './mapgen'
 import { emptyStats, survivorCount, type Level, type RunState } from './run'
-import type { SafeZone } from './zone'
+import { safeZoneFor, spreadSpawns } from './arena'
 
 const ARENA_SIZE = 36
 const DEFAULT_RIVALS = 9
@@ -117,7 +117,10 @@ export function createShowdownRun(opts: ShowdownOptions): RunState {
     exit: null,
     visible: new Set(),
     discovered: new Set(),
-    zone: safeZoneFor(floors, map.width, map.height),
+    zone: safeZoneFor(floors, map.width, map.height, {
+      shrinkStart: GAS_SHRINK_START,
+      shrinkEvery: GAS_SHRINK_EVERY,
+    }),
   }
   const run: RunState = {
     seed: opts.seed,
@@ -155,46 +158,6 @@ export function showdownWinner(run: RunState): Actor | null {
     (a) => a.combat.currentHp > 0 && isHostile(run.player, a)
   )
   return alive.length === 1 ? alive[0] : null
-}
-
-/**
- * 아레나 정중앙에 가장 가까운 floor 를 중심으로, 모든 floor 를 덮는 안전 구역.
- * floors 는 연결된 한 영역이라 어느 칸에서든 중심까지 걸어갈 수 있다.
- */
-function safeZoneFor(floors: Vec2[], width: number, height: number): SafeZone {
-  const middle = { x: Math.floor(width / 2), y: Math.floor(height / 2) }
-  let center = floors[0]
-  for (const f of floors) {
-    if (chebyshev(f, middle) < chebyshev(center, middle)) center = f
-  }
-  const initialRadius = Math.max(...floors.map((f) => chebyshev(f, center)))
-  return {
-    center,
-    initialRadius,
-    shrinkStart: GAS_SHRINK_START,
-    shrinkEvery: GAS_SHRINK_EVERY,
-  }
-}
-
-/**
- * floors 에서 count 칸을 서로 최대한 멀리 고른다 (최원점 샘플링).
- * 첫 칸만 무작위이고 나머지는 이미 고른 칸들과의 최소 거리가 가장 큰 칸이다.
- */
-function spreadSpawns(floors: Vec2[], count: number, rng: Rng): Vec2[] {
-  const chosen = [floors[Math.floor(rng() * floors.length)]]
-  while (chosen.length < Math.min(count, floors.length)) {
-    let best = floors[0]
-    let bestDist = -1
-    for (const f of floors) {
-      const d = Math.min(...chosen.map((c) => chebyshev(c, f)))
-      if (d > bestDist) {
-        bestDist = d
-        best = f
-      }
-    }
-    chosen.push(best)
-  }
-  return chosen
 }
 
 function shuffled<T>(items: readonly T[], rng: Rng): T[] {
