@@ -13,10 +13,14 @@ import { chebyshev, posKey, type Vec2 } from './geometry'
 import { ITEM_IDS } from './items'
 import { generateJungle } from './mapgen'
 import type { Level, RunState } from './run'
+import type { SafeZone } from './zone'
 
 const ARENA_SIZE = 30
 const DEFAULT_RIVALS = 9
-const ITEM_COUNT = 4
+const ITEM_COUNT = 3
+const CUBE_COUNT = 12
+const GAS_SHRINK_START = 12
+const GAS_SHRINK_EVERY = 3
 const ARENA_ENV: Environment = {
   terrain: 'forest',
   timeOfDay: 'day',
@@ -36,7 +40,10 @@ export interface ShowdownOptions {
  * 서로 싸우고, 마지막까지 살아남으면 승리한다.
  *
  * 라이벌은 저마다 고유한 진영이라 플레이어뿐 아니라 서로도 적이다. 아무도 보이지
- * 않으면 가장 가까운 상대를 찾아 나서므로 숨어 있기만 해서는 판이 끝나지 않는다.
+ * 않으면 파워 큐브를 줍거나 가장 가까운 상대를 찾아 나선다.
+ *
+ * 12턴부터 독가스가 바깥에서 조여 와 결국 중심 한 칸만
+ * 남으므로, 숨거나 도망치기만 해서는 판을 끌 수 없다.
  *
  * @example
  * ```ts
@@ -80,13 +87,22 @@ export function createShowdownRun(opts: ShowdownOptions): RunState {
   })
 
   const taken = new Set(spawns.map((s) => posKey(s.x, s.y)))
-  for (let i = 0; i < ITEM_COUNT; i++) {
+  const freeSpot = (): Vec2 | null => {
     const spot = floors[Math.floor(rng() * floors.length)]
     const key = posKey(spot.x, spot.y)
-    if (taken.has(key)) continue
+    if (taken.has(key)) return null
     taken.add(key)
+    return spot
+  }
+  for (let i = 0; i < ITEM_COUNT; i++) {
+    const spot = freeSpot()
+    if (!spot) continue
     map.tiles[spot.y * map.width + spot.x].itemId =
       ITEM_IDS[Math.floor(rng() * ITEM_IDS.length)]
+  }
+  for (let i = 0; i < CUBE_COUNT; i++) {
+    const spot = freeSpot()
+    if (spot) map.tiles[spot.y * map.width + spot.x].cubes = 1
   }
 
   const level: Level = {
@@ -97,6 +113,7 @@ export function createShowdownRun(opts: ShowdownOptions): RunState {
     exit: null,
     visible: new Set(),
     discovered: new Set(),
+    zone: safeZoneFor(floors, map.width, map.height),
   }
   const run: RunState = {
     seed: opts.seed,
@@ -128,6 +145,25 @@ export function survivorCount(run: RunState): number {
  */
 export function showdownPlacement(run: RunState): number {
   return run.status === 'won' ? 1 : survivorCount(run) + 1
+}
+
+/**
+ * 아레나 정중앙에 가장 가까운 floor 를 중심으로, 모든 floor 를 덮는 안전 구역.
+ * floors 는 연결된 한 영역이라 어느 칸에서든 중심까지 걸어갈 수 있다.
+ */
+function safeZoneFor(floors: Vec2[], width: number, height: number): SafeZone {
+  const middle = { x: Math.floor(width / 2), y: Math.floor(height / 2) }
+  let center = floors[0]
+  for (const f of floors) {
+    if (chebyshev(f, middle) < chebyshev(center, middle)) center = f
+  }
+  const initialRadius = Math.max(...floors.map((f) => chebyshev(f, center)))
+  return {
+    center,
+    initialRadius,
+    shrinkStart: GAS_SHRINK_START,
+    shrinkEvery: GAS_SHRINK_EVERY,
+  }
 }
 
 /**

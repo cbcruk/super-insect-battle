@@ -1,7 +1,8 @@
 import type { Actor } from './actor'
 import type { RunState } from './run'
-import { chebyshev } from './geometry'
-import { lineOfSight } from './fov'
+import { chebyshev, type Vec2 } from './geometry'
+import { tileAt } from './map'
+import { lineOfSight, SIGHT_RADIUS } from './fov'
 import { isHostile } from './faction'
 
 /**
@@ -55,5 +56,24 @@ function findNearestEnemy(
     }
   }
 
+  return best
+}
+
+/** actor 시야(반경·시선) 안에서 파워 큐브가 놓인 가장 가까운 칸. 없으면 null. */
+export function nearestVisibleCube(run: RunState, actor: Actor): Vec2 | null {
+  const { map } = run.level
+  let best: Vec2 | null = null
+  let bestDist = Infinity
+  for (let dy = -SIGHT_RADIUS; dy <= SIGHT_RADIUS; dy++) {
+    for (let dx = -SIGHT_RADIUS; dx <= SIGHT_RADIUS; dx++) {
+      const pos = { x: actor.pos.x + dx, y: actor.pos.y + dy }
+      if (!tileAt(map, pos.x, pos.y)?.cubes) continue
+      const distance = chebyshev(actor.pos, pos)
+      if (distance >= bestDist) continue
+      if (!lineOfSight(map, actor.pos, pos)) continue
+      bestDist = distance
+      best = pos
+    }
+  }
   return best
 }

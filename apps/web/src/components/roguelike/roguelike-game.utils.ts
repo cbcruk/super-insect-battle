@@ -1,14 +1,28 @@
 import {
+  CUBE_GLYPH,
   showdownPlacement,
   survivorCount,
+  turnsUntilShrink,
   type RunState,
 } from '@super-insect-battle/roguelike'
 
-/** 게임 화면 상단에 보여줄 진행 상황. 탐험은 층, 쇼다운은 남은 라이벌 수. */
+/**
+ * 게임 화면 상단에 보여줄 진행 상황.
+ *
+ * 탐험은 층, 쇼다운은 남은 라이벌 수·보유 파워 큐브·다음 가스 축소까지 남은 턴.
+ */
 export function progressLabel(run: RunState): string {
-  return run.mode === 'showdown'
-    ? `쇼다운 · 생존 ${survivorCount(run)}마리`
-    : `밀림 ${run.level.depth}층 / ${run.maxDepth}`
+  if (run.mode !== 'showdown') {
+    return `밀림 ${run.level.depth}층 / ${run.maxDepth}`
+  }
+  const parts = [
+    `쇼다운 · 생존 ${survivorCount(run)}마리`,
+    `${CUBE_GLYPH} ${run.player.cubes}`,
+  ]
+  const { zone } = run.level
+  const shrink = zone ? turnsUntilShrink(zone, run.turn) : null
+  if (shrink !== null) parts.push(`가스 ${shrink}턴 후 축소`)
+  return parts.join(' · ')
 }
 
 /** 런이 끝났을 때의 결과 제목. 쇼다운에서 쓰러지면 순위를 붙인다. */

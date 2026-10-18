@@ -10,6 +10,8 @@ import { ITEMS } from './items'
 import { posKey } from './geometry'
 import { assessThreat, describeThreat, visibleEnemies } from './threat'
 import { showdownPlacement, survivorCount } from './showdown'
+import { CUBE_GLYPH } from './power-cube'
+import { isInGas, turnsUntilShrink } from './zone'
 
 /**
  * 레벨을 ASCII 그리드로 렌더. FOV가 설정된 경우:
@@ -18,7 +20,7 @@ import { showdownPlacement, survivorCount } from './showdown'
  * - 미발견: 공백
  */
 export function renderLevel(run: RunState): string {
-  const { map, actors, exit, visible, discovered } = run.level
+  const { map, actors, exit, visible, discovered, zone } = run.level
   const rows: string[] = []
 
   for (let y = 0; y < map.height; y++) {
@@ -44,7 +46,9 @@ export function renderLevel(run: RunState): string {
         )
         if (actor) row += actor.glyph
         else if (isExit) row += '>'
+        else if (tile.cubes) row += CUBE_GLYPH
         else if (item) row += item.glyph
+        else if (zone && isInGas(zone, { x, y }, run.turn)) row += '%'
         else row += TERRAIN[tile.terrain].glyph
       } else {
         row += isExit ? '>' : item ? item.glyph : TERRAIN[tile.terrain].glyph
@@ -59,7 +63,9 @@ export function renderLevel(run: RunState): string {
 /** 그리드 + 상태(깊이·HP) + 스킬 바 + 최근 로그. */
 export function renderFrame(run: RunState): string {
   const player = run.player
-  const hp = `${player.glyph} ${player.species.nameKo} HP ${player.combat.currentHp}/${player.combat.maxHp}`
+  const cubes =
+    run.mode === 'showdown' ? ` · ${CUBE_GLYPH} ${player.cubes}` : ''
+  const hp = `${player.glyph} ${player.species.nameKo} HP ${player.combat.currentHp}/${player.combat.maxHp}${cubes}`
   const recent = run.log.slice(-4).join('\n')
 
   return [
@@ -115,7 +121,11 @@ function statusLabel(run: RunState): string {
 }
 
 function progressLabel(run: RunState): string {
-  return run.mode === 'showdown'
-    ? `쇼다운 · 생존 ${survivorCount(run)}마리`
-    : `밀림 ${run.level.depth}층 / ${run.maxDepth}`
+  if (run.mode !== 'showdown') {
+    return `밀림 ${run.level.depth}층 / ${run.maxDepth}`
+  }
+  const { zone } = run.level
+  const shrink = zone ? turnsUntilShrink(zone, run.turn) : null
+  const gas = shrink === null ? '' : `  ·  가스 ${shrink}턴 후 축소`
+  return `쇼다운 · 생존 ${survivorCount(run)}마리${gas}`
 }

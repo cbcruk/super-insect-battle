@@ -75,7 +75,10 @@ export function toCombatFeedback(
         }
         feedback.lines.push({
           text: o.note,
-          tone: attackTone(o.hit, o.defeated, onPlayer),
+          tone:
+            o.attackerId === playerId || onPlayer
+              ? attackTone(o.hit, o.defeated, onPlayer)
+              : 'brawl',
           critical: o.critical,
         })
         if (!o.hit) {

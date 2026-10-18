@@ -19,4 +19,6 @@ export interface CellView {
   species?: Arthropod
   /** 치명 위협 적이 서 있어 테두리로 강조할 칸인가. */
   deadly: boolean
+  /** 쇼다운 독가스에 덮인 칸인가. */
+  gas: boolean
 }
