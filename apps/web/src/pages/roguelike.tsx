@@ -4,6 +4,7 @@ import type { RunMode } from '@super-insect-battle/roguelike'
 import { useRoguelike } from '../hooks/use-roguelike.ts'
 import { RoguelikeGame } from '../components/roguelike/roguelike-game.tsx'
 import { RoguelikeResult } from '../components/roguelike/roguelike-result.tsx'
+import { ShowdownResult } from '../components/roguelike/showdown-result.tsx'
 import {
   roguelikeApi,
   type DailyInfo,
@@ -56,7 +57,9 @@ export function RoguelikePage(): React.ReactNode {
               run={controller.run}
               dailyDate={controller.dailyDate}
             />
-          ) : null
+          ) : (
+            <ShowdownResult run={controller.run} />
+          )
         }
       />
     )

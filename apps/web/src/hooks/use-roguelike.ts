@@ -3,7 +3,10 @@ import {
   createGeneratedRun,
   createShowdownRun,
   applyCommand,
+  canSpectate,
   isEventVisible,
+  spectateTurn,
+  type GridEvent,
   nearestEnemyInRange,
   type RunMode,
   type RunState,
@@ -59,6 +62,12 @@ export interface RoguelikeController {
   reset: () => void
   dispatch: (command: Command) => void
   useAbility: (index: number) => void
+  /** 쇼다운에서 쓰러진 뒤 남은 라이벌들의 싸움을 지켜볼 수 있는가. */
+  spectating: boolean
+  /** 관전 한 턴을 진행하고 연출을 재생한다. */
+  spectate: () => void
+  /** 관전을 끝까지 건너뛰어 우승자를 가린다. 연출은 생략한다. */
+  skipSpectate: () => void
 }
 
 export function useRoguelike(): RoguelikeController {
@@ -122,11 +131,8 @@ export function useRoguelike(): RoguelikeController {
     bump()
   }, [bump, clearFeedback])
 
-  const dispatch = useCallback(
-    (command: Command) => {
-      const run = runRef.current
-      if (!run || run.status !== 'playing') return
-      const events = applyCommand(run, command)
+  const present = useCallback(
+    (run: RunState, events: GridEvent[]) => {
       const feedback = toCombatFeedback(
         events.filter((event) => isEventVisible(event, run.level.visible)),
         run.player.id
@@ -202,6 +208,28 @@ export function useRoguelike(): RoguelikeController {
     [bump]
   )
 
+  const dispatch = useCallback(
+    (command: Command) => {
+      const run = runRef.current
+      if (!run || run.status !== 'playing') return
+      present(run, applyCommand(run, command))
+    },
+    [present]
+  )
+
+  const spectate = useCallback(() => {
+    const run = runRef.current
+    if (!run || !canSpectate(run)) return
+    present(run, spectateTurn(run))
+  }, [present])
+
+  const skipSpectate = useCallback(() => {
+    const run = runRef.current
+    if (!run) return
+    while (canSpectate(run)) spectateTurn(run)
+    bump()
+  }, [bump])
+
   const useAbility = useCallback(
     (index: number) => {
       const run = runRef.current
@@ -253,5 +281,8 @@ export function useRoguelike(): RoguelikeController {
     reset,
     dispatch,
     useAbility,
+    spectating: runRef.current ? canSpectate(runRef.current) : false,
+    spectate,
+    skipSpectate,
   }
 }

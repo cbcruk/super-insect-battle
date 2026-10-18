@@ -41,15 +41,24 @@ export {
   spendTurn,
 } from './scheduler'
 
-export type { Level, RunMode, RunStatus, RunState } from './run'
-export { createRun, applyCommand, isPlayerTurn, actorAt } from './run'
+export type { Level, RunMode, RunStats, RunStatus, RunState } from './run'
+export {
+  createRun,
+  applyCommand,
+  isPlayerTurn,
+  actorAt,
+  canSpectate,
+  emptyStats,
+  spectateTurn,
+  survivorCount,
+} from './run'
 
 export { createBasicBrain } from './ai/basic-brain'
 export { createSmartBrain, type SmartBrainOptions } from './ai/smart-brain'
 export {
   createShowdownRun,
   showdownPlacement,
-  survivorCount,
+  showdownWinner,
   type ShowdownOptions,
 } from './showdown'
 export {
@@ -67,7 +76,7 @@ export {
   type SafeZone,
 } from './zone'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
-export { renderLevel, renderFrame, enemyList } from './render'
+export { renderLevel, renderFrame, enemyList, showdownReport } from './render'
 
 // P2: 절차 생성 · 시야 · 길찾기
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'

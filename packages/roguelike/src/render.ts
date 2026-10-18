@@ -4,12 +4,12 @@ import {
   getActionRange,
   getCooldownRemaining,
 } from '@super-insect-battle/engine'
-import type { RunState } from './run'
+import { survivorCount, type RunState } from './run'
 import { TERRAIN } from './terrain'
 import { ITEMS } from './items'
 import { posKey } from './geometry'
 import { assessThreat, describeThreat, visibleEnemies } from './threat'
-import { showdownPlacement, survivorCount } from './showdown'
+import { showdownPlacement, showdownWinner } from './showdown'
 import { CUBE_GLYPH } from './power-cube'
 import { isInGas, turnsUntilShrink } from './zone'
 
@@ -128,4 +128,18 @@ function progressLabel(run: RunState): string {
   const shrink = zone ? turnsUntilShrink(zone, run.turn) : null
   const gas = shrink === null ? '' : `  ·  가스 ${shrink}턴 후 축소`
   return `쇼다운 · 생존 ${survivorCount(run)}마리${gas}`
+}
+
+/**
+ * 끝난 쇼다운의 결과 요약. 순위·처치·주운 큐브·버틴 턴과, 관전으로 우승자가
+ * 가려졌으면 우승자를 담는다.
+ */
+export function showdownReport(run: RunState): string {
+  const { stats } = run
+  const lines = [
+    `${showdownPlacement(run)}위 · 처치 ${stats.kills} · 큐브 ${stats.cubesCollected} · ${stats.endTurn ?? run.turn}턴 생존`,
+  ]
+  const winner = showdownWinner(run)
+  if (winner) lines.push(`우승: ${winner.species.nameKo}`)
+  return lines.join('\n')
 }
