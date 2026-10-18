@@ -9,7 +9,13 @@ import type { Command } from './command'
 import type { RunState } from './run'
 import { ENERGY_THRESHOLD } from './scheduler'
 
-export type Faction = 'player' | 'hostile'
+/**
+ * 액터가 속한 진영. 같은 진영끼리는 아군이고, 다르면 서로 싸운다.
+ *
+ * 기본 런은 `'player'`와 `'hostile'` 두 진영만 쓴다. 난전에서는 액터마다
+ * 고유한 진영을 주면 모두가 서로 적이 된다.
+ */
+export type Faction = string
 
 export interface Actor {
   id: string

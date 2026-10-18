@@ -20,4 +20,9 @@ export type GridEvent =
   | { type: 'death'; actorId: string }
   | { type: 'pickup'; actorId: string; itemId: string; message: string }
   | { type: 'descend'; depth: number }
-  | { type: 'message'; text: string }
+  | {
+      type: 'message'
+      text: string
+      /** 메시지를 만든 액터의 위치. 없으면 시야와 무관하게 항상 보인다. */
+      pos?: Vec2
+    }

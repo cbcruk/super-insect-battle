@@ -26,9 +26,11 @@ export {
 
 export type { Faction, Actor, ActorBrain, CreateActorOptions } from './actor'
 export { createActor, deriveSpeed } from './actor'
+export { isHostile } from './faction'
 
 export type { Command } from './command'
 export type { GridEvent } from './events'
+export { isEventVisible } from './event-visibility'
 export type { CombatOutcome } from './combat'
 export { resolveAttack } from './combat'
 
@@ -51,7 +53,7 @@ export { renderLevel, renderFrame, enemyList } from './render'
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'
 export { computeVisible, lineOfSight, SIGHT_RADIUS } from './fov'
 export { stepAlongPath, fleeStep, type Blocked } from './pathfind'
-export { nearestEnemyInRange } from './targeting'
+export { nearestEnemy, nearestEnemyInRange } from './targeting'
 export { ITEMS, ITEM_IDS, type ItemDef } from './items'
 export {
   refreshFov,

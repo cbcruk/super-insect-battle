@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createGeneratedRun,
   applyCommand,
+  isEventVisible,
   nearestEnemyInRange,
   type RunState,
   type Command,
@@ -119,7 +120,10 @@ export function useRoguelike(): RoguelikeController {
       const run = runRef.current
       if (!run || run.status !== 'playing') return
       const events = applyCommand(run, command)
-      const feedback = toCombatFeedback(events, run.player.id)
+      const feedback = toCombatFeedback(
+        events.filter((event) => isEventVisible(event, run.level.visible)),
+        run.player.id
+      )
       facingsRef.current = nextFacings(facingsRef.current, events)
 
       if (feedback.lines.length > 0) {
