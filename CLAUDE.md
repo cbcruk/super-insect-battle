@@ -11,6 +11,7 @@ pnpm test:run   # 모든 패키지 테스트
 pnpm simulator  # 터미널 시뮬레이터 실행
 pnpm dev:web    # 웹 시뮬레이터 실행 (xterm)
 pnpm roguelike  # 격자 로그라이크 플레이 (P1, 터미널)
+pnpm roguelike showdown [seed]  # 쇼다운 난전 (최후의 1마리)
 ```
 
 ## 프로젝트 구조
@@ -26,6 +27,7 @@ packages/roguelike/        # 격자 로그라이크 코어 (헤들리스, 결정
 ├── mapgen/fov/pathfind    # 절차 밀림 생성 · 시야(FOV) · 길찾기(rot.js)
 ├── combat.ts              # 엔진 전투 재사용 브릿지
 ├── generate.ts            # 절차 레벨·존 하강·런 생성
+├── showdown.ts            # 쇼다운 아레나·순위 (모두가 적)
 └── run.ts                 # 런 상태·턴 루프 (Brogue식 통합 전투)
 
 apps/simulator/            # 터미널 UI 앱

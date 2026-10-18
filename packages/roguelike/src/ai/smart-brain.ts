@@ -10,7 +10,16 @@ import type { RunState } from '../run'
 import { chebyshev, dirToward } from '../geometry'
 import { stepAlongPath, fleeStep } from '../pathfind'
 import { lineOfSight, SIGHT_RADIUS } from '../fov'
-import { nearestEnemyInRange } from '../targeting'
+import { nearestEnemy, nearestEnemyInRange } from '../targeting'
+
+/** {@linkcode createSmartBrain} 옵션. */
+export interface SmartBrainOptions {
+  /**
+   * 아무도 발견하지 못했을 때 제자리에서 기다리지 않고 가장 가까운 적을 향해
+   * 움직인다. 숨을 곳이 없는 난전에서 액터들이 서로를 찾아 나서게 한다.
+   */
+  hunt?: boolean
+}
 
 /**
  * P2b 브레인: 인접하면 bump, 사거리 안이면 원거리 스킬로 견제,
@@ -21,15 +30,20 @@ import { nearestEnemyInRange } from '../targeting'
  * 다른 적이 더 가까이 있으면 그쪽으로 갈아탄다. 층 전체의 적이 동시에 몰려오지
  * 않게 해서 은신·우회를 실제 선택지로 만든다.
  */
-export function createSmartBrain(): ActorBrain {
+export function createSmartBrain(options: SmartBrainOptions = {}): ActorBrain {
   let targetId: string | null = null
   return {
     decide(actor, run): Command {
       const seen = nearestEnemyInRange(run, actor, SIGHT_RADIUS)
       if (seen) targetId = seen.id
-      const target = run.level.actors.find(
-        (a) => a.id === targetId && a.combat.currentHp > 0
-      )
+      let target =
+        run.level.actors.find(
+          (a) => a.id === targetId && a.combat.currentHp > 0
+        ) ?? null
+      if (!target && options.hunt) {
+        target = nearestEnemy(run, actor)
+        targetId = target?.id ?? null
+      }
       if (!target) return { type: 'wait' }
 
       const distance = chebyshev(actor.pos, target.pos)

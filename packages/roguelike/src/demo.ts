@@ -25,6 +25,7 @@ function scriptedPlayer(run: RunState): Command {
       (a) =>
         a !== player && a.combat.currentHp > 0 && a.pos.x === x && a.pos.y === y
     )
+  if (!level.exit) return { type: 'wait' }
   const dir = stepAlongPath(level.map, player.pos, level.exit, occupied)
   return dir ? { type: 'move', dir } : { type: 'wait' }
 }

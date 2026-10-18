@@ -36,7 +36,8 @@ export interface Level {
   map: TileMap
   actors: Actor[] // 플레이어 포함
   environment: Environment // 바이옴 — 엔진 환경 보너스에 사용
-  exit: Vec2 // 다음 존 하강 지점
+  /** 다음 존 하강 지점. 쇼다운 아레나처럼 출구가 없는 레벨은 null. */
+  exit: Vec2 | null
   /** FOV: 현재 보이는 / 한번이라도 본 타일 키. 미설정 시 안개 없음(테스트용). */
   visible?: Set<string>
   discovered?: Set<string>
@@ -44,11 +45,20 @@ export interface Level {
 
 export type RunStatus = 'playing' | 'won' | 'dead'
 
+/**
+ * 런의 승리 규칙.
+ *
+ * - `descent`: 층을 내려가 마지막 층 출구에 도달하면 승리.
+ * - `showdown`: 한 아레나에서 플레이어에게 적대적인 액터가 모두 쓰러지면 승리.
+ */
+export type RunMode = 'descent' | 'showdown'
+
 export interface RunState {
   seed: number
   rng: Rng // seed로 1회 생성, 런 전체 공유 → 완전 결정론
   turn: number
   status: RunStatus
+  mode: RunMode
   level: Level
   player: Actor // level.actors 에도 포함; HP는 존을 넘어 지속
   maxDepth: number // 이 깊이의 출구 도달 시 런 승리
@@ -62,12 +72,14 @@ export function createRun(opts: {
   level: Level
   seed: number
   maxDepth?: number
+  mode?: RunMode
 }): RunState {
   const run: RunState = {
     seed: opts.seed,
     rng: createRng(opts.seed),
     turn: 0,
     status: 'playing',
+    mode: opts.mode ?? 'descent',
     level: opts.level,
     player: opts.player,
     maxDepth: opts.maxDepth ?? opts.level.depth,
@@ -132,6 +144,11 @@ function resolveActorTurn(
       text: moveCheck.message,
       pos: { ...actor.pos },
     })
+  }
+  if (actor.combat.currentHp <= 0) {
+    killActor(run, actor, events)
+    spendTurn(actor)
+    return
   }
   if (moveCheck.canMove) {
     actOnce(run, actor, command, events)
@@ -214,7 +231,11 @@ function actOnce(
       }
     }
 
-    if (actor.id === run.player.id && equals(target, run.level.exit)) {
+    if (
+      actor.id === run.player.id &&
+      run.level.exit &&
+      equals(target, run.level.exit)
+    ) {
       events.push({ type: 'descend', depth: run.level.depth })
       if (run.level.depth >= run.maxDepth) {
         run.status = 'won'
@@ -294,7 +315,20 @@ function killActor(run: RunState, actor: Actor, events: GridEvent[]): void {
   events.push({ type: 'death', actorId: actor.id })
   const index = run.level.actors.indexOf(actor)
   if (index >= 0) run.level.actors.splice(index, 1)
-  if (actor.id === run.player.id) run.status = 'dead'
+  if (actor.id === run.player.id) {
+    run.status = 'dead'
+    return
+  }
+  if (run.mode === 'showdown' && !hasRivals(run)) {
+    run.status = 'won'
+    events.push({ type: 'message', text: '최후의 1마리로 살아남았다!' })
+  }
+}
+
+function hasRivals(run: RunState): boolean {
+  return run.level.actors.some(
+    (a) => a.combat.currentHp > 0 && isHostile(run.player, a)
+  )
 }
 
 export function actorAt(level: Level, pos: Vec2): Actor | undefined {

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createGeneratedRun,
+  createShowdownRun,
   applyCommand,
   isEventVisible,
   nearestEnemyInRange,
+  type RunMode,
   type RunState,
   type Command,
 } from '@super-insect-battle/roguelike'
@@ -35,6 +37,8 @@ export interface NewRunOptions {
   seed: number
   /** 데일리 챌린지로 시작한 경우 해당 날짜('YYYY-MM-DD'). */
   dailyDate?: string | null
+  /** 기본 `'descent'`. */
+  mode?: RunMode
 }
 
 export interface RoguelikeController {
@@ -92,11 +96,14 @@ export function useRoguelike(): RoguelikeController {
     (opts: NewRunOptions) => {
       const species = getArthropodById(opts.speciesId)
       if (!species) return
-      runRef.current = createGeneratedRun({
-        playerSpecies: species,
-        seed: opts.seed,
-        maxDepth: 3,
-      })
+      runRef.current =
+        opts.mode === 'showdown'
+          ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
+          : createGeneratedRun({
+              playerSpecies: species,
+              seed: opts.seed,
+              maxDepth: 3,
+            })
       facingsRef.current = new Map()
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')

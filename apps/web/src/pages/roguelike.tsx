@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { arthropodList } from '@super-insect-battle/engine'
+import type { RunMode } from '@super-insect-battle/roguelike'
 import { useRoguelike } from '../hooks/use-roguelike.ts'
 import { RoguelikeGame } from '../components/roguelike/roguelike-game.tsx'
 import { RoguelikeResult } from '../components/roguelike/roguelike-result.tsx'
@@ -10,10 +11,25 @@ import {
 } from '../bridge/roguelike-api.ts'
 import { Button } from '../components/ui/button.tsx'
 
+const MODES: { id: RunMode; label: string; description: string }[] = [
+  {
+    id: 'descent',
+    label: '밀림 탐험',
+    description: '3층 아래 출구까지 내려가면 탈출 성공.',
+  },
+  {
+    id: 'showdown',
+    label: '쇼다운',
+    description:
+      '곤충 10마리가 한 아레나에서 서로 싸운다. 최후의 1마리가 되면 승리.',
+  },
+]
+
 export function RoguelikePage(): React.ReactNode {
   const controller = useRoguelike()
   const [speciesId, setSpeciesId] = useState('mantis')
   const [seedText, setSeedText] = useState('')
+  const [mode, setMode] = useState<RunMode>('descent')
   const [daily, setDaily] = useState<DailyInfo | null>(null)
   const [dailyBoard, setDailyBoard] = useState<Leaderboard | null>(null)
 
@@ -35,10 +51,12 @@ export function RoguelikePage(): React.ReactNode {
         controller={controller}
         onExit={controller.reset}
         resultSlot={
-          <RoguelikeResult
-            run={controller.run}
-            dailyDate={controller.dailyDate}
-          />
+          controller.run.mode === 'descent' ? (
+            <RoguelikeResult
+              run={controller.run}
+              dailyDate={controller.dailyDate}
+            />
+          ) : null
         }
       />
     )
@@ -50,7 +68,11 @@ export function RoguelikePage(): React.ReactNode {
       trimmed === ''
         ? Math.floor(Math.random() * 1_000_000_000)
         : Number(trimmed)
-    controller.newRun({ speciesId, seed: Number.isFinite(seed) ? seed : 0 })
+    controller.newRun({
+      speciesId,
+      seed: Number.isFinite(seed) ? seed : 0,
+      mode,
+    })
   }
 
   const startDaily = (): void => {
@@ -124,6 +146,23 @@ export function RoguelikePage(): React.ReactNode {
           </ol>
         )}
       </div>
+
+      <label className="mb-1 block text-xs text-muted-foreground">모드</label>
+      <div className="mb-1 grid grid-cols-2 gap-1.5">
+        {MODES.map((m) => (
+          <Button
+            key={m.id}
+            size="sm"
+            variant={mode === m.id ? 'default' : 'secondary'}
+            onClick={() => setMode(m.id)}
+          >
+            {m.label}
+          </Button>
+        ))}
+      </div>
+      <p className="mb-4 text-[11px] text-muted-foreground">
+        {MODES.find((m) => m.id === mode)?.description}
+      </p>
 
       <label className="mb-1 block text-xs text-muted-foreground">
         자유 시드 (비우면 랜덤)

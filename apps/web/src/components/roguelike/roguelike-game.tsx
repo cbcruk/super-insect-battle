@@ -21,6 +21,7 @@ import { EnemyPanel, type SightedEnemy } from './enemy-panel.tsx'
 import { CombatEffects } from './combat-effects.tsx'
 import { CombatFeed } from './combat-feed.tsx'
 import { PlayerHp } from './player-hp.tsx'
+import { outcomeTitle, progressLabel } from './roguelike-game.utils.ts'
 
 const KEY_DIR: Record<string, Direction> = {
   ArrowUp: 'n',
@@ -174,7 +175,7 @@ export function RoguelikeGame({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            밀림 {run.level.depth}층 / {run.maxDepth} · 턴 {run.turn}
+            {progressLabel(run)} · 턴 {run.turn}
           </span>
           <span className="hidden sm:inline">
             이동 방향키·hjkl · 스킬 숫자 · 대기 .
@@ -205,7 +206,7 @@ export function RoguelikeGame({
                   run.status === 'won' ? 'text-emerald-400' : 'text-red-400'
                 )}
               >
-                {run.status === 'won' ? '밀림 탈출 성공!' : '쓰러졌다...'}
+                {outcomeTitle(run)}
               </div>
               {resultSlot}
               <Button onClick={onExit}>새 런</Button>
