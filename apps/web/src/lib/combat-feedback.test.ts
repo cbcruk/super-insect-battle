@@ -56,6 +56,18 @@ describe('toCombatFeedback', () => {
     expect(fb.playerDamage).toBe(0)
   })
 
+  it('marks fights between other insects as brawl, apart from the player', () => {
+    const fb = toCombatFeedback(
+      [
+        attack({ attackerId: 'e1', defenderId: 'e2' }),
+        attack({ attackerId: 'e2', defenderId: 'e1', defeated: true }),
+      ],
+      'player'
+    )
+    expect(fb.lines.map((l) => l.tone)).toEqual(['brawl', 'brawl'])
+    expect(fb.playerDamage).toBe(0)
+  })
+
   it('shows venom ticks and counts them against the player', () => {
     const fb = toCombatFeedback(
       [

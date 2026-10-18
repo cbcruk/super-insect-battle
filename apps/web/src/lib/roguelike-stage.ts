@@ -61,6 +61,8 @@ interface LiveMotion {
 }
 
 const DEADLY_STROKE = '#ef4444'
+const GAS_TINT = '#84cc16'
+const GAS_ALPHA = 0.28
 const PLAYER_SHOT = '#22d3ee'
 const ENEMY_SHOT = '#f87171'
 
@@ -189,6 +191,12 @@ export class RoguelikeStage {
         this.tiles
           .rect(px, py, cell, cell)
           .fill({ color: view.bg, alpha: view.alpha })
+
+        if (view.gas) {
+          this.tiles
+            .rect(px, py, cell, cell)
+            .fill({ color: GAS_TINT, alpha: GAS_ALPHA * view.alpha })
+        }
 
         if (view.deadly) {
           this.tiles

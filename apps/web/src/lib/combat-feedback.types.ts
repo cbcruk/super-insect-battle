@@ -2,9 +2,13 @@ import type { Vec2 } from '@super-insect-battle/roguelike'
 import type { AttackMotion } from './attack-motion.types.ts'
 import type { Fall } from './fall-motion.types.ts'
 
-/** 로그 한 줄의 의미. 색으로 구분해 내가 때린 것과 맞은 것을 한눈에 가른다. */
+/**
+ * 로그 한 줄의 의미. 색으로 구분해 내가 때린 것과 맞은 것을 한눈에 가른다.
+ * `brawl`은 플레이어가 끼지 않은 다른 곤충끼리의 교전이다.
+ */
 export type FeedTone =
   | 'dealt'
+  | 'brawl'
   | 'taken'
   | 'evaded'
   | 'missed'

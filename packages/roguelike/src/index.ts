@@ -52,6 +52,20 @@ export {
   survivorCount,
   type ShowdownOptions,
 } from './showdown'
+export {
+  absorbCubes,
+  CUBE_GLYPH,
+  CUBE_HP_RATIO,
+  CUBES_PER_STRENGTH,
+} from './power-cube'
+export {
+  gasDamage,
+  isInGas,
+  turnsUntilShrink,
+  zoneRadius,
+  GAS_DAMAGE_RATIO,
+  type SafeZone,
+} from './zone'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
 export { renderLevel, renderFrame, enemyList } from './render'
 
@@ -59,7 +73,11 @@ export { renderLevel, renderFrame, enemyList } from './render'
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'
 export { computeVisible, lineOfSight, SIGHT_RADIUS } from './fov'
 export { stepAlongPath, fleeStep, type Blocked } from './pathfind'
-export { nearestEnemy, nearestEnemyInRange } from './targeting'
+export {
+  nearestEnemy,
+  nearestEnemyInRange,
+  nearestVisibleCube,
+} from './targeting'
 export { ITEMS, ITEM_IDS, type ItemDef } from './items'
 export {
   refreshFov,

@@ -27,6 +27,8 @@ export interface Actor {
   energy: number // 누적 에너지
   glyph: string // ASCII 렌더 글리프
   brain?: ActorBrain // 적 AI (플레이어는 없음)
+  /** 모은 파워 큐브 수. 쓰러지면 전부 떨어뜨린다. */
+  cubes: number
 }
 
 export interface ActorBrain {
@@ -66,5 +68,6 @@ export function createActor(
     energy: ENERGY_THRESHOLD, // 시작부터 행동 가능
     glyph: options.glyph ?? (faction === 'player' ? '@' : 'e'),
     brain: options.brain,
+    cubes: 0,
   }
 }

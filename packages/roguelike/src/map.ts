@@ -4,6 +4,8 @@ import { TERRAIN } from './terrain'
 export interface Tile {
   terrain: TerrainType
   itemId?: string // 바닥 아이템 (P2+)
+  /** 바닥에 놓인 파워 큐브 수. 밟는 액터가 모두 가져간다. */
+  cubes?: number
 }
 
 export interface TileMap {

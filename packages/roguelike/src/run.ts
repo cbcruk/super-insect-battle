@@ -28,6 +28,8 @@ import { lineOfSight } from './fov'
 import { ITEMS } from './items'
 import { nextActor, grantEnergy, spendTurn } from './scheduler'
 import { refreshFov, enterLevel } from './generate'
+import { absorbCubes } from './power-cube'
+import { gasDamage, isInGas, type SafeZone } from './zone'
 
 const DESCEND_HEAL_RATIO = 0.3
 
@@ -41,6 +43,8 @@ export interface Level {
   /** FOV: 현재 보이는 / 한번이라도 본 타일 키. 미설정 시 안개 없음(테스트용). */
   visible?: Set<string>
   discovered?: Set<string>
+  /** 독가스 안전 구역. 없으면 가스 없음. */
+  zone?: SafeZone
 }
 
 export type RunStatus = 'playing' | 'won' | 'dead'
@@ -166,6 +170,7 @@ function resolveActorTurn(
       })
       if (actor.combat.currentHp <= 0) killActor(run, actor, events)
     }
+    if (actor.combat.currentHp > 0) applyGas(run, actor, events)
     const cured = decayVenom(actor.combat)
     if (cured && actor.combat.currentHp > 0) {
       events.push({ type: 'message', text: cured, pos: { ...actor.pos } })
@@ -212,6 +217,8 @@ function actOnce(
     const from = actor.pos
     actor.pos = target
     events.push({ type: 'move', actorId: actor.id, from, to: target })
+
+    pickUpCubes(run, actor, events)
 
     // 바닥 아이템 획득 (플레이어)
     if (actor.id === run.player.id) {
@@ -311,8 +318,54 @@ function recoverOnDescend(actor: Actor): string | null {
   return parts.length > 0 ? `숨을 고른다 (${parts.join(', ')})` : null
 }
 
+function applyGas(run: RunState, actor: Actor, events: GridEvent[]): void {
+  const { zone } = run.level
+  if (!zone || !isInGas(zone, actor.pos, run.turn)) return
+  const damage = gasDamage(actor)
+  actor.combat.currentHp = Math.max(0, actor.combat.currentHp - damage)
+  events.push({
+    type: 'status',
+    actorId: actor.id,
+    message: `${actor.species.nameKo}이(가) 독가스에 휩싸였다! (${damage} 데미지)`,
+    damage,
+    pos: { ...actor.pos },
+  })
+  if (actor.combat.currentHp <= 0) killActor(run, actor, events)
+}
+
+function pickUpCubes(run: RunState, actor: Actor, events: GridEvent[]): void {
+  const tile = tileAt(run.level.map, actor.pos.x, actor.pos.y)
+  if (!tile?.cubes) return
+  const message = absorbCubes(actor, tile.cubes)
+  tile.cubes = undefined
+  if (actor.id === run.player.id) {
+    events.push({
+      type: 'pickup',
+      actorId: actor.id,
+      itemId: 'power_cube',
+      message,
+    })
+  } else {
+    events.push({ type: 'message', text: message, pos: { ...actor.pos } })
+  }
+}
+
+function dropCubes(run: RunState, actor: Actor, events: GridEvent[]): void {
+  if (actor.cubes <= 0) return
+  const tile = tileAt(run.level.map, actor.pos.x, actor.pos.y)
+  if (!tile) return
+  tile.cubes = (tile.cubes ?? 0) + actor.cubes
+  events.push({
+    type: 'message',
+    text: `파워 큐브 ${actor.cubes}개가 떨어졌다`,
+    pos: { ...actor.pos },
+  })
+  actor.cubes = 0
+}
+
 function killActor(run: RunState, actor: Actor, events: GridEvent[]): void {
   events.push({ type: 'death', actorId: actor.id })
+  dropCubes(run, actor, events)
   const index = run.level.actors.indexOf(actor)
   if (index >= 0) run.level.actors.splice(index, 1)
   if (actor.id === run.player.id) {

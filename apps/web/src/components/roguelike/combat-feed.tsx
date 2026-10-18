@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils.ts'
 
 const TONE_CLASS: Record<FeedTone, string> = {
   dealt: 'text-cyan-300',
+  brawl: 'text-amber-200/70',
   taken: 'text-red-400',
   evaded: 'text-slate-400',
   missed: 'text-slate-500',

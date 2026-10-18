@@ -1,6 +1,8 @@
 import {
   TERRAIN,
   ITEMS,
+  CUBE_GLYPH,
+  isInGas,
   posKey,
   tileAt,
   type RunState,
@@ -29,6 +31,7 @@ const PLAYER_FG = '#22d3ee'
 const HOSTILE_FG = '#f87171'
 const EXIT_FG = '#fbbf24'
 const ITEM_FG = '#e879f9'
+const CUBE_FG = '#fbbf24'
 
 export const UNKNOWN_BG = '#070809'
 
@@ -77,7 +80,7 @@ export function describeCell(
   y: number,
   threats: ReadonlyMap<string, ThreatLevel> = new Map()
 ): CellView | null {
-  const { map, actors, exit, visible, discovered } = run.level
+  const { map, actors, exit, visible, discovered, zone } = run.level
   const { player } = run
   const key = posKey(x, y)
   const seen = !visible || visible.has(key)
@@ -99,6 +102,7 @@ export function describeCell(
     glyphAlpha: light,
     mark: terrainMark(tile.terrain, x, y, sameTerrainMask(run, x, y)),
     deadly: false,
+    gas: zone !== undefined && isInGas(zone, { x, y }, run.turn),
   }
   const standOut = seen ? 1 : REMEMBERED_LIGHT
 
@@ -127,6 +131,11 @@ export function describeCell(
     view.glyph = '>'
     view.fg = EXIT_FG
     view.mark = EXIT_MARK
+    view.glyphAlpha = standOut
+  } else if (tile.cubes) {
+    view.glyph = CUBE_GLYPH
+    view.fg = CUBE_FG
+    view.mark = undefined
     view.glyphAlpha = standOut
   } else if (item) {
     view.glyph = item.glyph
