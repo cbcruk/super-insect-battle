@@ -21,6 +21,8 @@ import type { TileMap } from './map'
 import { inBounds, isWalkable, tileAt } from './map'
 import { addDir, chebyshev, equals, type Vec2 } from './geometry'
 import { resolveAttack } from './combat'
+import { isHostile } from './faction'
+import { isEventVisible } from './event-visibility'
 import { decayVenom } from './venom'
 import { lineOfSight } from './fov'
 import { ITEMS } from './items'
@@ -125,7 +127,11 @@ function resolveActorTurn(
 ): void {
   const moveCheck = checkCanMove(actor.combat, run.rng)
   if (moveCheck.message) {
-    events.push({ type: 'message', text: moveCheck.message })
+    events.push({
+      type: 'message',
+      text: moveCheck.message,
+      pos: { ...actor.pos },
+    })
   }
   if (moveCheck.canMove) {
     actOnce(run, actor, command, events)
@@ -145,7 +151,7 @@ function resolveActorTurn(
     }
     const cured = decayVenom(actor.combat)
     if (cured && actor.combat.currentHp > 0) {
-      events.push({ type: 'message', text: cured })
+      events.push({ type: 'message', text: cured, pos: { ...actor.pos } })
     }
     tickCooldowns(actor.combat)
   }
@@ -170,7 +176,7 @@ function actOnce(
   const occupant = actorAt(run.level, target)
 
   if (occupant) {
-    if (occupant.faction !== actor.faction) {
+    if (isHostile(actor, occupant)) {
       const action = pickMeleeAction(actor)
       const outcome = resolveAttack(actor, occupant, action, run.level, run.rng)
       startCooldown(actor.combat, action)
@@ -242,13 +248,14 @@ function resolveAbility(
     events.push({
       type: 'message',
       text: `${actor.species.nameKo}: ${action.nameKo}`,
+      pos: { ...actor.pos },
     })
     return
   }
 
   // 근접/원거리 공격 — 사거리·시야선 검증
   const occupant = actorAt(run.level, target)
-  if (!occupant || occupant.faction === actor.faction) return
+  if (!occupant || !isHostile(actor, occupant)) return
   if (chebyshev(actor.pos, occupant.pos) > getActionRange(action)) return
   if (!lineOfSight(run.level.map, actor.pos, occupant.pos)) return
 
@@ -305,6 +312,7 @@ function pickMeleeAction(actor: Actor): Action {
 
 function record(run: RunState, events: GridEvent[]): void {
   for (const event of events) {
+    if (!isEventVisible(event, run.level.visible)) continue
     if (event.type === 'attack') run.log.push(event.outcome.note)
     else if (event.type === 'status') run.log.push(event.message)
     else if (event.type === 'pickup') run.log.push(event.message)

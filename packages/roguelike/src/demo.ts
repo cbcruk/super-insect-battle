@@ -1,5 +1,6 @@
 import { getArthropodById } from '@super-insect-battle/engine'
 import { chebyshev, dirToward } from './geometry'
+import { isHostile } from './faction'
 import type { Command } from './command'
 import { createGeneratedRun } from './generate'
 import { applyCommand, type RunState } from './run'
@@ -11,7 +12,7 @@ function scriptedPlayer(run: RunState): Command {
   const { player, level } = run
   const enemy = level.actors.find(
     (a) =>
-      a.faction === 'hostile' &&
+      isHostile(player, a) &&
       a.combat.currentHp > 0 &&
       chebyshev(a.pos, player.pos) === 1
   )

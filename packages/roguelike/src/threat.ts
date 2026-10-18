@@ -6,6 +6,7 @@ import {
 import { createActor, type Actor } from './actor'
 import { createSmartBrain } from './ai/smart-brain'
 import { chebyshev, posKey } from './geometry'
+import { isHostile } from './faction'
 import { tileMapFromStrings } from './map'
 import { applyCommand, createRun, type Level, type RunState } from './run'
 
@@ -112,7 +113,7 @@ export function visibleEnemies(run: RunState): Actor[] {
   return actors
     .filter(
       (a) =>
-        a.faction === 'hostile' &&
+        isHostile(run.player, a) &&
         a.combat.currentHp > 0 &&
         (!visible || visible.has(posKey(a.pos.x, a.pos.y)))
     )
