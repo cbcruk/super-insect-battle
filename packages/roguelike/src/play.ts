@@ -9,6 +9,7 @@ import {
 import type { Command } from './command'
 import type { Direction } from './geometry'
 import { createGeneratedRun } from './generate'
+import { createShowdownRun } from './showdown'
 import { applyCommand } from './run'
 import { nearestEnemyInRange } from './targeting'
 import { renderFrame } from './render'
@@ -28,26 +29,38 @@ const KEY_DIR: Record<string, Direction> = {
   right: 'e',
 }
 
+const args = process.argv.slice(2)
+const showdown = args[0] === 'showdown'
 const seed = Number(
-  process.argv[2] ?? Math.floor(Math.random() * 1_000_000_000)
+  (showdown ? args[1] : args[0]) ?? Math.floor(Math.random() * 1_000_000_000)
 )
 const mantis = getArthropodById('mantis')
 if (!mantis) throw new Error('mantis 데이터 없음')
 
-const run = createGeneratedRun({ playerSpecies: mantis, seed, maxDepth: 3 })
+const run = showdown
+  ? createShowdownRun({ playerSpecies: mantis, seed })
+  : createGeneratedRun({ playerSpecies: mantis, seed, maxDepth: 3 })
 
 let notice = ''
 
 function draw(): void {
   console.clear()
-  console.log(`슈퍼곤충 로그라이크 (seed=${seed})`)
+  console.log(`슈퍼곤충 ${showdown ? '쇼다운' : '로그라이크'} (seed=${seed})`)
   console.log(
     '이동: hjkl · 대각 yubn · 방향키 / 대기: . / 스킬: 숫자키 / 종료: q'
   )
-  console.log('> 칸에 도달하면 다음 층으로 내려갑니다.\n')
+  console.log(
+    showdown
+      ? '모두가 적입니다. 마지막까지 살아남으세요.\n'
+      : '> 칸에 도달하면 다음 층으로 내려갑니다.\n'
+  )
   console.log(renderFrame(run))
   if (notice) console.log(`\n※ ${notice}`)
-  if (run.status === 'won') console.log('\n밀림 탈출 성공! (q로 종료)')
+  if (run.status === 'won') {
+    console.log(
+      showdown ? '\n최후의 1마리! (q로 종료)' : '\n밀림 탈출 성공! (q로 종료)'
+    )
+  }
   if (run.status === 'dead') console.log('\n쓰러졌다... (q로 종료)')
 }
 

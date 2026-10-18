@@ -41,11 +41,17 @@ export {
   spendTurn,
 } from './scheduler'
 
-export type { Level, RunStatus, RunState } from './run'
+export type { Level, RunMode, RunStatus, RunState } from './run'
 export { createRun, applyCommand, isPlayerTurn, actorAt } from './run'
 
 export { createBasicBrain } from './ai/basic-brain'
-export { createSmartBrain } from './ai/smart-brain'
+export { createSmartBrain, type SmartBrainOptions } from './ai/smart-brain'
+export {
+  createShowdownRun,
+  showdownPlacement,
+  survivorCount,
+  type ShowdownOptions,
+} from './showdown'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
 export { renderLevel, renderFrame, enemyList } from './render'
 

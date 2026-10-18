@@ -17,6 +17,10 @@ export interface JungleOptions {
   wallChance?: number
   /** CA 스무딩 반복 (기본 4). */
   iterations?: number
+  /** 수풀 덩어리 수와 덩어리당 칸 수 (기본 5, 6). */
+  grass?: { clusters: number; size: number }
+  /** 물 덩어리 수와 덩어리당 칸 수 (기본 3, 5). */
+  water?: { clusters: number; size: number }
 }
 
 /**
@@ -27,6 +31,8 @@ export function generateJungle(opts: JungleOptions): GeneratedMap {
   const { width, height, rng } = opts
   const wallChance = opts.wallChance ?? 0.45
   const iterations = opts.iterations ?? 4
+  const grass = opts.grass ?? { clusters: 5, size: 6 }
+  const water = opts.water ?? { clusters: 3, size: 5 }
   const idx = (x: number, y: number): number => y * width + x
   const isBorder = (x: number, y: number): boolean =>
     x === 0 || y === 0 || x === width - 1 || y === height - 1
@@ -73,10 +79,20 @@ export function generateJungle(opts: JungleOptions): GeneratedMap {
     idx,
     rng,
     'tallgrass',
-    5,
-    6
+    grass.clusters,
+    grass.size
   )
-  scatterClusters(terrain, regionCells, width, height, idx, rng, 'water', 3, 5)
+  scatterClusters(
+    terrain,
+    regionCells,
+    width,
+    height,
+    idx,
+    rng,
+    'water',
+    water.clusters,
+    water.size
+  )
 
   // 5. TileMap + floors(걸을 수 있는 칸)
   const tiles: Tile[] = terrain.map((t) => ({ terrain: t }))

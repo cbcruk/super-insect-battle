@@ -9,6 +9,7 @@ import { TERRAIN } from './terrain'
 import { ITEMS } from './items'
 import { posKey } from './geometry'
 import { assessThreat, describeThreat, visibleEnemies } from './threat'
+import { showdownPlacement, survivorCount } from './showdown'
 
 /**
  * 레벨을 ASCII 그리드로 렌더. FOV가 설정된 경우:
@@ -33,7 +34,7 @@ export function renderLevel(run: RunState): string {
       }
 
       const tile = map.tiles[y * map.width + x]
-      const isExit = exit.x === x && exit.y === y
+      const isExit = exit !== null && exit.x === x && exit.y === y
 
       const item = tile.itemId ? ITEMS[tile.itemId] : undefined
 
@@ -64,7 +65,7 @@ export function renderFrame(run: RunState): string {
   return [
     renderLevel(run),
     '',
-    `밀림 ${run.level.depth}층 / ${run.maxDepth}  ·  턴 ${run.turn}  ·  ${statusLabel(run.status)}`,
+    `${progressLabel(run)}  ·  턴 ${run.turn}  ·  ${statusLabel(run)}`,
     hp,
     abilityBar(run),
     enemyList(run),
@@ -100,13 +101,21 @@ export function abilityBar(run: RunState): string {
     .join('  ')
 }
 
-function statusLabel(status: RunState['status']): string {
-  switch (status) {
+function statusLabel(run: RunState): string {
+  switch (run.status) {
     case 'playing':
       return '진행 중'
     case 'won':
-      return '밀림 탈출 성공!'
+      return run.mode === 'showdown' ? '최후의 1마리!' : '밀림 탈출 성공!'
     case 'dead':
-      return '쓰러짐...'
+      return run.mode === 'showdown'
+        ? `쓰러짐... (${showdownPlacement(run)}위)`
+        : '쓰러짐...'
   }
+}
+
+function progressLabel(run: RunState): string {
+  return run.mode === 'showdown'
+    ? `쇼다운 · 생존 ${survivorCount(run)}마리`
+    : `밀림 ${run.level.depth}층 / ${run.maxDepth}`
 }

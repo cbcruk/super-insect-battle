@@ -147,6 +147,7 @@ export function createGeneratedRun(opts: {
     rng: createRng(opts.seed),
     turn: 0,
     status: 'playing',
+    mode: 'descent',
     level: {
       depth: 0,
       map: { width: 0, height: 0, tiles: [] },

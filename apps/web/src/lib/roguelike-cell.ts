@@ -123,7 +123,7 @@ export function describeCell(
           : HOSTILE_FG
     view.deadly = threat === 'deadly'
     view.glyphAlpha = standOut
-  } else if (exit.x === x && exit.y === y) {
+  } else if (exit && exit.x === x && exit.y === y) {
     view.glyph = '>'
     view.fg = EXIT_FG
     view.mark = EXIT_MARK
