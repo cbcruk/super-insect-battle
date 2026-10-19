@@ -21,6 +21,7 @@ describe('parsePlayArgs', () => {
       seed: 42,
       auto: false,
       batch: null,
+      opponentAI: {},
     })
   })
 
@@ -39,6 +40,37 @@ describe('parsePlayArgs', () => {
     ).toMatchObject({ seed: 10, batch: 3 })
   })
 
+  it('reads opponent AI options for every duel form', () => {
+    expect(
+      parsePlayArgs(
+        [
+          'duel',
+          '--difficulty',
+          'hard',
+          'mantis',
+          'scorpion',
+          '--batch',
+          '20',
+          '--personality',
+          'aggressive',
+        ],
+        RANDOM
+      )
+    ).toMatchObject({
+      playerId: 'mantis',
+      opponentId: 'scorpion',
+      seed: 1,
+      batch: 20,
+      opponentAI: { difficulty: 'hard', personality: 'aggressive' },
+    })
+    expect(
+      parsePlayArgs(
+        ['duel', 'mantis', 'scorpion', '--difficulty', 'easy'],
+        RANDOM
+      )
+    ).toMatchObject({ seed: 42, opponentAI: { difficulty: 'easy' } })
+  })
+
   it('explains bad input', () => {
     const bad = [
       ['duel', 'mantis'],
@@ -52,10 +84,31 @@ describe('parsePlayArgs', () => {
       ['7', '8'],
       ['duel', 'mantis', 'scorpion', '--auto', '--batch', '3'],
       ['duel', 'mantis', 'scorpion', '--auto', '--auto'],
+      ['duel', 'mantis', 'scorpion', '--difficulty'],
+      ['duel', 'mantis', 'scorpion', '--difficulty', 'brutal'],
+      ['duel', 'mantis', 'scorpion', '--personality', 'calm'],
+      ['showdown', '--difficulty', 'hard'],
     ]
     for (const argv of bad) {
       expect(parsePlayArgs(argv, RANDOM)).toHaveProperty('error')
     }
+  })
+
+  it('reports a repeated value flag as a duplicate', () => {
+    expect(
+      parsePlayArgs(
+        [
+          'duel',
+          'mantis',
+          'scorpion',
+          '--difficulty',
+          'brutal',
+          '--difficulty',
+          'easy',
+        ],
+        RANDOM
+      )
+    ).toEqual({ error: '같은 옵션을 두 번 줬습니다' })
   })
 
   it('ignores the -- separator pnpm passes through', () => {
