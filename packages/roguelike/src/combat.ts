@@ -7,6 +7,7 @@ import type {
 import {
   calculateDamage,
   checkAccuracy,
+  getHitChance,
   applyActionEffect,
   statusConditionNames,
 } from '@super-insect-battle/engine'
@@ -116,6 +117,45 @@ export function resolveAttack(
 }
 
 /** 엔진 명중 판정 + 지형 은신 추가 회피. */
+/**
+ * 격자에서 공격이 명중할 확률(0~1)을 계산한다. 수풀 은신의 추가 회피까지 반영한다.
+ */
+export function hitProbability(
+  attacker: Actor,
+  defender: Actor,
+  action: Action,
+  level: Level
+): number {
+  const base =
+    getHitChance(action, defender.combat, attacker.species.physical.lengthMm) /
+    100
+  const tile = tileAt(level.map, defender.pos.x, defender.pos.y)
+  const evasionMod = tile ? TERRAIN[tile.terrain].evasionMod : 1
+  return evasionMod > 1 ? base * (2 - evasionMod) : base
+}
+
+/**
+ * 명중했을 때의 피해를 급소 없이, 난수 폭의 중간값으로 추정한다.
+ *
+ * 실제 공격과 달리 런의 RNG를 쓰지 않으므로 AI가 판을 바꾸지 않고 미리 계산할 수 있다.
+ */
+export function estimateDamage(
+  attacker: Actor,
+  defender: Actor,
+  action: Action,
+  level: Level
+): number {
+  if (action.power <= 0) return 0
+  const middle: Rng = () => 0.5
+  return calculateDamage(
+    attacker.combat,
+    defender.combat,
+    action,
+    level.environment,
+    middle
+  ).damage
+}
+
 function rollHit(
   attacker: Actor,
   defender: Actor,

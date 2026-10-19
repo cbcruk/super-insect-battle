@@ -55,6 +55,7 @@ export {
   createBattleArthropod,
   calculateDamage,
   checkAccuracy,
+  getHitChance,
   determineFirstAttacker,
   applyActionEffect,
   executeTurn,
