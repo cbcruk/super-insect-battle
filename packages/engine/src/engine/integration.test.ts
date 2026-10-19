@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   createBattleArthropod,
   executeTurn,
+  getHitChance,
   runInteractiveBattle,
   type BattleState,
 } from './battle-engine'
@@ -41,13 +42,21 @@ describe('Integration Tests', () => {
     it('land regardless of the opponent evasion', () => {
       const state = createBattleState('dung_beetle', 'mantis')
       state.opponent.statStages.evasion = 6
-      const unlucky = (): number => 0.999
+      const roll = 0.5
+      // 공격이라면 빗나갈 난수다
+      expect(
+        getHitChance(
+          actions.shell_guard,
+          state.opponent,
+          state.player.base.physical.lengthMm
+        )
+      ).toBeLessThan(roll * 100)
 
       const next = executeTurn(
         state,
         actions.shell_guard,
         actions.scythe_strike,
-        unlucky
+        () => roll
       )
 
       const guard = next.log.find(

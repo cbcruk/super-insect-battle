@@ -9,7 +9,7 @@ import {
   calculateTotalMultiplier,
   type DamageFactors,
 } from '../data/matchup'
-import { getActionsByIds } from '../data/actions'
+import { getActionsByIds, getActionTargeting } from '../data/actions'
 import {
   applyStatusCondition,
   checkCanMove,
@@ -200,10 +200,12 @@ export function getHitChance(
 /**
  * 상대를 노리지 않고 자기에게만 효과를 거는 기술인지 판정한다.
  *
- * 위력 0이고 효과 대상이 자기인 기술이다. 상대 회피와 상관없으므로 명중 판정을 하지 않는다.
+ * 격자 타게팅({@linkcode getActionTargeting})이 `'self'`인 기술이다. 상대 회피와
+ * 상관없으므로 두 모드 모두 명중 판정을 하지 않는다. 도주·웅크림도 여기에 들지만
+ * 텍스트 엔진은 전투 모드로 따로 처리한다.
  */
 export function isSelfMove(action: Action): boolean {
-  return action.power === 0 && action.effect?.target === 'self'
+  return getActionTargeting(action) === 'self'
 }
 
 export function checkAccuracy(
