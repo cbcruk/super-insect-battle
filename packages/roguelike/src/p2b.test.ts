@@ -198,3 +198,91 @@ describe('smart-brain ranged usage', () => {
     expect(command.type).toBe('ability')
   })
 })
+
+describe('smart-brain skill choice', () => {
+  function adjacent(seed: number) {
+    const map = corridor(6)
+    const player = createActor('p', species('mantis'), { x: 1, y: 1 }, 'player')
+    const enemy = createActor('e', species('stag_beetle'), { x: 2, y: 1 }, 'e')
+    const level: Level = {
+      depth: 1,
+      map,
+      actors: [player, enemy],
+      environment: ENV,
+      exit: null,
+    }
+    return { run: createRun({ player, level, seed }), enemy }
+  }
+
+  it('mixes skills next to a foe instead of always the first attack', () => {
+    const used = new Set<string>()
+    for (let seed = 1; seed <= 30; seed++) {
+      const { run, enemy } = adjacent(seed)
+      const command = createSmartBrain().decide(enemy, run, run.rng)
+      expect(command.type).toBe('ability')
+      if (command.type === 'ability') used.add(command.actionId)
+    }
+    expect(used.size).toBeGreaterThan(1)
+    expect(used.has('flee')).toBe(false)
+    expect(used.has('brace')).toBe(false)
+  })
+
+  it('always picks the same best skill on hard', () => {
+    const used = new Set<string>()
+    for (let seed = 1; seed <= 10; seed++) {
+      const { run, enemy } = adjacent(seed)
+      const command = createSmartBrain({ difficulty: 'hard' }).decide(
+        enemy,
+        run,
+        run.rng
+      )
+      if (command.type === 'ability') used.add(command.actionId)
+    }
+    expect(used.size).toBe(1)
+  })
+
+  it('flees early when defensive and holds its ground when aggressive', () => {
+    const map = tileMapFromStrings(['#########', '#.......#', '#########'])
+    const player = createActor('p', species('mantis'), { x: 1, y: 1 }, 'player')
+    const enemy = createActor('e', species('stag_beetle'), { x: 5, y: 1 }, 'e')
+    enemy.combat.currentHp = Math.floor(enemy.combat.maxHp * 0.3)
+    const level: Level = {
+      depth: 1,
+      map,
+      actors: [player, enemy],
+      environment: ENV,
+      exit: null,
+    }
+    const run = createRun({ player, level, seed: 1 })
+
+    const decide = (personality: 'aggressive' | 'defensive') =>
+      createSmartBrain({ personality }).decide(enemy, run, run.rng)
+    expect(decide('defensive')).toEqual({ type: 'move', dir: 'e' })
+    expect(decide('aggressive')).toEqual({ type: 'move', dir: 'w' })
+  })
+  it('stops buffing once the stat is raised and goes back to attacking', () => {
+    const map = corridor(6)
+    const player = createActor('p', species('mantis'), { x: 1, y: 1 }, 'player')
+    const enemy = createActor('e', species('cockroach'), { x: 2, y: 1 }, 'e')
+    const level: Level = {
+      depth: 1,
+      map,
+      actors: [player, enemy],
+      environment: ENV,
+      exit: null,
+    }
+    const run = createRun({ player, level, seed: 1 })
+    enemy.combat.statStages = { strength: 2, defense: 2, evasion: 2 }
+
+    for (const personality of ['balanced', 'defensive'] as const) {
+      const command = createSmartBrain({
+        difficulty: 'hard',
+        personality,
+      }).decide(enemy, run, run.rng)
+      expect(command.type).toBe('ability')
+      if (command.type === 'ability') {
+        expect(getActionTargeting(action(command.actionId))).not.toBe('self')
+      }
+    }
+  })
+})
