@@ -12,6 +12,7 @@ pnpm simulator  # 터미널 시뮬레이터 실행
 pnpm dev:web    # 웹 시뮬레이터 실행 (xterm)
 pnpm roguelike  # 격자 로그라이크 플레이 (P1, 터미널)
 pnpm roguelike showdown [seed]  # 쇼다운 난전 (최후의 1마리)
+pnpm roguelike duel <1P> <상대> [seed]   # 격자 매치업 (--auto: AI 대 AI 한 판, --batch N: N판 승률)
 ```
 
 ## 프로젝트 구조

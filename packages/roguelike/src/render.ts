@@ -156,3 +156,15 @@ export function showdownReport(run: RunState): string {
   if (winner) lines.push(`우승: ${winner.species.nameKo}`)
   return lines.join('\n')
 }
+
+/** 끝난 격자 매치업의 결과 요약: 승자·걸린 턴·승자의 남은 HP. */
+export function duelReport(run: RunState): string {
+  const winner =
+    run.status === 'won'
+      ? run.player
+      : run.level.actors.find((a) => a !== run.player && a.combat.currentHp > 0)
+  const turns = `${run.stats.endTurn ?? run.turn}턴`
+  if (!winner) return `무승부 · ${turns}`
+  const side = winner === run.player ? '1P' : '상대'
+  return `승자: ${winner.species.nameKo}(${side}) · ${turns} · 남은 HP ${winner.combat.currentHp}/${winner.combat.maxHp}`
+}

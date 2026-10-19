@@ -1,18 +1,23 @@
 import readline from 'node:readline'
 import {
+  arthropodList,
   getArthropodById,
   getActionsByIds,
   getActionTargeting,
   getActionRange,
   isActionOnCooldown,
+  type Arthropod,
 } from '@super-insect-battle/engine'
+import { parsePlayArgs, PLAY_USAGE } from './cli-args'
 import type { Command } from './command'
 import type { Direction } from './geometry'
 import { createGeneratedRun } from './generate'
 import { createShowdownRun } from './showdown'
-import { applyCommand, canSpectate, spectateTurn } from './run'
+import { createDuelRun } from './duel'
+import { duelBatch, runAutoDuel } from './duel-sim'
+import { applyCommand, canSpectate, spectateTurn, type RunState } from './run'
 import { nearestEnemyInRange } from './targeting'
-import { renderFrame, showdownReport } from './render'
+import { duelReport, renderFrame, renderLevel, showdownReport } from './render'
 
 const KEY_DIR: Record<string, Direction> = {
   k: 'n',
@@ -29,33 +34,92 @@ const KEY_DIR: Record<string, Direction> = {
   right: 'e',
 }
 
-const args = process.argv.slice(2)
-const showdown = args[0] === 'showdown'
-const seed = Number(
-  (showdown ? args[1] : args[0]) ?? Math.floor(Math.random() * 1_000_000_000)
+const parsed = parsePlayArgs(
+  process.argv.slice(2),
+  Math.floor(Math.random() * 1_000_000_000)
 )
-const mantis = getArthropodById('mantis')
-if (!mantis) throw new Error('mantis 데이터 없음')
+if ('error' in parsed) {
+  console.error(`${parsed.error}\n\n${PLAY_USAGE}`)
+  process.exit(1)
+}
+const args = parsed
+const { seed } = args
+const showdown = args.mode === 'showdown'
+const duel = args.mode === 'duel'
 
-const run = showdown
-  ? createShowdownRun({ playerSpecies: mantis, seed })
-  : createGeneratedRun({ playerSpecies: mantis, seed, maxDepth: 3 })
+function speciesOrExit(id: string): Arthropod {
+  const species = getArthropodById(id)
+  if (species) return species
+  console.error(
+    `알 수 없는 종: ${id}\n가능한 종: ${arthropodList.map((a) => a.id).join(', ')}`
+  )
+  process.exit(1)
+}
+
+function createPlayRun(): RunState {
+  if (args.mode === 'duel') {
+    return createDuelRun({
+      playerSpecies: speciesOrExit(args.playerId),
+      opponentSpecies: speciesOrExit(args.opponentId),
+      seed,
+    })
+  }
+  const mantis = speciesOrExit('mantis')
+  return args.mode === 'showdown'
+    ? createShowdownRun({ playerSpecies: mantis, seed })
+    : createGeneratedRun({ playerSpecies: mantis, seed, maxDepth: 3 })
+}
+
+if (args.mode === 'duel' && args.batch !== null) {
+  const player = speciesOrExit(args.playerId)
+  const opponent = speciesOrExit(args.opponentId)
+  const result = duelBatch(player, opponent, args.batch, seed)
+  const rate = Math.round((result.playerWins / result.games) * 100)
+  console.log(
+    `${player.nameKo} vs ${opponent.nameKo} · 시드 ${seed}~${seed + result.games - 1}`
+  )
+  console.log(
+    `1P 승률 ${rate}% (${result.playerWins}/${result.games}) · 평균 ${result.averageTurns.toFixed(1)}턴`
+  )
+  process.exit(0)
+}
+
+if (args.mode === 'duel' && args.auto) {
+  const finished = runAutoDuel(
+    speciesOrExit(args.playerId),
+    speciesOrExit(args.opponentId),
+    seed
+  )
+  console.log(`격자 매치업 AI 대 AI (seed=${seed})\n`)
+  console.log(renderLevel(finished))
+  console.log(`\n${duelReport(finished)}`)
+  process.exit(0)
+}
+
+const run = createPlayRun()
 
 let notice = ''
 
 function draw(): void {
   console.clear()
-  console.log(`슈퍼곤충 ${showdown ? '쇼다운' : '로그라이크'} (seed=${seed})`)
+  const title = duel ? '격자 매치업' : showdown ? '쇼다운' : '로그라이크'
+  console.log(`슈퍼곤충 ${title} (seed=${seed})`)
   console.log(
     '이동: hjkl · 대각 yubn · 방향키 / 대기: . / 스킬: 숫자키 / 종료: q'
   )
   console.log(
-    showdown
-      ? '모두가 적입니다. 마지막까지 살아남으세요.\n'
-      : '> 칸에 도달하면 다음 층으로 내려갑니다.\n'
+    duel
+      ? '먼저 쓰러지는 쪽이 집니다. 독가스가 조여 옵니다.\n'
+      : showdown
+        ? '모두가 적입니다. 마지막까지 살아남으세요.\n'
+        : '> 칸에 도달하면 다음 층으로 내려갑니다.\n'
   )
   console.log(renderFrame(run))
   if (notice) console.log(`\n※ ${notice}`)
+  if (duel && run.status !== 'playing') {
+    console.log(`\n${duelReport(run)} (q로 종료)`)
+    return
+  }
   if (run.status === 'won') {
     console.log(
       showdown ? '\n최후의 1마리! (q로 종료)' : '\n밀림 탈출 성공! (q로 종료)'
