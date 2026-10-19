@@ -3,6 +3,9 @@ import {
   createGeneratedRun,
   createShowdownRun,
   createDuelRun,
+  createDuelReplay,
+  startDuelReplay,
+  nextReplayCommand,
   isAutopilot,
   applyCommand,
   canSpectate,
@@ -13,6 +16,7 @@ import {
   type RunMode,
   type RunState,
   type Command,
+  type DuelReplay,
 } from '@super-insect-battle/roguelike'
 import {
   getArthropodById,
@@ -48,6 +52,8 @@ export interface NewRunOptions {
   opponentId?: string
   /** 격자 매치업에서 플레이어 쪽도 AI가 조종한다 (AI 대 AI). */
   autopilot?: boolean
+  /** 주어지면 새 판 대신 이 격자 매치업 리플레이를 재생한다. 다른 옵션은 무시한다. */
+  replay?: DuelReplay
 }
 
 export interface RoguelikeController {
@@ -70,6 +76,10 @@ export interface RoguelikeController {
   useAbility: (index: number) => void
   /** 플레이어 쪽 곤충을 AI가 조종하는 중인가 (AI 대 AI 격자 매치업). */
   autoplaying: boolean
+  /** 리플레이를 재생하는 중인가. */
+  replaying: boolean
+  /** 끝난 격자 매치업의 리플레이 기록. 재생한 판이거나 진행 중이면 null. */
+  recording: DuelReplay | null
   /** AI가 플레이어 쪽 곤충의 한 턴을 대신 진행한다. */
   autoStep: () => void
   /** 쇼다운에서 쓰러진 뒤 남은 라이벌들의 싸움을 지켜볼 수 있는가. */
@@ -94,6 +104,8 @@ export function useRoguelike(): RoguelikeController {
     damage: 0,
     heavy: false,
   })
+  const recordingRef = useRef<DuelReplay | null>(null)
+  const playbackRef = useRef<{ replay: DuelReplay; step: number } | null>(null)
   const nextId = useRef(0)
   const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
   const timers = useRef<number[]>([])
@@ -113,28 +125,41 @@ export function useRoguelike(): RoguelikeController {
 
   const newRun = useCallback(
     (opts: NewRunOptions) => {
-      const species = getArthropodById(opts.speciesId)
-      if (!species) return
-      const opponent =
-        opts.opponentId !== undefined
-          ? getArthropodById(opts.opponentId)
-          : undefined
-      if (opts.mode === 'duel' && !opponent) return
-      runRef.current =
-        opts.mode === 'duel' && opponent
-          ? createDuelRun({
-              playerSpecies: species,
-              opponentSpecies: opponent,
-              seed: opts.seed,
-              autopilot: opts.autopilot,
-            })
-          : opts.mode === 'showdown'
-            ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
-            : createGeneratedRun({
-                playerSpecies: species,
-                seed: opts.seed,
-                maxDepth: 3,
-              })
+      recordingRef.current = null
+      playbackRef.current = null
+      if (opts.replay) {
+        const replayed = startDuelReplay(opts.replay)
+        if (!replayed) return
+        runRef.current = replayed
+        playbackRef.current = { replay: opts.replay, step: 0 }
+      } else {
+        const species = getArthropodById(opts.speciesId)
+        if (!species) return
+        const opponent =
+          opts.opponentId !== undefined
+            ? getArthropodById(opts.opponentId)
+            : undefined
+        if (opts.mode === 'duel' && !opponent) return
+        if (opts.mode === 'duel' && opponent) {
+          const duel = {
+            playerSpecies: species,
+            opponentSpecies: opponent,
+            seed: opts.seed,
+            autopilot: opts.autopilot,
+          }
+          runRef.current = createDuelRun(duel)
+          recordingRef.current = createDuelReplay(duel)
+        } else {
+          runRef.current =
+            opts.mode === 'showdown'
+              ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
+              : createGeneratedRun({
+                  playerSpecies: species,
+                  seed: opts.seed,
+                  maxDepth: 3,
+                })
+        }
+      }
       facingsRef.current = new Map()
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
@@ -146,6 +171,8 @@ export function useRoguelike(): RoguelikeController {
 
   const reset = useCallback(() => {
     runRef.current = null
+    recordingRef.current = null
+    playbackRef.current = null
     facingsRef.current = new Map()
     setDailyDate(null)
     setNotice('')
@@ -233,7 +260,8 @@ export function useRoguelike(): RoguelikeController {
   const dispatch = useCallback(
     (command: Command) => {
       const run = runRef.current
-      if (!run || run.status !== 'playing') return
+      if (!run || run.status !== 'playing' || playbackRef.current) return
+      recordingRef.current?.commands.push(command)
       present(run, applyCommand(run, command))
     },
     [present]
@@ -241,12 +269,25 @@ export function useRoguelike(): RoguelikeController {
 
   const autoStep = useCallback(() => {
     const run = runRef.current
-    if (!run || !isAutopilot(run) || !run.player.brain) return
+    if (!run) return
+    const playback = playbackRef.current
+    if (playback) {
+      const command = nextReplayCommand(run, playback.replay, playback.step)
+      if (!command) {
+        playbackRef.current = null
+        bump()
+        return
+      }
+      playback.step++
+      present(run, applyCommand(run, command))
+      return
+    }
+    if (!isAutopilot(run) || !run.player.brain) return
     present(
       run,
       applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
     )
-  }, [present])
+  }, [bump, present])
 
   const spectate = useCallback(() => {
     const run = runRef.current
@@ -312,7 +353,16 @@ export function useRoguelike(): RoguelikeController {
     reset,
     dispatch,
     useAbility,
-    autoplaying: runRef.current ? isAutopilot(runRef.current) : false,
+    autoplaying: runRef.current
+      ? playbackRef.current !== null
+        ? runRef.current.status === 'playing'
+        : isAutopilot(runRef.current)
+      : false,
+    replaying: playbackRef.current !== null,
+    recording:
+      runRef.current && runRef.current.status !== 'playing'
+        ? recordingRef.current
+        : null,
     autoStep,
     spectating: runRef.current ? canSpectate(runRef.current) : false,
     spectate,

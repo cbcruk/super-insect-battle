@@ -68,6 +68,7 @@ export function RoguelikeGame({
     spectate,
     skipSpectate,
     autoplaying,
+    replaying,
     autoStep,
   } = controller
   const stageHostRef = useRef<HTMLDivElement>(null)
@@ -205,7 +206,7 @@ export function RoguelikeGame({
             {progressLabel(run)} · 턴 {run.turn}
           </span>
           {autoplaying ? (
-            <span>AI 대 AI 관전 중</span>
+            <span>{replaying ? '리플레이 재생 중' : 'AI 대 AI 관전 중'}</span>
           ) : (
             <span className="hidden sm:inline">
               이동 방향키·hjkl · 스킬 숫자 · 대기 .

@@ -62,6 +62,14 @@ export {
   showdownWinner,
   type ShowdownOptions,
 } from './showdown'
+export {
+  createDuelReplay,
+  startDuelReplay,
+  nextReplayCommand,
+  playDuelReplay,
+  isDuelReplay,
+  type DuelReplay,
+} from './duel-replay'
 export { createDuelRun, isAutopilot, type DuelOptions } from './duel'
 export {
   absorbCubes,
