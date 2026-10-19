@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { createAIPlayer } from './ai-player'
+import { chooseAIAction, createAIPlayer } from './ai-player'
 import { createBattleArthropod } from './battle-engine'
 import { arthropods } from '../data/arthropods'
 import { getActionsByIds } from '../data/actions'
 import { getRandomEnvironment } from './environment'
+import { createRng } from './rng'
 import type { BattleContext } from '../types/player'
 
 function createTestContext(
@@ -58,5 +59,27 @@ describe('AIPlayer', () => {
 
     expect(action).toBeDefined()
     expect(action.id).toBeDefined()
+  })
+})
+
+describe('chooseAIAction', () => {
+  it('picks only from the given candidates at every difficulty', () => {
+    const { self, opponent } = createTestContext()
+    const candidates = getActionsByIds(self.actions).slice(1, 3)
+    const ids = candidates.map((a) => a.id)
+    const rng = createRng(4)
+
+    for (const difficulty of ['easy', 'medium', 'hard'] as const) {
+      for (let i = 0; i < 20; i++) {
+        const action = chooseAIAction(
+          self,
+          opponent,
+          candidates,
+          { difficulty },
+          rng
+        )
+        expect(ids).toContain(action.id)
+      }
+    }
   })
 })
