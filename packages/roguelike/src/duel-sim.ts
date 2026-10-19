@@ -1,14 +1,17 @@
 import type { Arthropod } from '@super-insect-battle/engine'
-import { createDuelRun } from './duel'
+import { createDuelRun, duelOutcome } from './duel'
 import { applyCommand, type RunState } from './run'
 
 const MAX_TURNS = 1000
 
 /** {@linkcode duelBatch}의 집계. */
 export interface DuelBatchResult {
+  /** 돌린 판 수. */
   games: number
   /** 1P가 이긴 판 수. */
   playerWins: number
+  /** 같은 턴에 둘 다 쓰러졌거나 턴 상한에 걸린 판 수. */
+  draws: number
   /** 판당 평균 턴. */
   averageTurns: number
 }
@@ -36,7 +39,7 @@ export function runAutoDuel(
 }
 
 /**
- * 시드 `firstSeed`부터 `games`판을 AI 대 AI로 돌려 1P 승률과 평균 턴을 낸다.
+ * 시드 `firstSeed`부터 `games`판을 AI 대 AI로 돌려 1P 승수·무승부·평균 턴을 낸다.
  *
  * @example
  * ```ts
@@ -58,15 +61,19 @@ export function duelBatch(
   firstSeed = 1
 ): DuelBatchResult {
   let playerWins = 0
+  let draws = 0
   let turns = 0
   for (let i = 0; i < games; i++) {
     const run = runAutoDuel(playerSpecies, opponentSpecies, firstSeed + i)
-    if (run.status === 'won') playerWins++
+    const outcome = duelOutcome(run)
+    if (outcome === 'player') playerWins++
+    else if (outcome !== 'opponent') draws++
     turns += run.stats.endTurn ?? run.turn
   }
   return {
     games,
     playerWins,
+    draws,
     averageTurns: games > 0 ? turns / games : 0,
   }
 }

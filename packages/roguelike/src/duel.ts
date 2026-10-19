@@ -114,3 +114,23 @@ export function createDuelRun(opts: DuelOptions): RunState {
 export function isAutopilot(run: RunState): boolean {
   return run.status === 'playing' && run.player.brain !== undefined
 }
+
+/** 격자 매치업의 판정. `'undecided'`는 아직 진행 중인 판. */
+export type DuelOutcome = 'player' | 'opponent' | 'draw' | 'undecided'
+
+/**
+ * 격자 매치업의 승패를 생존자로 판정한다.
+ *
+ * 같은 턴에 둘 다 쓰러지면 먼저 쓰러진 쪽과 상관없이 무승부다. `run.status`는 먼저
+ * 쓰러진 쪽만 보고 정해지므로 승패 표시에는 이 함수를 쓴다.
+ */
+export function duelOutcome(run: RunState): DuelOutcome {
+  if (run.status === 'playing') return 'undecided'
+  const playerAlive = run.player.combat.currentHp > 0
+  const opponentAlive = run.level.actors.some(
+    (a) => a !== run.player && a.combat.currentHp > 0
+  )
+  if (playerAlive && !opponentAlive) return 'player'
+  if (opponentAlive && !playerAlive) return 'opponent'
+  return 'draw'
+}

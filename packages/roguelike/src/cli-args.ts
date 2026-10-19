@@ -26,13 +26,16 @@ export const PLAY_USAGE = [
 /**
  * 명령줄 인자를 실행 방식으로 해석한다.
  *
+ * pnpm이 그대로 넘기는 `--` 토큰은 무시한다.
+ *
  * @param randomSeed 시드를 주지 않았을 때 쓸 값.
  * @returns 해석할 수 없으면 사람이 읽을 오류 문구.
  */
 export function parsePlayArgs(
-  argv: string[],
+  rawArgv: string[],
   randomSeed: number
 ): PlayArgs | { error: string } {
+  const argv = rawArgv.filter((a) => a !== '--')
   const flags = argv.filter((a) => a.startsWith('--'))
   const words = argv.filter(
     (a, i) => !a.startsWith('--') && argv[i - 1] !== '--batch'
@@ -46,6 +49,9 @@ export function parsePlayArgs(
   if (words[0] !== 'duel') {
     if (flags.length > 0) return { error: `${flags[0]}는 duel에서만 씁니다` }
     const showdown = words[0] === 'showdown'
+    if (words.length > (showdown ? 2 : 1)) {
+      return { error: `남는 인자: ${words.slice(showdown ? 2 : 1).join(' ')}` }
+    }
     const seed = seedOf(showdown ? words[1] : words[0])
     if (seed === null) return { error: '시드는 정수여야 합니다' }
     return { mode: showdown ? 'showdown' : 'descent', seed }
@@ -53,6 +59,8 @@ export function parsePlayArgs(
 
   const [, playerId, opponentId, seedArg] = words
   if (!playerId || !opponentId) return { error: '1P와 상대 종 id가 필요합니다' }
+  if (words.length > 4)
+    return { error: `남는 인자: ${words.slice(4).join(' ')}` }
   const batchAt = argv.indexOf('--batch')
   // 배치는 시드를 안 주면 1부터 돌려 결과를 재현할 수 있게 한다
   const seed = batchAt >= 0 && seedArg === undefined ? 1 : seedOf(seedArg)
@@ -67,6 +75,12 @@ export function parsePlayArgs(
   }
   const unknown = flags.find((f) => f !== '--auto' && f !== '--batch')
   if (unknown) return { error: `알 수 없는 옵션: ${unknown}` }
+  if (new Set(flags).size !== flags.length) {
+    return { error: '같은 옵션을 두 번 줬습니다' }
+  }
+  if (flags.includes('--auto') && batch !== null) {
+    return { error: '--auto와 --batch는 함께 쓸 수 없습니다' }
+  }
 
   return {
     mode: 'duel',

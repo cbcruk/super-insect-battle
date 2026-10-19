@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getArthropodById } from '@super-insect-battle/engine'
+import { createDuelRun, duelOutcome } from './duel'
 import { duelBatch, runAutoDuel } from './duel-sim'
 import { duelReport } from './render'
 
@@ -28,6 +29,34 @@ describe('duel sim', () => {
       (seed) => runAutoDuel(mantis, scorpion, seed).status === 'won'
     ).length
     expect(result).toMatchObject({ games: 5, playerWins: wins })
+    expect(result.draws).toBeGreaterThanOrEqual(0)
     expect(result.averageTurns).toBeGreaterThan(0)
+  })
+
+  it('calls a double knockout a draw whichever side fell first', () => {
+    for (const status of ['won', 'dead'] as const) {
+      const run = createDuelRun({
+        playerSpecies: species('mantis'),
+        opponentSpecies: species('scorpion'),
+        seed: 1,
+      })
+      for (const actor of run.level.actors) actor.combat.currentHp = 0
+      run.status = status
+      expect(duelOutcome(run)).toBe('draw')
+      expect(duelReport(run)).toMatch(/^무승부/)
+    }
+  })
+
+  it('reads a finished duel from the survivor', () => {
+    const run = createDuelRun({
+      playerSpecies: species('mantis'),
+      opponentSpecies: species('scorpion'),
+      seed: 1,
+    })
+    expect(duelOutcome(run)).toBe('undecided')
+    run.player.combat.currentHp = 0
+    run.status = 'dead'
+    expect(duelOutcome(run)).toBe('opponent')
+    expect(duelReport(run)).toMatch(/^승자: 전갈\(상대\)/)
   })
 })

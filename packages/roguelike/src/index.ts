@@ -62,7 +62,13 @@ export {
   showdownWinner,
   type ShowdownOptions,
 } from './showdown'
-export { createDuelRun, isAutopilot, type DuelOptions } from './duel'
+export {
+  createDuelRun,
+  isAutopilot,
+  duelOutcome,
+  type DuelOptions,
+  type DuelOutcome,
+} from './duel'
 export { runAutoDuel, duelBatch, type DuelBatchResult } from './duel-sim'
 export {
   absorbCubes,

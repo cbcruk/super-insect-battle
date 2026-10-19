@@ -47,9 +47,24 @@ describe('parsePlayArgs', () => {
       ['duel', 'mantis', 'scorpion', '--batch', '0'],
       ['duel', 'mantis', 'scorpion', '--fast'],
       ['showdown', '--auto'],
+      ['duel', 'mantis', 'scorpion', '5', '6'],
+      ['showdown', '9', 'x'],
+      ['7', '8'],
+      ['duel', 'mantis', 'scorpion', '--auto', '--batch', '3'],
+      ['duel', 'mantis', 'scorpion', '--auto', '--auto'],
     ]
     for (const argv of bad) {
       expect(parsePlayArgs(argv, RANDOM)).toHaveProperty('error')
     }
+  })
+
+  it('ignores the -- separator pnpm passes through', () => {
+    expect(parsePlayArgs(['--', '7'], RANDOM)).toEqual({
+      mode: 'descent',
+      seed: 7,
+    })
+    expect(
+      parsePlayArgs(['--', 'duel', 'mantis', 'scorpion', '3', '--auto'], RANDOM)
+    ).toMatchObject({ mode: 'duel', seed: 3, auto: true })
   })
 })

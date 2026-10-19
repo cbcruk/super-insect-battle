@@ -79,7 +79,7 @@ if (args.mode === 'duel' && args.batch !== null) {
     `${player.nameKo} vs ${opponent.nameKo} · 시드 ${seed}~${seed + result.games - 1}`
   )
   console.log(
-    `1P 승률 ${rate}% (${result.playerWins}/${result.games}) · 평균 ${result.averageTurns.toFixed(1)}턴`
+    `1P 승률 ${rate}% (${result.playerWins}/${result.games}, 무승부 ${result.draws}) · 평균 ${result.averageTurns.toFixed(1)}턴`
   )
   process.exit(0)
 }
