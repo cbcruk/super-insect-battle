@@ -83,6 +83,12 @@ export const MISS_LINES = [
   (atk: string): string => `${atk}, 빗맞았다. 기회를 날린다.`,
 ]
 
+export const FIZZLE_LINES = [
+  (atk: string, move: string): string => `${atk}의 ${move}, 그러나 실패했다!`,
+  (atk: string, move: string): string =>
+    `${atk}, ${move}${eulReul(move)} 시도하지만 뜻대로 되지 않는다.`,
+]
+
 export const MOVE_LINES: Record<
   MoveIntent,
   ((atk: string, move: string) => string)[]

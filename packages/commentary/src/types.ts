@@ -43,6 +43,8 @@ export interface MissEvent {
   attackerName: string
   defenderName: string
   move: string
+  /** 상대를 노리지 않는 자기 대상 기술이 실패했다. "피했다"류 대신 실패로 중계한다. */
+  selfTarget?: boolean
 }
 
 export type MoveIntent =
