@@ -21,6 +21,20 @@ describe('duel sim', () => {
     )
   })
 
+  it('passes the opponent AI settings to the opponent brain', () => {
+    const mantis = species('mantis')
+    const beetle = species('dung_beetle')
+    const differs = Array.from({ length: 20 }, (_, i) => i + 1).some(
+      (seed) =>
+        duelReport(runAutoDuel(beetle, mantis, seed)) !==
+        duelReport(runAutoDuel(beetle, mantis, seed, { difficulty: 'easy' }))
+    )
+    expect(differs).toBe(true)
+    expect(
+      duelBatch(beetle, mantis, 20, 1, { difficulty: 'easy' })
+    ).not.toEqual(duelBatch(beetle, mantis, 20, 1))
+  })
+
   it('tallies a batch over consecutive seeds', () => {
     const mantis = species('mantis')
     const scorpion = species('scorpion')

@@ -19,6 +19,8 @@ export interface DuelBatchResult {
 /**
  * AI 대 AI 격자 매치업 한 판을 화면 없이 끝까지 돌린다.
  *
+ * `opponentAI`는 상대 AI에만 적용된다. 1P 쪽 AI는 항상 기본값이다.
+ *
  * @returns 끝난 런. 독가스가 판을 끝내므로 보통 수십 턴 안에 결판이 난다.
  */
 export function runAutoDuel(

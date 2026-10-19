@@ -94,6 +94,23 @@ describe('parsePlayArgs', () => {
     }
   })
 
+  it('reports a repeated value flag as a duplicate', () => {
+    expect(
+      parsePlayArgs(
+        [
+          'duel',
+          'mantis',
+          'scorpion',
+          '--difficulty',
+          'brutal',
+          '--difficulty',
+          'easy',
+        ],
+        RANDOM
+      )
+    ).toEqual({ error: '같은 옵션을 두 번 줬습니다' })
+  })
+
   it('ignores the -- separator pnpm passes through', () => {
     expect(parsePlayArgs(['--', '7'], RANDOM)).toEqual({
       mode: 'descent',

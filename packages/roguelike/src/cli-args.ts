@@ -86,6 +86,11 @@ export function parsePlayArgs(
   if (!playerId || !opponentId) return { error: '1P와 상대 종 id가 필요합니다' }
   if (words.length > 4)
     return { error: `남는 인자: ${words.slice(4).join(' ')}` }
+  const unknown = flags.find((f) => !KNOWN_FLAGS.includes(f))
+  if (unknown) return { error: `알 수 없는 옵션: ${unknown}` }
+  if (new Set(flags).size !== flags.length) {
+    return { error: '같은 옵션을 두 번 줬습니다' }
+  }
   const batchAt = argv.indexOf('--batch')
   // 배치는 시드를 안 주면 1부터 돌려 결과를 재현할 수 있게 한다
   const seed = batchAt >= 0 && seedArg === undefined ? 1 : seedOf(seedArg)
@@ -109,11 +114,6 @@ export function parsePlayArgs(
     return {
       error: `--personality는 ${PERSONALITIES.join(', ')} 중 하나입니다`,
     }
-  }
-  const unknown = flags.find((f) => !KNOWN_FLAGS.includes(f))
-  if (unknown) return { error: `알 수 없는 옵션: ${unknown}` }
-  if (new Set(flags).size !== flags.length) {
-    return { error: '같은 옵션을 두 번 줬습니다' }
   }
   if (flags.includes('--auto') && batch !== null) {
     return { error: '--auto와 --batch는 함께 쓸 수 없습니다' }
