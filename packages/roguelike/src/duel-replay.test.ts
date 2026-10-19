@@ -72,6 +72,25 @@ describe('duel replay', () => {
     }
   })
 
+  it('replays with the recorded opponent AI settings', () => {
+    for (let seed = 1; seed <= 5; seed++) {
+      const opts: DuelOptions = {
+        ...options(seed, true),
+        opponentAI: { difficulty: 'hard', personality: 'aggressive' },
+      }
+      const run = createDuelRun(opts)
+      while (run.status === 'playing' && run.player.brain) {
+        applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
+      }
+      const copy = JSON.parse(JSON.stringify(createDuelReplay(opts))) as unknown
+      expect(isDuelReplay(copy)).toBe(true)
+      if (isDuelReplay(copy)) {
+        expect(copy.opponentAI).toEqual(opts.opponentAI)
+        expect(summary(playDuelReplay(copy)!)).toBe(summary(run))
+      }
+    }
+  })
+
   it('rejects malformed records and unknown species', () => {
     expect(isDuelReplay(null)).toBe(false)
     expect(isDuelReplay({ version: 2 })).toBe(false)

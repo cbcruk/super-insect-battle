@@ -1,4 +1,7 @@
-import { getArthropodById } from '@super-insect-battle/engine'
+import {
+  getArthropodById,
+  type AIPlayerOptions,
+} from '@super-insect-battle/engine'
 import type { Command } from './command'
 import { createDuelRun, type DuelOptions } from './duel'
 import { applyCommand, type RunState } from './run'
@@ -15,6 +18,8 @@ export interface DuelReplay {
   playerSpeciesId: string
   opponentSpeciesId: string
   autopilot: boolean
+  /** 상대 AI의 난이도·성격. 없으면 기본값으로 재생한다. */
+  opponentAI?: AIPlayerOptions
   /** 플레이어가 직접 내린 명령, 턴 순. AI 대 AI면 비어 있다. */
   commands: Command[]
 }
@@ -27,6 +32,7 @@ export function createDuelReplay(opts: DuelOptions): DuelReplay {
     playerSpeciesId: opts.playerSpecies.id,
     opponentSpeciesId: opts.opponentSpecies.id,
     autopilot: opts.autopilot ?? false,
+    ...(opts.opponentAI && { opponentAI: { ...opts.opponentAI } }),
     commands: [],
   }
 }
@@ -45,6 +51,7 @@ export function startDuelReplay(replay: DuelReplay): RunState | null {
     opponentSpecies,
     seed: replay.seed,
     autopilot: replay.autopilot,
+    opponentAI: replay.opponentAI,
   })
 }
 

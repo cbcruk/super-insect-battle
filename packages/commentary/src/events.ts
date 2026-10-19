@@ -15,7 +15,8 @@ import type {
 } from './types'
 import { eunNeun } from './particles'
 
-function classifyNote(text: string): NoteCause {
+/** 엔진 상태 메시지 문구로 상태 변화의 원인을 분류한다. */
+export function classifyNote(text: string): NoteCause {
   if (text.includes('속박에서 벗어났') || text.includes('잠에서 깨어났')) {
     return text.includes('속박') ? 'freed' : 'wake'
   }
@@ -28,7 +29,8 @@ function classifyNote(text: string): NoteCause {
   return 'other'
 }
 
-function moveIntentOf(action: Action): MoveIntent {
+/** 피해 없는 기술이 노리는 바(방어·강화·약화·상태이상 등)를 고른다. */
+export function moveIntentOf(action: Action): MoveIntent {
   if (action.id === 'flee') return 'flee'
   if (action.id === 'brace') return 'brace'
 
@@ -57,7 +59,8 @@ function other(side: Side): Side {
 
 const PLACEHOLDER = '은(는)'
 
-function fixSubjectParticle(text: string, subject: string): string {
+/** 엔진 문구의 `은(는)` 자리표시를 주어에 맞는 조사로 바꾼다. */
+export function fixSubjectParticle(text: string, subject: string): string {
   const prefix = `${subject}${PLACEHOLDER}`
   if (text.startsWith(prefix)) {
     return `${subject}${eunNeun(subject)}${text.slice(prefix.length)}`
@@ -65,7 +68,8 @@ function fixSubjectParticle(text: string, subject: string): string {
   return text
 }
 
-function magnitudeOf(damage: number, maxHp: number): Magnitude {
+/** 피해량을 최대 HP 대비 네 단계 세기로 나눈다. */
+export function magnitudeOf(damage: number, maxHp: number): Magnitude {
   const ratio = maxHp > 0 ? damage / maxHp : 0
   if (ratio < 0.06) return 'glance'
   if (ratio < 0.13) return 'solid'
@@ -73,7 +77,8 @@ function magnitudeOf(damage: number, maxHp: number): Magnitude {
   return 'crushing'
 }
 
-function matchupOf(styleMatchup: number | undefined): Matchup {
+/** 스타일 상성 배율을 유리·불리·중립으로 옮긴다. 없으면 중립. */
+export function matchupOf(styleMatchup: number | undefined): Matchup {
   if (styleMatchup === undefined) return 'neutral'
   if (styleMatchup > 1) return 'up'
   if (styleMatchup < 1) return 'down'
