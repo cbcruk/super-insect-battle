@@ -4,6 +4,7 @@ import {
   getAvailableActions,
   getActionTargeting,
   getActionRange,
+  type Action,
   type AIDifficulty,
   type AIPersonality,
 } from '@super-insect-battle/engine'
@@ -58,7 +59,8 @@ const GRID_INERT_ACTIONS = new Set(['flee', 'brace'])
  *
  * 기술 후보는 지금 위치에서 쓸 수 있는 것으로 거른다: 사거리·시야선이 닿는 공격과
  * 자기 대상 기술. 닿는 공격이 하나도 없으면 자기 강화만 하며 서 있지 않고 다가간다.
- * 강화 기술은 대상 능력치가 2단계에 이르면 후보에서 빠진다.
+ * 자기 능력치를 올리는 기술은 그 능력치가 2단계에 이르면 후보에서 빠진다. 피해를 주며
+ * 자기를 강화하는 공격(구르기 등)도 마찬가지다.
  *
  * 적을 시야(반경 {@linkcode SIGHT_RADIUS}·시선)에서 처음 발견하기 전까지는
  * 제자리에 머문다. 한 번 발견한 적은 시야에서 사라져도 계속 추적하고, 시야 안에
@@ -138,7 +140,7 @@ function pickSkill(
   const usable = getAvailableActions(
     getActionsByIds(actor.combat.actions),
     actor.combat
-  ).filter((a) => !GRID_INERT_ACTIONS.has(a.id))
+  ).filter((a) => !GRID_INERT_ACTIONS.has(a.id) && !isSelfBuffCapped(actor, a))
 
   const reaching = usable.filter(
     (a) =>
@@ -148,12 +150,7 @@ function pickSkill(
   )
   if (reaching.length === 0) return null
 
-  const self = usable.filter(
-    (a) =>
-      getActionTargeting(a) === 'self' &&
-      (!a.effect?.statChange ||
-        actor.combat.statStages[a.effect.statChange.stat] < SELF_BUFF_STAGE_CAP)
-  )
+  const self = usable.filter((a) => getActionTargeting(a) === 'self')
   const action = chooseAIAction(
     actor.combat,
     foe.combat,
@@ -163,6 +160,12 @@ function pickSkill(
   )
   const at = getActionTargeting(action) === 'self' ? actor.pos : foe.pos
   return { type: 'ability', actionId: action.id, target: { ...at } }
+}
+
+function isSelfBuffCapped(actor: Actor, action: Action): boolean {
+  const effect = action.effect
+  if (effect?.target !== 'self' || !effect.statChange) return false
+  return actor.combat.statStages[effect.statChange.stat] >= SELF_BUFF_STAGE_CAP
 }
 
 function occupiedBy(

@@ -285,4 +285,71 @@ describe('smart-brain skill choice', () => {
       }
     }
   })
+
+  it('stops rolling once evasion is raised, then attacks without the buff', () => {
+    const map = corridor(6)
+    const player = createActor('p', species('mantis'), { x: 1, y: 1 }, 'player')
+    const enemy = createActor('e', species('dung_beetle'), { x: 2, y: 1 }, 'e')
+    const level: Level = {
+      depth: 1,
+      map,
+      actors: [player, enemy],
+      environment: ENV,
+      exit: null,
+    }
+    const run = createRun({ player, level, seed: 1 })
+    enemy.combat.statStages = { strength: 0, defense: 2, evasion: 2 }
+
+    for (let i = 0; i < 10; i++) {
+      const command = createSmartBrain({
+        difficulty: 'hard',
+        personality: 'defensive',
+      }).decide(enemy, run, run.rng)
+      expect(command.type === 'ability' && command.actionId).not.toBe(
+        'shell_roll'
+      )
+    }
+  })
+})
+
+describe('shell roll on the grid', () => {
+  it('damages the target and raises evasion only on a hit', () => {
+    let hits = 0
+    for (let seed = 1; seed <= 40; seed++) {
+      const map = corridor(6)
+      const player = createActor(
+        'p',
+        species('dung_beetle'),
+        { x: 1, y: 1 },
+        'player'
+      )
+      const enemy = createActor('e', species('mantis'), { x: 2, y: 1 }, 'e')
+      const level: Level = {
+        depth: 1,
+        map,
+        actors: [player, enemy],
+        environment: ENV,
+        exit: null,
+      }
+      const run = createRun({ player, level, seed })
+      const events = applyCommand(run, {
+        type: 'ability',
+        actionId: 'shell_roll',
+        target: { ...enemy.pos },
+      })
+      const attack = events.find(
+        (e) => e.type === 'attack' && e.outcome.attackerId === 'p'
+      )
+      expect(attack?.type).toBe('attack')
+      if (attack?.type !== 'attack') continue
+      if (attack.outcome.hit) {
+        hits++
+        expect(attack.outcome.damage).toBeGreaterThan(0)
+        expect(player.combat.statStages.evasion).toBe(1)
+      } else {
+        expect(player.combat.statStages.evasion).toBe(0)
+      }
+    }
+    expect(hits).toBeGreaterThan(0)
+  })
 })
