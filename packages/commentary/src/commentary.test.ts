@@ -3,10 +3,10 @@ import {
   arthropodList,
   createRng,
   simulateBattle,
+  type BattleLogEntry,
   type BattleState,
 } from '@super-insect-battle/engine'
 import { buildFeed, deriveEvents, narrate } from './index'
-import type { BattleLogEntry } from '@super-insect-battle/engine'
 
 const SEEDS = [1, 7, 42, 2024, 99999]
 
@@ -115,6 +115,12 @@ describe('misses', () => {
       expect(kinds).toContain('miss')
       expect(kinds).not.toContain('move')
     }
+  })
+
+  it('falls back to the engine wording for logs without the missed flag', () => {
+    const legacy = { ...entry('web_trap', true), missed: undefined }
+    const kinds = deriveEvents(withLog([legacy])).map((e) => e.kind)
+    expect(kinds).toContain('miss')
   })
 
   it('still narrates a landed self buff as the move', () => {
