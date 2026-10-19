@@ -1,23 +1,30 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../ui/button.tsx'
-import { deleteGridReplay, loadGridReplays } from '../../lib/grid-replays.ts'
+import {
+  deleteGridReplay,
+  getReplayStorage,
+  loadGridReplays,
+} from '../../lib/grid-replays.ts'
 import type { SavedGridReplay } from '../../lib/grid-replays.types.ts'
 
 /** 저장된 격자 매치업 리플레이 목록. 재생하면 아레나 화면으로 넘어간다. */
 export function GridReplayList(): React.ReactNode {
   const navigate = useNavigate()
-  const [replays, setReplays] = useState<SavedGridReplay[]>(() =>
-    loadGridReplays(localStorage)
-  )
+  const [replays, setReplays] = useState<SavedGridReplay[]>(() => {
+    const storage = getReplayStorage()
+    return storage ? loadGridReplays(storage) : []
+  })
 
   function handleDelete(id: string): void {
+    const storage = getReplayStorage()
+    if (!storage) return
     try {
-      deleteGridReplay(localStorage, id)
+      deleteGridReplay(storage, id)
     } catch {
       return
     }
-    setReplays(loadGridReplays(localStorage))
+    setReplays(loadGridReplays(storage))
   }
 
   return (
@@ -41,7 +48,8 @@ export function GridReplayList(): React.ReactNode {
                 <span className="text-pink-400">{r.opponentName}</span>
                 <span className="ml-2 text-xs text-muted-foreground">
                   {r.replay.autopilot ? 'AI 대 AI' : '직접 조종'} ·{' '}
-                  {r.totalTurns}턴 · {r.winnerName} 승
+                  {r.totalTurns}턴 ·{' '}
+                  {r.winnerName ? `${r.winnerName} 승` : '무승부'}
                 </span>
               </span>
               <Button

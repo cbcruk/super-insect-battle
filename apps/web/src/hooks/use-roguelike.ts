@@ -105,7 +105,11 @@ export function useRoguelike(): RoguelikeController {
     heavy: false,
   })
   const recordingRef = useRef<DuelReplay | null>(null)
-  const playbackRef = useRef<{ replay: DuelReplay; step: number } | null>(null)
+  const playbackRef = useRef<{
+    replay: DuelReplay
+    step: number
+    ended: boolean
+  } | null>(null)
   const nextId = useRef(0)
   const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
   const timers = useRef<number[]>([])
@@ -131,7 +135,7 @@ export function useRoguelike(): RoguelikeController {
         const replayed = startDuelReplay(opts.replay)
         if (!replayed) return
         runRef.current = replayed
-        playbackRef.current = { replay: opts.replay, step: 0 }
+        playbackRef.current = { replay: opts.replay, step: 0, ended: false }
       } else {
         const species = getArthropodById(opts.speciesId)
         if (!species) return
@@ -260,7 +264,14 @@ export function useRoguelike(): RoguelikeController {
   const dispatch = useCallback(
     (command: Command) => {
       const run = runRef.current
-      if (!run || run.status !== 'playing' || playbackRef.current) return
+      if (
+        !run ||
+        run.status !== 'playing' ||
+        playbackRef.current ||
+        isAutopilot(run)
+      ) {
+        return
+      }
       recordingRef.current?.commands.push(command)
       present(run, applyCommand(run, command))
     },
@@ -274,7 +285,10 @@ export function useRoguelike(): RoguelikeController {
     if (playback) {
       const command = nextReplayCommand(run, playback.replay, playback.step)
       if (!command) {
-        playbackRef.current = null
+        playback.ended = true
+        setNotice(
+          '기록이 끝났습니다. 규칙이 바뀌어 원본과 달라졌을 수 있습니다.'
+        )
         bump()
         return
       }
@@ -355,7 +369,7 @@ export function useRoguelike(): RoguelikeController {
     useAbility,
     autoplaying: runRef.current
       ? playbackRef.current !== null
-        ? runRef.current.status === 'playing'
+        ? runRef.current.status === 'playing' && !playbackRef.current.ended
         : isAutopilot(runRef.current)
       : false,
     replaying: playbackRef.current !== null,

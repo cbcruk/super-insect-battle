@@ -6,7 +6,11 @@ import { useRoguelike } from '../hooks/use-roguelike.ts'
 import { RoguelikeGame } from '../components/roguelike/roguelike-game.tsx'
 import { DuelResult } from '../components/roguelike/duel-result.tsx'
 import { Button } from '../components/ui/button.tsx'
-import { findGridReplay, saveGridReplay } from '../lib/grid-replays.ts'
+import {
+  findGridReplay,
+  getReplayStorage,
+  saveGridReplay,
+} from '../lib/grid-replays.ts'
 
 /**
  * 격자 매치업 화면. 매치업 설정에서 고른 두 곤충을 로그라이크 규칙의 작은 아레나에
@@ -20,12 +24,13 @@ export function ArenaPage(): React.ReactNode {
   const controller = useRoguelike()
   const { newRun } = controller
   const [savedRun, setSavedRun] = useState<RunState | null>(null)
+  const [saveFailed, setSaveFailed] = useState<RunState | null>(null)
 
   const replayId = params.get('replay')
-  const saved = useMemo(
-    () => (replayId ? findGridReplay(localStorage, replayId) : undefined),
-    [replayId]
-  )
+  const saved = useMemo(() => {
+    const storage = getReplayStorage()
+    return replayId && storage ? findGridReplay(storage, replayId) : undefined
+  }, [replayId])
   const playerId = params.get('player') ?? ''
   const opponentId = params.get('opponent') ?? ''
   const autopilot = params.get('mode') === 'ai-vs-ai'
@@ -69,12 +74,14 @@ export function ArenaPage(): React.ReactNode {
   if (!run) return null
 
   function handleSave(): void {
+    const storage = getReplayStorage()
     if (!run || !recording) return
     try {
-      saveGridReplay(localStorage, run, recording)
+      if (!storage) throw new Error('storage unavailable')
+      saveGridReplay(storage, run, recording)
       setSavedRun(run)
     } catch {
-      // 저장소를 쓸 수 없으면 버튼을 그대로 둔다
+      setSaveFailed(run)
     }
   }
 
@@ -95,6 +102,11 @@ export function ArenaPage(): React.ReactNode {
             >
               {savedRun === run ? '리플레이 저장됨' : '리플레이 저장'}
             </Button>
+          )}
+          {saveFailed === run && savedRun !== run && (
+            <p className="text-[11px] text-red-400">
+              저장하지 못했습니다. 브라우저 저장소를 확인하세요.
+            </p>
           )}
         </>
       }

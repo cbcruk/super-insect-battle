@@ -279,7 +279,7 @@ export function RoguelikeGame({
               <button
                 key={action.id}
                 onClick={() => useAbility(i)}
-                disabled={cd > 0 || run.status !== 'playing'}
+                disabled={cd > 0 || run.status !== 'playing' || autoplaying}
                 className="flex flex-col items-start rounded border border-white/10 bg-white/[0.02] px-2 py-1 text-left text-[11px] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
               >
                 <span className="font-medium">

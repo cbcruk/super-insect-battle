@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getArthropodById } from '@super-insect-battle/engine'
 import {
+  applyCommand,
   createDuelReplay,
   createDuelRun,
   type DuelOptions,
@@ -34,6 +35,7 @@ describe('grid replays', () => {
     const storage = memoryStorage()
     const run = createDuelRun(OPTS)
     run.status = 'dead'
+    run.player.combat.currentHp = 0
     const a = saveGridReplay(storage, run, createDuelReplay(OPTS), 1)
     const b = saveGridReplay(storage, run, createDuelReplay(OPTS), 2)
 
@@ -55,5 +57,22 @@ describe('grid replays', () => {
     expect(loadGridReplays(storage)).toEqual([])
     storage.setItem('sib-grid-replays', JSON.stringify([{ id: 'x' }]))
     expect(loadGridReplays(storage)).toEqual([])
+  })
+
+  it('names the opponent even after the player wins and it leaves the arena', () => {
+    const storage = memoryStorage()
+    for (let seed = 1; seed <= 20; seed++) {
+      const opts = { ...OPTS, seed }
+      const run = createDuelRun(opts)
+      while (run.status === 'playing' && run.player.brain) {
+        applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
+      }
+      if (run.status !== 'won') continue
+      expect(
+        saveGridReplay(storage, run, createDuelReplay(opts))
+      ).toMatchObject({ opponentName: '전갈', winnerName: '사마귀' })
+      return
+    }
+    throw new Error('no winning seed')
   })
 })
