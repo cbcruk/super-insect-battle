@@ -6,12 +6,9 @@ import {
 } from '@super-insect-battle/engine'
 import {
   chebyshev,
-  posKey,
-  tileAt,
   zoneRadius,
   type GridEvent,
   type RunState,
-  type Vec2,
 } from '@super-insect-battle/roguelike'
 import {
   classifyNote,
@@ -22,6 +19,7 @@ import {
 } from './events'
 import { createNarrator, Rotation } from './narrator'
 import { INTRO_LINES } from './phrases'
+import { enteredGrass, inGrass, seenLeaving } from './grid.utils'
 import {
   AMBUSH_LINES,
   ARENA_INTRO_LINES,
@@ -29,6 +27,7 @@ import {
   GAS_LAST_LINES,
   GAS_SHRINK_LINES,
   HIDE_LINES,
+  NO_EFFECT_LINES,
   RANGED_LINES,
 } from './grid-phrases'
 import type { BattleEvent, CommentaryLine, Side } from './types'
@@ -56,7 +55,11 @@ export interface GridNarrator {
  * @example
  * ```ts
  * import { getArthropodById } from '@super-insect-battle/engine'
- * import { applyCommand, createDuelRun } from '@super-insect-battle/roguelike'
+ * import {
+ *   applyCommand,
+ *   createDuelRun,
+ *   isEventVisible,
+ * } from '@super-insect-battle/roguelike'
  * import { createGridNarrator } from '@super-insect-battle/commentary'
  *
  * const run = createDuelRun({
@@ -66,7 +69,10 @@ export interface GridNarrator {
  * })
  * const narrator = createGridNarrator(run)
  * const lines = [...narrator.intro()]
- * lines.push(...narrator.next(applyCommand(run, { type: 'wait' }), run))
+ * const events = applyCommand(run, { type: 'wait' }).filter((e) =>
+ *   isEventVisible(e, run.level.visible)
+ * )
+ * lines.push(...narrator.next(events, run))
  * ```
  */
 export function createGridNarrator(run: RunState): GridNarrator {
@@ -118,11 +124,30 @@ export function createGridNarrator(run: RunState): GridNarrator {
         lines.push(...battle.next(event))
       }
 
+      const { zone } = state.level
+      if (zone && lastRadius !== null) {
+        const radius = zoneRadius(zone, turn)
+        if (radius < lastRadius) {
+          lines.push({
+            text:
+              radius === 0
+                ? r.pick('gasLast', GAS_LAST_LINES)()
+                : r.pick('gasShrink', GAS_SHRINK_LINES)(radius),
+            emphasis: 'strong',
+            turn,
+          })
+        }
+        lastRadius = radius
+      }
+
       for (const event of events) {
         if (event.type === 'move') {
           if (!inGrass(state, event.to)) lurking.delete(event.actorId)
           else if (!inGrass(state, event.from)) lurking.add(event.actorId)
-          if (enteredGrass(state, event.from, event.to) && seen(state, event)) {
+          if (
+            enteredGrass(state, event.from, event.to) &&
+            seenLeaving(state, event)
+          ) {
             lines.push({
               text: r.pick('hide', HIDE_LINES)(nameOf(event.actorId)),
               emphasis: 'normal',
@@ -153,6 +178,22 @@ export function createGridNarrator(run: RunState): GridNarrator {
               damage: event.damage,
             })
           }
+        } else if (
+          event.type === 'message' &&
+          event.actorId &&
+          !event.actionId
+        ) {
+          const name = nameOf(event.actorId)
+          say({
+            kind: 'note',
+            turn,
+            side: sideOf(event.actorId),
+            name,
+            cause: event.text.includes('풀렸')
+              ? 'other'
+              : classifyNote(event.text),
+            text: fixSubjectParticle(event.text, name),
+          })
         } else if (event.type === 'message' && event.actionId) {
           const action = getActionById(event.actionId)
           if (action && event.actorId) {
@@ -173,22 +214,6 @@ export function createGridNarrator(run: RunState): GridNarrator {
             name: nameOf(event.actorId),
           })
         }
-      }
-
-      const { zone } = state.level
-      if (zone && lastRadius !== null) {
-        const radius = zoneRadius(zone, turn)
-        if (radius < lastRadius) {
-          lines.push({
-            text:
-              radius === 0
-                ? r.pick('gasLast', GAS_LAST_LINES)()
-                : r.pick('gasShrink', GAS_SHRINK_LINES)(radius),
-            emphasis: 'strong',
-            turn,
-          })
-        }
-        lastRadius = radius
       }
 
       if (state.status !== 'playing') {
@@ -250,6 +275,23 @@ export function createGridNarrator(run: RunState): GridNarrator {
       })
     }
 
+    if (
+      outcome.hit &&
+      outcome.damage === 0 &&
+      action.effect?.type === 'status' &&
+      !outcome.statusApplied
+    ) {
+      return [
+        ...lead,
+        {
+          text: r.pick('noEffect', NO_EFFECT_LINES)(atkName, action.nameKo),
+          emphasis: 'normal',
+          actor: side,
+          turn,
+        },
+      ]
+    }
+
     const body = battle.next(
       !outcome.hit
         ? {
@@ -282,8 +324,8 @@ export function createGridNarrator(run: RunState): GridNarrator {
                 outcome.defenderHp / defender.combat.maxHp
               ),
               appliedStatus:
-                action.effect?.type === 'status' && action.effect.condition
-                  ? statusConditionNames[action.effect.condition]
+                outcome.statusApplied && !outcome.defeated
+                  ? statusConditionNames[outcome.statusApplied]
                   : undefined,
             }
           : {
@@ -297,21 +339,4 @@ export function createGridNarrator(run: RunState): GridNarrator {
     )
     return [...lead, ...body]
   }
-}
-
-function inGrass(run: RunState, pos: Vec2): boolean {
-  return tileAt(run.level.map, pos.x, pos.y)?.terrain === 'tallgrass'
-}
-
-function enteredGrass(run: RunState, from: Vec2, to: Vec2): boolean {
-  return inGrass(run, to) && !inGrass(run, from)
-}
-
-function seen(
-  run: RunState,
-  event: Extract<GridEvent, { type: 'move' }>
-): boolean {
-  if (event.actorId === run.player.id) return true
-  const { visible } = run.level
-  return !visible || visible.has(posKey(event.from.x, event.from.y))
 }

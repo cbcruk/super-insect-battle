@@ -188,4 +188,83 @@ describe('createGridNarrator', () => {
     }
     expect(play()).toBe(play())
   })
+
+  it('narrates being held down and shaking off venom', () => {
+    const run = arena()
+    const n = createGridNarrator(run)
+    const lines = texts(
+      n.next(
+        [
+          {
+            type: 'message',
+            text: '검은과부거미은(는) 속박되어 움직일 수 없다!',
+            pos: { x: 6, y: 1 },
+            actorId: 'opponent',
+          },
+          {
+            type: 'message',
+            text: '사마귀의 독이 풀렸다.',
+            pos: { x: 2, y: 1 },
+            actorId: 'player',
+          },
+        ],
+        run
+      )
+    )
+    expect(lines).toContain('검은과부거미')
+    expect(lines).toContain('사마귀의 독이 풀렸다.')
+  })
+
+  it('claims a status only when it actually took hold', () => {
+    const run = arena()
+    const n = createGridNarrator(run)
+    const missed = texts(
+      n.next([attack({ actionId: 'fang_bite', damage: 20 })], run)
+    )
+    const landed = texts(
+      n.next(
+        [
+          attack({
+            actionId: 'fang_bite',
+            damage: 20,
+            statusApplied: 'poison',
+          }),
+        ],
+        run
+      )
+    )
+    expect(missed).not.toMatch(/빠진다|걸렸다|늪/)
+    expect(landed).toMatch(/빠진다|걸렸다|늪/)
+
+    const trap = texts(
+      n.next([attack({ actionId: 'web_trap', damage: 0 })], run)
+    )
+    expect(trap).toMatch(/효과가 없다|아랑곳/)
+  })
+
+  it("announces the gas tightening before the turn's gas damage", () => {
+    const run = arena()
+    const n = createGridNarrator(run)
+    run.turn = 2
+    const lines = n
+      .next(
+        [
+          {
+            type: 'status',
+            actorId: 'opponent',
+            message: '독가스',
+            damage: 5,
+            pos: { x: 7, y: 1 },
+          },
+        ],
+        run
+      )
+      .map((l) => l.text)
+    const shrink = lines.findIndex((t) => t.includes('반경'))
+    const hurt = lines.findIndex(
+      (t) => t.includes('독가스') && !t.includes('반경')
+    )
+    expect(shrink).toBeGreaterThan(-1)
+    expect(shrink).toBeLessThan(hurt)
+  })
 })

@@ -174,6 +174,7 @@ function resolveActorTurn(
       type: 'message',
       text: moveCheck.message,
       pos: { ...actor.pos },
+      actorId: actor.id,
     })
   }
   if (actor.combat.currentHp <= 0) {
@@ -200,7 +201,12 @@ function resolveActorTurn(
     if (actor.combat.currentHp > 0) applyGas(run, actor, events)
     const cured = decayVenom(actor.combat)
     if (cured && actor.combat.currentHp > 0) {
-      events.push({ type: 'message', text: cured, pos: { ...actor.pos } })
+      events.push({
+        type: 'message',
+        text: cured,
+        pos: { ...actor.pos },
+        actorId: actor.id,
+      })
     }
     tickCooldowns(actor.combat)
   }

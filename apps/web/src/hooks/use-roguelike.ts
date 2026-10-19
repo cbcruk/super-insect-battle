@@ -23,9 +23,9 @@ import {
 } from '@super-insect-battle/engine'
 import {
   createGridNarrator,
-  type CommentaryLine,
   type GridNarrator,
 } from '@super-insect-battle/commentary'
+import type { CommentaryItem } from '../components/roguelike/grid-commentary.types.ts'
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
 import { nextFacings } from '../lib/facing.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
@@ -63,7 +63,7 @@ export interface RoguelikeController {
   dailyDate: string | null
   feed: FeedLine[]
   /** 격자 매치업 중계 문장. 다른 모드에서는 비어 있다. */
-  commentary: CommentaryLine[]
+  commentary: CommentaryItem[]
   effects: HitEffect[]
   /** 가장 최근 명령에서 나온 공격 움직임. 무대는 처음 보는 `id`만 재생한다. */
   motions: AttackMotion[]
@@ -102,7 +102,7 @@ export function useRoguelike(): RoguelikeController {
     damage: 0,
     heavy: false,
   })
-  const [commentary, setCommentary] = useState<CommentaryLine[]>([])
+  const [commentary, setCommentary] = useState<CommentaryItem[]>([])
   const narratorRef = useRef<GridNarrator | null>(null)
   const nextId = useRef(0)
   const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
@@ -150,7 +150,12 @@ export function useRoguelike(): RoguelikeController {
         runRef.current.mode === 'duel'
           ? createGridNarrator(runRef.current)
           : null
-      setCommentary(narratorRef.current?.intro() ?? [])
+      setCommentary(
+        (narratorRef.current?.intro() ?? []).map((line) => ({
+          line,
+          id: nextId.current++,
+        }))
+      )
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
       clearFeedback()
@@ -178,7 +183,8 @@ export function useRoguelike(): RoguelikeController {
       const feedback = toCombatFeedback(visible, run.player.id)
       const narrated = narratorRef.current?.next(visible, run) ?? []
       if (narrated.length > 0) {
-        setCommentary((prev) => [...prev, ...narrated].slice(-COMMENTARY_LIMIT))
+        const items = narrated.map((line) => ({ line, id: nextId.current++ }))
+        setCommentary((prev) => [...prev, ...items].slice(-COMMENTARY_LIMIT))
       }
       facingsRef.current = nextFacings(facingsRef.current, events)
 

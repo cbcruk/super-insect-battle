@@ -40,3 +40,10 @@ export const GAS_DAMAGE_LINES = [
   (name: string): string => `${name}${iGa(name)} 가스 속에서 버티고 있다!`,
   (name: string): string => `${name}, 독가스를 피하지 못했다!`,
 ]
+
+export const NO_EFFECT_LINES = [
+  (atk: string, move: string): string =>
+    `${atk}의 ${move}, 하지만 효과가 없다.`,
+  (atk: string, move: string): string =>
+    `${atk}, ${move} — 상대는 아랑곳하지 않는다.`,
+]
