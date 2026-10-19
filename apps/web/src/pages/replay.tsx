@@ -258,7 +258,6 @@ function ReplayViewer({
 
   const playingRef = useRef(true)
   const speedRef = useRef(1)
-  const abortRef = useRef(false)
 
   useEffect(() => {
     playingRef.current = playing
@@ -270,11 +269,14 @@ function ReplayViewer({
 
   useEffect(() => {
     if (!player || !opponent) return
-    abortRef.current = false
+    let cancelled = false
+    const isCancelled = (): boolean => cancelled
+    setBattleState(null)
+    setFailed(false)
 
     replayBattle(replay)
       .then((result) => {
-        if (abortRef.current) return
+        if (cancelled) return
         setBattleState(result)
         setDisplayedPlayerHp(result.player.maxHp)
         setDisplayedOpponentHp(result.opponent.maxHp)
@@ -282,40 +284,45 @@ function ReplayViewer({
         setCurrentLogIndex(0)
         setDone(false)
         setPlaying(true)
-        playLogs(result)
+        playLogs(result, isCancelled)
       })
-      .catch(() => setFailed(true))
+      .catch(() => {
+        if (!cancelled) setFailed(true)
+      })
 
     return (): void => {
-      abortRef.current = true
+      cancelled = true
     }
   }, [replay])
 
-  const playLogs = useCallback(async (result: BattleState): Promise<void> => {
-    for (let i = 0; i < result.log.length; i++) {
-      if (abortRef.current) return
+  const playLogs = useCallback(
+    async (result: BattleState, isCancelled: () => boolean): Promise<void> => {
+      for (let i = 0; i < result.log.length; i++) {
+        if (isCancelled()) return
 
-      while (!playingRef.current && !abortRef.current) {
-        await new Promise<void>((r) => setTimeout(r, 100))
+        while (!playingRef.current && !isCancelled()) {
+          await new Promise<void>((r) => setTimeout(r, 100))
+        }
+        if (isCancelled()) return
+
+        const delay = Math.round(600 / speedRef.current)
+        await new Promise<void>((r) => setTimeout(r, delay))
+        if (isCancelled()) return
+
+        const entry = result.log[i]
+        setDisplayedLogs((prev) => [...prev, entry])
+        setCurrentLogIndex(i + 1)
+
+        if (entry.remainingHp) {
+          setDisplayedPlayerHp(entry.remainingHp.player)
+          setDisplayedOpponentHp(entry.remainingHp.opponent)
+        }
       }
-      if (abortRef.current) return
-
-      const delay = Math.round(600 / speedRef.current)
-      await new Promise<void>((r) => setTimeout(r, delay))
-      if (abortRef.current) return
-
-      const entry = result.log[i]
-      setDisplayedLogs((prev) => [...prev, entry])
-      setCurrentLogIndex(i + 1)
-
-      if (entry.remainingHp) {
-        setDisplayedPlayerHp(entry.remainingHp.player)
-        setDisplayedOpponentHp(entry.remainingHp.opponent)
-      }
-    }
-    setDone(true)
-    setPlaying(false)
-  }, [])
+      setDone(true)
+      setPlaying(false)
+    },
+    []
+  )
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent): void {
