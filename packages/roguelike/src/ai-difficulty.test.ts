@@ -10,7 +10,7 @@ import { createActor, type Actor } from './actor'
 import { pickHardAction } from './ai/hard-choice'
 import { createSmartBrain } from './ai/smart-brain'
 import { estimateDamage, hitProbability } from './combat'
-import { tileMapFromStrings } from './map'
+import { tileAt, tileMapFromStrings } from './map'
 import { createRun, type Level, type RunState } from './run'
 
 const ENV: Environment = {
@@ -81,21 +81,47 @@ describe('hard grid AI', () => {
     expect(expectedHit(run, attacker, foe, pick)).toBe(best)
   })
 
-  it('skips self buffs when the next hit should finish the foe', () => {
-    const { run, attacker, foe } = arena('dung_beetle', 'mantis', 1)
-    foe.combat.currentHp = 1
-    const pick = pickHardAction(attacker, foe, actions(attacker), run.level)
-    expect(pick.power).toBeGreaterThan(0)
+  it('buffs early in a long fight but attacks when only a few hits remain', () => {
+    const { run, attacker, foe } = arena('dung_beetle', 'scorpion', 1)
+    foe.combat.statusCondition = 'poison'
+    const candidates = actions(attacker)
+    expect(
+      pickHardAction(attacker, foe, candidates, run.level).effect?.target
+    ).toBe('self')
+
+    // 어떤 공격으로도 확실히 쓰러뜨리지 못하는, 두어 번 남은 체력
+    foe.combat.currentHp =
+      Math.max(
+        ...candidates.map((x) => estimateDamage(attacker, foe, x, run.level, 0))
+      ) + 1
+    const late = pickHardAction(attacker, foe, candidates, run.level)
+    expect(late.power).toBeGreaterThan(0)
   })
 
-  it('estimates without touching the run RNG', () => {
+  it('throws on an empty candidate list', () => {
     const { run, attacker, foe } = arena('mantis', 'scorpion', 1)
-    const twin = arena('mantis', 'scorpion', 1).run
-    for (const x of actions(attacker)) {
-      estimateDamage(attacker, foe, x, run.level)
-      hitProbability(attacker, foe, x, run.level)
-    }
-    expect(run.rng()).toBe(twin.rng())
+    expect(() => pickHardAction(attacker, foe, [], run.level)).toThrow()
+  })
+})
+
+describe('grid hit estimates', () => {
+  it('lowers the hit chance against a foe in tall grass', () => {
+    const { run, attacker, foe } = arena('mantis', 'scorpion', 1)
+    const strike = actions(attacker)[0]
+    const open = hitProbability(attacker, foe, strike, run.level)
+    tileAt(run.level.map, foe.pos.x, foe.pos.y)!.terrain = 'tallgrass'
+    expect(hitProbability(attacker, foe, strike, run.level)).toBeLessThan(open)
+  })
+
+  it('brackets the mid estimate between the minimum and maximum roll', () => {
+    const { run, attacker, foe } = arena('mantis', 'scorpion', 1)
+    const strike = actions(attacker)[0]
+    const low = estimateDamage(attacker, foe, strike, run.level, 0)
+    const mid = estimateDamage(attacker, foe, strike, run.level)
+    const high = estimateDamage(attacker, foe, strike, run.level, 1)
+    expect(low).toBeLessThanOrEqual(mid)
+    expect(mid).toBeLessThanOrEqual(high)
+    expect(low).toBeLessThan(high)
   })
 })
 

@@ -36,14 +36,14 @@ export interface SmartBrainOptions {
    * 기술 선택 난이도. 기본 `'medium'`.
    *
    * - 쉬움: 지금 닿는지 따지지 않고 기술을 무작위로 고르고(닿지 않으면 다가간다),
-   *   다가오는 독가스를 내다보지 않는다.
+   *   독가스를 피해 움직이지 않는다.
    * - 보통: 엔진 전략 AI의 점수 가중 무작위.
    * - 어려움: 격자 기대 이득(명중 × 피해, 처치·상태이상·강화 가치)이 가장 큰 기술.
    */
   difficulty?: AIDifficulty
   /**
    * 기술 선택과 도주 성향. 공격적이면 끝까지 버티고, 방어적이면 일찍 물러난다.
-   * 기본 `'balanced'`.
+   * 어려움은 기술을 기대 이득으로만 고르므로 도주 성향에만 쓰인다. 기본 `'balanced'`.
    */
   personality?: AIPersonality
 }
@@ -102,7 +102,7 @@ export function createSmartBrain(options: SmartBrainOptions = {}): ActorBrain {
         return dir ? { type: 'move', dir } : { type: 'wait' }
       }
 
-      // 다음 턴에 독가스가 덮칠 자리면 중심으로 피한다. 쉬움은 내다보지 않는다
+      // 다음 턴에 독가스가 덮칠 자리면 중심으로 피한다. 쉬움은 피하지 않는다
       const { zone } = run.level
       if (
         zone &&
