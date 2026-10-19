@@ -1,3 +1,4 @@
+import { duelOutcome } from './duel'
 import {
   getActionsByIds,
   getActionTargeting,
@@ -155,4 +156,23 @@ export function showdownReport(run: RunState): string {
   const winner = showdownWinner(run)
   if (winner) lines.push(`우승: ${winner.species.nameKo}`)
   return lines.join('\n')
+}
+
+/**
+ * 끝난 격자 매치업의 결과 요약: 승자·걸린 턴·승자의 남은 HP.
+ *
+ * 승패는 {@linkcode duelOutcome}으로 정하므로 같은 턴에 둘 다 쓰러지면 무승부다.
+ */
+export function duelReport(run: RunState): string {
+  const turns = `${run.stats.endTurn ?? run.turn}턴`
+  const outcome = duelOutcome(run)
+  if (outcome === 'undecided') return `미결 · ${turns}`
+  if (outcome === 'draw') return `무승부 · ${turns}`
+  const winner =
+    outcome === 'player'
+      ? run.player
+      : run.level.actors.find((a) => a !== run.player && a.combat.currentHp > 0)
+  if (!winner) return `무승부 · ${turns}`
+  const side = outcome === 'player' ? '1P' : '상대'
+  return `승자: ${winner.species.nameKo}(${side}) · ${turns} · 남은 HP ${winner.combat.currentHp}/${winner.combat.maxHp}`
 }

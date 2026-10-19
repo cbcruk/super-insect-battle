@@ -70,7 +70,14 @@ export {
   isDuelReplay,
   type DuelReplay,
 } from './duel-replay'
-export { createDuelRun, isAutopilot, type DuelOptions } from './duel'
+export {
+  createDuelRun,
+  isAutopilot,
+  duelOutcome,
+  type DuelOptions,
+  type DuelOutcome,
+} from './duel'
+export { runAutoDuel, duelBatch, type DuelBatchResult } from './duel-sim'
 export {
   absorbCubes,
   CUBE_GLYPH,
@@ -86,7 +93,13 @@ export {
   type SafeZone,
 } from './zone'
 export { makeDemoLevel, type DemoSetup } from './demo-level'
-export { renderLevel, renderFrame, enemyList, showdownReport } from './render'
+export {
+  renderLevel,
+  renderFrame,
+  enemyList,
+  showdownReport,
+  duelReport,
+} from './render'
 
 // P2: 절차 생성 · 시야 · 길찾기
 export { generateJungle, type GeneratedMap, type JungleOptions } from './mapgen'

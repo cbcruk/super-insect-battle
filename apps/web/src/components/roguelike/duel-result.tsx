@@ -1,12 +1,10 @@
 import React from 'react'
 import type { RunState } from '@super-insect-battle/roguelike'
+import { duelWinner } from '../../lib/duel-winner.ts'
 
 /** 끝난 격자 매치업의 승패·걸린 턴·남은 HP를 보여준다. */
 export function DuelResult({ run }: { run: RunState }): React.ReactNode {
-  const winner =
-    run.status === 'won'
-      ? run.player
-      : run.level.actors.find((a) => a !== run.player && a.combat.currentHp > 0)
+  const winner = duelWinner(run)
   const rows: [string, string][] = [
     ['걸린 턴', `${run.stats.endTurn ?? run.turn}`],
   ]
