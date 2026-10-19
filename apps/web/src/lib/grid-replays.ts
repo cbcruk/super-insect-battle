@@ -5,6 +5,7 @@ import {
   type RunState,
 } from '@super-insect-battle/roguelike'
 import type { ReplayStorage, SavedGridReplay } from './grid-replays.types.ts'
+import { duelWinner } from './duel-winner.ts'
 
 const STORAGE_KEY = 'sib-grid-replays'
 const MAX_SAVED = 50
@@ -47,7 +48,7 @@ export function findGridReplay(
 /**
  * 끝난 판의 리플레이를 목록 맨 앞에 저장한다. 오래된 것부터 지워 최대 50건을 둔다.
  *
- * 승자는 혼자 살아남은 쪽이다. 같은 턴에 둘 다 쓰러졌으면 무승부로 적는다.
+ * 승자는 `duelOutcome`으로 정한다. 같은 턴에 둘 다 쓰러졌으면 무승부로 적는다.
  *
  * @returns 저장된 항목.
  */
@@ -59,8 +60,7 @@ export function saveGridReplay(
 ): SavedGridReplay {
   const opponentName =
     getArthropodById(replay.opponentSpeciesId)?.nameKo ?? '???'
-  const survivors = run.level.actors.filter((a) => a.combat.currentHp > 0)
-  const winner = survivors.length === 1 ? survivors[0] : undefined
+  const winner = duelWinner(run)
   const saved: SavedGridReplay = {
     id: `${now}-${replay.seed}`,
     timestamp: now,
