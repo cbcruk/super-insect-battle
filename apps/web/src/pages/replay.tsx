@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import {
   getArthropodById,
   deserializeReplay,
-  simulateBattle,
+  replayBattle,
 } from '@super-insect-battle/engine'
 import type {
   BattleState,
@@ -254,6 +254,7 @@ function ReplayViewer({
   const [playing, setPlaying] = useState(true)
   const [speed, setSpeed] = useState(1)
   const [done, setDone] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   const playingRef = useRef(true)
   const speedRef = useRef(1)
@@ -271,16 +272,19 @@ function ReplayViewer({
     if (!player || !opponent) return
     abortRef.current = false
 
-    const result = simulateBattle(player, opponent, replay.header.environment)
-    setBattleState(result)
-    setDisplayedPlayerHp(result.player.maxHp)
-    setDisplayedOpponentHp(result.opponent.maxHp)
-    setDisplayedLogs([])
-    setCurrentLogIndex(0)
-    setDone(false)
-    setPlaying(true)
-
-    playLogs(result)
+    replayBattle(replay)
+      .then((result) => {
+        if (abortRef.current) return
+        setBattleState(result)
+        setDisplayedPlayerHp(result.player.maxHp)
+        setDisplayedOpponentHp(result.opponent.maxHp)
+        setDisplayedLogs([])
+        setCurrentLogIndex(0)
+        setDone(false)
+        setPlaying(true)
+        playLogs(result)
+      })
+      .catch(() => setFailed(true))
 
     return (): void => {
       abortRef.current = true
@@ -324,13 +328,15 @@ function ReplayViewer({
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
-  if (!player || !opponent || !battleState) {
+  if (!player || !opponent || failed) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">Invalid replay data.</p>
       </div>
     )
   }
+
+  if (!battleState) return null
 
   const totalLogs = battleState.log.length
   const winner = done ? battleState.winner : null
