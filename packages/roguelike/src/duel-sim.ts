@@ -1,4 +1,4 @@
-import type { Arthropod } from '@super-insect-battle/engine'
+import type { AIPlayerOptions, Arthropod } from '@super-insect-battle/engine'
 import { createDuelRun, duelOutcome } from './duel'
 import { applyCommand, type RunState } from './run'
 
@@ -24,13 +24,15 @@ export interface DuelBatchResult {
 export function runAutoDuel(
   playerSpecies: Arthropod,
   opponentSpecies: Arthropod,
-  seed: number
+  seed: number,
+  opponentAI: AIPlayerOptions = {}
 ): RunState {
   const run = createDuelRun({
     playerSpecies,
     opponentSpecies,
     seed,
     autopilot: true,
+    opponentAI,
   })
   while (run.status === 'playing' && run.turn < MAX_TURNS && run.player.brain) {
     applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
@@ -40,6 +42,8 @@ export function runAutoDuel(
 
 /**
  * 시드 `firstSeed`부터 `games`판을 AI 대 AI로 돌려 1P 승수·무승부·평균 턴을 낸다.
+ *
+ * `opponentAI`는 상대 AI에만 적용된다. 1P 쪽 AI는 항상 기본값이다.
  *
  * @example
  * ```ts
@@ -58,13 +62,19 @@ export function duelBatch(
   playerSpecies: Arthropod,
   opponentSpecies: Arthropod,
   games: number,
-  firstSeed = 1
+  firstSeed = 1,
+  opponentAI: AIPlayerOptions = {}
 ): DuelBatchResult {
   let playerWins = 0
   let draws = 0
   let turns = 0
   for (let i = 0; i < games; i++) {
-    const run = runAutoDuel(playerSpecies, opponentSpecies, firstSeed + i)
+    const run = runAutoDuel(
+      playerSpecies,
+      opponentSpecies,
+      firstSeed + i,
+      opponentAI
+    )
     const outcome = duelOutcome(run)
     if (outcome === 'player') playerWins++
     else if (outcome !== 'opponent') draws++

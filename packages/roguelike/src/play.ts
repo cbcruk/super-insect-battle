@@ -6,6 +6,7 @@ import {
   getActionTargeting,
   getActionRange,
   isActionOnCooldown,
+  type AIPlayerOptions,
   type Arthropod,
 } from '@super-insect-battle/engine'
 import { parsePlayArgs, PLAY_USAGE } from './cli-args'
@@ -56,12 +57,18 @@ function speciesOrExit(id: string): Arthropod {
   process.exit(1)
 }
 
+function opponentAILabel(ai: AIPlayerOptions): string {
+  const parts = [ai.difficulty, ai.personality].filter(Boolean)
+  return parts.length > 0 ? ` · 상대 AI ${parts.join('/')}` : ''
+}
+
 function createPlayRun(): RunState {
   if (args.mode === 'duel') {
     return createDuelRun({
       playerSpecies: speciesOrExit(args.playerId),
       opponentSpecies: speciesOrExit(args.opponentId),
       seed,
+      opponentAI: args.opponentAI,
     })
   }
   const mantis = speciesOrExit('mantis')
@@ -73,10 +80,10 @@ function createPlayRun(): RunState {
 if (args.mode === 'duel' && args.batch !== null) {
   const player = speciesOrExit(args.playerId)
   const opponent = speciesOrExit(args.opponentId)
-  const result = duelBatch(player, opponent, args.batch, seed)
+  const result = duelBatch(player, opponent, args.batch, seed, args.opponentAI)
   const rate = Math.round((result.playerWins / result.games) * 100)
   console.log(
-    `${player.nameKo} vs ${opponent.nameKo} · 시드 ${seed}~${seed + result.games - 1}`
+    `${player.nameKo} vs ${opponent.nameKo} · 시드 ${seed}~${seed + result.games - 1}${opponentAILabel(args.opponentAI)}`
   )
   console.log(
     `1P 승률 ${rate}% (${result.playerWins}/${result.games}, 무승부 ${result.draws}) · 평균 ${result.averageTurns.toFixed(1)}턴`
@@ -88,7 +95,8 @@ if (args.mode === 'duel' && args.auto) {
   const finished = runAutoDuel(
     speciesOrExit(args.playerId),
     speciesOrExit(args.opponentId),
-    seed
+    seed,
+    args.opponentAI
   )
   console.log(`격자 매치업 AI 대 AI (seed=${seed})\n`)
   console.log(renderLevel(finished))
