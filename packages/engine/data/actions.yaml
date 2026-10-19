@@ -340,6 +340,7 @@ shell_roll:
       stat: evasion
       stages: 1
   description: Rolls into a ball and charges. Increases evasion.
+  targeting: melee
 
 rage:
   id: rage
