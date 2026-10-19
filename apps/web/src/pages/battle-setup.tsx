@@ -1,10 +1,25 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ComparisonTable } from '../components/ui/comparison-table.tsx'
 import { useGameStore } from '../stores/game-store.ts'
 import { Button } from '../components/ui/button.tsx'
 import { FighterPicker } from '../components/battle-setup/fighter-picker.tsx'
 import { ModeToggle } from '../components/battle-setup/mode-toggle.tsx'
+
+type BattleView = 'text' | 'grid'
+
+const VIEWS: { id: BattleView; label: string; description: string }[] = [
+  {
+    id: 'text',
+    label: '텍스트 중계',
+    description: '턴제 1:1 배틀을 중계로 본다',
+  },
+  {
+    id: 'grid',
+    label: '격자 아레나',
+    description: '밀림 아레나에서 위치·수풀·사거리로 싸운다',
+  },
+]
 
 export function BattleSetupPage(): React.ReactNode {
   const navigate = useNavigate()
@@ -15,6 +30,7 @@ export function BattleSetupPage(): React.ReactNode {
   const battleMode = useGameStore((s) => s.battleMode)
   const setBattleMode = useGameStore((s) => s.setBattleMode)
   const aiConfig = useGameStore((s) => s.aiConfig)
+  const [view, setView] = useState<BattleView>('text')
 
   const canStart = selectedPlayer != null && selectedOpponent != null
 
@@ -27,12 +43,28 @@ export function BattleSetupPage(): React.ReactNode {
       difficulty: aiConfig.difficulty,
       personality: aiConfig.personality,
     })
-    navigate(`/battle?${params.toString()}`)
+    navigate(`/${view === 'grid' ? 'arena' : 'battle'}?${params.toString()}`)
   }
 
   return (
     <div className="max-w-2xl space-y-6 p-6">
       <ModeToggle mode={battleMode} onChange={setBattleMode} />
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        {VIEWS.map((v) => (
+          <Button
+            key={v.id}
+            size="sm"
+            variant={view === v.id ? 'default' : 'secondary'}
+            onClick={() => setView(v.id)}
+          >
+            {v.label}
+          </Button>
+        ))}
+        <span className="text-[11px] text-muted-foreground">
+          {VIEWS.find((v) => v.id === view)?.description}
+        </span>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-[1fr_auto_1fr]">
         <FighterPicker

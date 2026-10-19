@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createGeneratedRun,
   createShowdownRun,
+  createDuelRun,
+  isAutopilot,
   applyCommand,
   canSpectate,
   isEventVisible,
@@ -42,6 +44,10 @@ export interface NewRunOptions {
   dailyDate?: string | null
   /** 기본 `'descent'`. */
   mode?: RunMode
+  /** 격자 매치업(`'duel'`)의 상대 종 id. */
+  opponentId?: string
+  /** 격자 매치업에서 플레이어 쪽도 AI가 조종한다 (AI 대 AI). */
+  autopilot?: boolean
 }
 
 export interface RoguelikeController {
@@ -62,6 +68,10 @@ export interface RoguelikeController {
   reset: () => void
   dispatch: (command: Command) => void
   useAbility: (index: number) => void
+  /** 플레이어 쪽 곤충을 AI가 조종하는 중인가 (AI 대 AI 격자 매치업). */
+  autoplaying: boolean
+  /** AI가 플레이어 쪽 곤충의 한 턴을 대신 진행한다. */
+  autoStep: () => void
   /** 쇼다운에서 쓰러진 뒤 남은 라이벌들의 싸움을 지켜볼 수 있는가. */
   spectating: boolean
   /** 관전 한 턴을 진행하고 연출을 재생한다. */
@@ -105,14 +115,26 @@ export function useRoguelike(): RoguelikeController {
     (opts: NewRunOptions) => {
       const species = getArthropodById(opts.speciesId)
       if (!species) return
+      const opponent =
+        opts.opponentId !== undefined
+          ? getArthropodById(opts.opponentId)
+          : undefined
+      if (opts.mode === 'duel' && !opponent) return
       runRef.current =
-        opts.mode === 'showdown'
-          ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
-          : createGeneratedRun({
+        opts.mode === 'duel' && opponent
+          ? createDuelRun({
               playerSpecies: species,
+              opponentSpecies: opponent,
               seed: opts.seed,
-              maxDepth: 3,
+              autopilot: opts.autopilot,
             })
+          : opts.mode === 'showdown'
+            ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
+            : createGeneratedRun({
+                playerSpecies: species,
+                seed: opts.seed,
+                maxDepth: 3,
+              })
       facingsRef.current = new Map()
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
@@ -217,6 +239,15 @@ export function useRoguelike(): RoguelikeController {
     [present]
   )
 
+  const autoStep = useCallback(() => {
+    const run = runRef.current
+    if (!run || !isAutopilot(run) || !run.player.brain) return
+    present(
+      run,
+      applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
+    )
+  }, [present])
+
   const spectate = useCallback(() => {
     const run = runRef.current
     if (!run || !canSpectate(run)) return
@@ -281,6 +312,8 @@ export function useRoguelike(): RoguelikeController {
     reset,
     dispatch,
     useAbility,
+    autoplaying: runRef.current ? isAutopilot(runRef.current) : false,
+    autoStep,
     spectating: runRef.current ? canSpectate(runRef.current) : false,
     spectate,
     skipSpectate,

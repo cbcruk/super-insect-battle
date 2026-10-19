@@ -57,8 +57,12 @@ export function hostilePoolFor(depth: number): string[] {
   return HOSTILE_IDS.filter((id) => (HOSTILE_MIN_DEPTH[id] ?? 1) <= depth)
 }
 
-/** 플레이어 시야를 다시 계산하고 발견 영역에 누적. */
+/** 플레이어 시야를 다시 계산하고 발견 영역에 누적. `fullVision`이면 시야 제한을 푼다. */
 export function refreshFov(run: RunState): void {
+  if (run.fullVision) {
+    run.level.visible = undefined
+    return
+  }
   const visible = computeVisible(run.level.map, run.player.pos)
   run.level.visible = visible
   if (!run.level.discovered) run.level.discovered = new Set()

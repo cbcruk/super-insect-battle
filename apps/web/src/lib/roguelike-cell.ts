@@ -102,7 +102,10 @@ export function describeCell(
     glyphAlpha: light,
     mark: terrainMark(tile.terrain, x, y, sameTerrainMask(run, x, y)),
     deadly: false,
-    gas: zone !== undefined && isInGas(zone, { x, y }, run.turn),
+    gas:
+      zone !== undefined &&
+      TERRAIN[tile.terrain].walkable &&
+      isInGas(zone, { x, y }, run.turn),
   }
   const standOut = seen ? 1 : REMEMBERED_LIGHT
 

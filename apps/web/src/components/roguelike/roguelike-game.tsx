@@ -43,10 +43,13 @@ const KEY_DIR: Record<string, Direction> = {
 export function RoguelikeGame({
   controller,
   onExit,
+  exitLabel = '새 런',
   resultSlot,
 }: {
   controller: RoguelikeController
   onExit: () => void
+  /** 결과 화면 버튼 문구. */
+  exitLabel?: string
   resultSlot?: React.ReactNode
 }): React.ReactNode {
   const {
@@ -64,6 +67,8 @@ export function RoguelikeGame({
     spectating,
     spectate,
     skipSpectate,
+    autoplaying,
+    autoStep,
   } = controller
   const stageHostRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState<RoguelikeStage | null>(null)
@@ -90,6 +95,12 @@ export function RoguelikeGame({
     const timer = window.setTimeout(spectate, SPECTATE_STEP_MS)
     return () => window.clearTimeout(timer)
   }, [spectating, spectate, version])
+
+  useEffect(() => {
+    if (!autoplaying) return
+    const timer = window.setTimeout(autoStep, SPECTATE_STEP_MS)
+    return () => window.clearTimeout(timer)
+  }, [autoplaying, autoStep, version])
 
   const sighted = useMemo<SightedEnemy[]>(() => {
     if (!run || run.status !== 'playing') return []
@@ -167,7 +178,7 @@ export function RoguelikeGame({
       skipSpectate()
       return
     }
-    if (run.status !== 'playing') return
+    if (run.status !== 'playing' || autoplaying) return
     const key = e.key
     if (KEY_DIR[key]) {
       e.preventDefault()
@@ -189,13 +200,17 @@ export function RoguelikeGame({
       className="flex max-w-6xl flex-col gap-4 p-4 outline-none lg:flex-row"
     >
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>
             {progressLabel(run)} · 턴 {run.turn}
           </span>
-          <span className="hidden sm:inline">
-            이동 방향키·hjkl · 스킬 숫자 · 대기 .
-          </span>
+          {autoplaying ? (
+            <span>AI 대 AI 관전 중</span>
+          ) : (
+            <span className="hidden sm:inline">
+              이동 방향키·hjkl · 스킬 숫자 · 대기 .
+            </span>
+          )}
         </div>
         <div
           ref={mapRef}
@@ -235,7 +250,7 @@ export function RoguelikeGame({
                 {outcomeTitle(run)}
               </div>
               {resultSlot}
-              <Button onClick={onExit}>새 런</Button>
+              <Button onClick={onExit}>{exitLabel}</Button>
             </div>
           )}
         </div>
