@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import {
   getArthropodById,
   deserializeReplay,
-  simulateBattle,
+  replayBattle,
 } from '@super-insect-battle/engine'
 import type {
   BattleState,
@@ -254,10 +254,10 @@ function ReplayViewer({
   const [playing, setPlaying] = useState(true)
   const [speed, setSpeed] = useState(1)
   const [done, setDone] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   const playingRef = useRef(true)
   const speedRef = useRef(1)
-  const abortRef = useRef(false)
 
   useEffect(() => {
     playingRef.current = playing
@@ -269,49 +269,60 @@ function ReplayViewer({
 
   useEffect(() => {
     if (!player || !opponent) return
-    abortRef.current = false
+    let cancelled = false
+    const isCancelled = (): boolean => cancelled
+    setBattleState(null)
+    setFailed(false)
 
-    const result = simulateBattle(player, opponent, replay.header.environment)
-    setBattleState(result)
-    setDisplayedPlayerHp(result.player.maxHp)
-    setDisplayedOpponentHp(result.opponent.maxHp)
-    setDisplayedLogs([])
-    setCurrentLogIndex(0)
-    setDone(false)
-    setPlaying(true)
-
-    playLogs(result)
+    replayBattle(replay)
+      .then((result) => {
+        if (cancelled) return
+        setBattleState(result)
+        setDisplayedPlayerHp(result.player.maxHp)
+        setDisplayedOpponentHp(result.opponent.maxHp)
+        setDisplayedLogs([])
+        setCurrentLogIndex(0)
+        setDone(false)
+        setPlaying(true)
+        playLogs(result, isCancelled)
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true)
+      })
 
     return (): void => {
-      abortRef.current = true
+      cancelled = true
     }
   }, [replay])
 
-  const playLogs = useCallback(async (result: BattleState): Promise<void> => {
-    for (let i = 0; i < result.log.length; i++) {
-      if (abortRef.current) return
+  const playLogs = useCallback(
+    async (result: BattleState, isCancelled: () => boolean): Promise<void> => {
+      for (let i = 0; i < result.log.length; i++) {
+        if (isCancelled()) return
 
-      while (!playingRef.current && !abortRef.current) {
-        await new Promise<void>((r) => setTimeout(r, 100))
+        while (!playingRef.current && !isCancelled()) {
+          await new Promise<void>((r) => setTimeout(r, 100))
+        }
+        if (isCancelled()) return
+
+        const delay = Math.round(600 / speedRef.current)
+        await new Promise<void>((r) => setTimeout(r, delay))
+        if (isCancelled()) return
+
+        const entry = result.log[i]
+        setDisplayedLogs((prev) => [...prev, entry])
+        setCurrentLogIndex(i + 1)
+
+        if (entry.remainingHp) {
+          setDisplayedPlayerHp(entry.remainingHp.player)
+          setDisplayedOpponentHp(entry.remainingHp.opponent)
+        }
       }
-      if (abortRef.current) return
-
-      const delay = Math.round(600 / speedRef.current)
-      await new Promise<void>((r) => setTimeout(r, delay))
-      if (abortRef.current) return
-
-      const entry = result.log[i]
-      setDisplayedLogs((prev) => [...prev, entry])
-      setCurrentLogIndex(i + 1)
-
-      if (entry.remainingHp) {
-        setDisplayedPlayerHp(entry.remainingHp.player)
-        setDisplayedOpponentHp(entry.remainingHp.opponent)
-      }
-    }
-    setDone(true)
-    setPlaying(false)
-  }, [])
+      setDone(true)
+      setPlaying(false)
+    },
+    []
+  )
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent): void {
@@ -324,13 +335,15 @@ function ReplayViewer({
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
-  if (!player || !opponent || !battleState) {
+  if (!player || !opponent || failed) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground">Invalid replay data.</p>
       </div>
     )
   }
+
+  if (!battleState) return null
 
   const totalLogs = battleState.log.length
   const winner = done ? battleState.winner : null
