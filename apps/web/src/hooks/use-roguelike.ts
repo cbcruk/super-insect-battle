@@ -22,6 +22,11 @@ import {
   isActionOnCooldown,
   type AIPlayerOptions,
 } from '@super-insect-battle/engine'
+import {
+  createGridNarrator,
+  type GridNarrator,
+} from '@super-insect-battle/commentary'
+import type { CommentaryItem } from '../components/roguelike/grid-commentary.types.ts'
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
 import { nextFacings } from '../lib/facing.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
@@ -29,6 +34,7 @@ import type { AttackMotion } from '../lib/attack-motion.types.ts'
 import type { Fall } from '../lib/fall-motion.types.ts'
 
 const FEED_LIMIT = 60
+const COMMENTARY_LIMIT = 200
 const EFFECT_LIFETIME_MS = 900
 
 /** 플레이어가 피해를 입을 때마다 바뀌는 신호. `key`가 바뀌면 피격 연출을 다시 재생한다. */
@@ -59,6 +65,8 @@ export interface RoguelikeController {
   notice: string
   dailyDate: string | null
   feed: FeedLine[]
+  /** 격자 매치업 중계 문장. 다른 모드에서는 비어 있다. */
+  commentary: CommentaryItem[]
   effects: HitEffect[]
   /** 가장 최근 명령에서 나온 공격 움직임. 무대는 처음 보는 `id`만 재생한다. */
   motions: AttackMotion[]
@@ -97,6 +105,8 @@ export function useRoguelike(): RoguelikeController {
     damage: 0,
     heavy: false,
   })
+  const [commentary, setCommentary] = useState<CommentaryItem[]>([])
+  const narratorRef = useRef<GridNarrator | null>(null)
   const nextId = useRef(0)
   const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
   const timers = useRef<number[]>([])
@@ -140,6 +150,16 @@ export function useRoguelike(): RoguelikeController {
                 maxDepth: 3,
               })
       facingsRef.current = new Map()
+      narratorRef.current =
+        runRef.current.mode === 'duel'
+          ? createGridNarrator(runRef.current)
+          : null
+      setCommentary(
+        (narratorRef.current?.intro() ?? []).map((line) => ({
+          line,
+          id: nextId.current++,
+        }))
+      )
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
       clearFeedback()
@@ -151,6 +171,8 @@ export function useRoguelike(): RoguelikeController {
   const reset = useCallback(() => {
     runRef.current = null
     facingsRef.current = new Map()
+    narratorRef.current = null
+    setCommentary([])
     setDailyDate(null)
     setNotice('')
     clearFeedback()
@@ -159,10 +181,15 @@ export function useRoguelike(): RoguelikeController {
 
   const present = useCallback(
     (run: RunState, events: GridEvent[]) => {
-      const feedback = toCombatFeedback(
-        events.filter((event) => isEventVisible(event, run.level.visible)),
-        run.player.id
+      const visible = events.filter((event) =>
+        isEventVisible(event, run.level.visible)
       )
+      const feedback = toCombatFeedback(visible, run.player.id)
+      const narrated = narratorRef.current?.next(visible, run) ?? []
+      if (narrated.length > 0) {
+        const items = narrated.map((line) => ({ line, id: nextId.current++ }))
+        setCommentary((prev) => [...prev, ...items].slice(-COMMENTARY_LIMIT))
+      }
       facingsRef.current = nextFacings(facingsRef.current, events)
 
       if (feedback.lines.length > 0) {
@@ -307,6 +334,7 @@ export function useRoguelike(): RoguelikeController {
     notice,
     dailyDate,
     feed,
+    commentary,
     effects,
     motions,
     falls,

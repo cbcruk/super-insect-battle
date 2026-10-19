@@ -164,6 +164,9 @@ importers:
       '@super-insect-battle/engine':
         specifier: workspace:*
         version: link:../engine
+      '@super-insect-battle/roguelike':
+        specifier: workspace:*
+        version: link:../roguelike
     devDependencies:
       '@types/node':
         specifier: ^22.10.2

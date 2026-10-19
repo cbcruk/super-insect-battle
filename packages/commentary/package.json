@@ -15,7 +15,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@super-insect-battle/engine": "workspace:*"
+    "@super-insect-battle/engine": "workspace:*",
+    "@super-insect-battle/roguelike": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

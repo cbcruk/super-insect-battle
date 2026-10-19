@@ -33,9 +33,11 @@ const END_DRAW_LINES = [
     `${turns}턴을 싸우고도 우열을 가리지 못한다 — 무승부!`,
 ]
 
-class Rotation {
+/** 같은 키의 문구 묶음을 차례로 돌려 쓴다. */
+export class Rotation {
   private readonly counters = new Map<string, number>()
 
+  /** key 묶음에서 다음 차례 문구. */
   pick<T>(key: string, bank: T[]): T {
     const n = this.counters.get(key) ?? 0
     this.counters.set(key, n + 1)
@@ -214,8 +216,7 @@ export interface Narrator {
   next(event: BattleEvent): CommentaryLine[]
 }
 
-export function createNarrator(): Narrator {
-  const r = new Rotation()
+export function createNarrator(r: Rotation = new Rotation()): Narrator {
   return {
     next: (event) => narrateEvent(event, r),
   }
