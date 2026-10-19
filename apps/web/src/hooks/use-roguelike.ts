@@ -3,6 +3,9 @@ import {
   createGeneratedRun,
   createShowdownRun,
   createDuelRun,
+  createDuelReplay,
+  startDuelReplay,
+  nextReplayCommand,
   isAutopilot,
   applyCommand,
   canSpectate,
@@ -13,6 +16,7 @@ import {
   type RunMode,
   type RunState,
   type Command,
+  type DuelReplay,
 } from '@super-insect-battle/roguelike'
 import {
   getArthropodById,
@@ -20,7 +24,13 @@ import {
   getActionTargeting,
   getActionRange,
   isActionOnCooldown,
+  type AIPlayerOptions,
 } from '@super-insect-battle/engine'
+import {
+  createGridNarrator,
+  type GridNarrator,
+} from '@super-insect-battle/commentary'
+import type { CommentaryItem } from '../components/roguelike/grid-commentary.types.ts'
 import { toCombatFeedback } from '../lib/combat-feedback.ts'
 import { nextFacings } from '../lib/facing.ts'
 import type { FeedLine, HitEffect } from '../lib/combat-feedback.types.ts'
@@ -28,6 +38,7 @@ import type { AttackMotion } from '../lib/attack-motion.types.ts'
 import type { Fall } from '../lib/fall-motion.types.ts'
 
 const FEED_LIMIT = 60
+const COMMENTARY_LIMIT = 200
 const EFFECT_LIFETIME_MS = 900
 
 /** 플레이어가 피해를 입을 때마다 바뀌는 신호. `key`가 바뀌면 피격 연출을 다시 재생한다. */
@@ -48,6 +59,10 @@ export interface NewRunOptions {
   opponentId?: string
   /** 격자 매치업에서 플레이어 쪽도 AI가 조종한다 (AI 대 AI). */
   autopilot?: boolean
+  /** 격자 매치업 상대 AI의 난이도·성격. */
+  opponentAI?: AIPlayerOptions
+  /** 주어지면 새 판 대신 이 격자 매치업 리플레이를 재생한다. 다른 옵션은 무시한다. */
+  replay?: DuelReplay
 }
 
 export interface RoguelikeController {
@@ -56,6 +71,8 @@ export interface RoguelikeController {
   notice: string
   dailyDate: string | null
   feed: FeedLine[]
+  /** 격자 매치업 중계 문장. 다른 모드에서는 비어 있다. */
+  commentary: CommentaryItem[]
   effects: HitEffect[]
   /** 가장 최근 명령에서 나온 공격 움직임. 무대는 처음 보는 `id`만 재생한다. */
   motions: AttackMotion[]
@@ -70,6 +87,10 @@ export interface RoguelikeController {
   useAbility: (index: number) => void
   /** 플레이어 쪽 곤충을 AI가 조종하는 중인가 (AI 대 AI 격자 매치업). */
   autoplaying: boolean
+  /** 리플레이를 재생하는 중인가. */
+  replaying: boolean
+  /** 끝난 격자 매치업의 리플레이 기록. 재생한 판이거나 진행 중이면 null. */
+  recording: DuelReplay | null
   /** AI가 플레이어 쪽 곤충의 한 턴을 대신 진행한다. */
   autoStep: () => void
   /** 쇼다운에서 쓰러진 뒤 남은 라이벌들의 싸움을 지켜볼 수 있는가. */
@@ -94,6 +115,14 @@ export function useRoguelike(): RoguelikeController {
     damage: 0,
     heavy: false,
   })
+  const [commentary, setCommentary] = useState<CommentaryItem[]>([])
+  const narratorRef = useRef<GridNarrator | null>(null)
+  const recordingRef = useRef<DuelReplay | null>(null)
+  const playbackRef = useRef<{
+    replay: DuelReplay
+    step: number
+    ended: boolean
+  } | null>(null)
   const nextId = useRef(0)
   const facingsRef = useRef<ReadonlyMap<string, number>>(new Map())
   const timers = useRef<number[]>([])
@@ -113,29 +142,53 @@ export function useRoguelike(): RoguelikeController {
 
   const newRun = useCallback(
     (opts: NewRunOptions) => {
-      const species = getArthropodById(opts.speciesId)
-      if (!species) return
-      const opponent =
-        opts.opponentId !== undefined
-          ? getArthropodById(opts.opponentId)
-          : undefined
-      if (opts.mode === 'duel' && !opponent) return
-      runRef.current =
-        opts.mode === 'duel' && opponent
-          ? createDuelRun({
-              playerSpecies: species,
-              opponentSpecies: opponent,
-              seed: opts.seed,
-              autopilot: opts.autopilot,
-            })
-          : opts.mode === 'showdown'
-            ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
-            : createGeneratedRun({
-                playerSpecies: species,
-                seed: opts.seed,
-                maxDepth: 3,
-              })
+      recordingRef.current = null
+      playbackRef.current = null
+      if (opts.replay) {
+        const replayed = startDuelReplay(opts.replay)
+        if (!replayed) return
+        runRef.current = replayed
+        playbackRef.current = { replay: opts.replay, step: 0, ended: false }
+      } else {
+        const species = getArthropodById(opts.speciesId)
+        if (!species) return
+        const opponent =
+          opts.opponentId !== undefined
+            ? getArthropodById(opts.opponentId)
+            : undefined
+        if (opts.mode === 'duel' && !opponent) return
+        if (opts.mode === 'duel' && opponent) {
+          const duel = {
+            playerSpecies: species,
+            opponentSpecies: opponent,
+            seed: opts.seed,
+            autopilot: opts.autopilot,
+            opponentAI: opts.opponentAI,
+          }
+          runRef.current = createDuelRun(duel)
+          recordingRef.current = createDuelReplay(duel)
+        } else {
+          runRef.current =
+            opts.mode === 'showdown'
+              ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
+              : createGeneratedRun({
+                  playerSpecies: species,
+                  seed: opts.seed,
+                  maxDepth: 3,
+                })
+        }
+      }
       facingsRef.current = new Map()
+      narratorRef.current =
+        runRef.current.mode === 'duel'
+          ? createGridNarrator(runRef.current)
+          : null
+      setCommentary(
+        (narratorRef.current?.intro() ?? []).map((line) => ({
+          line,
+          id: nextId.current++,
+        }))
+      )
       setDailyDate(opts.dailyDate ?? null)
       setNotice('')
       clearFeedback()
@@ -146,7 +199,11 @@ export function useRoguelike(): RoguelikeController {
 
   const reset = useCallback(() => {
     runRef.current = null
+    recordingRef.current = null
+    playbackRef.current = null
     facingsRef.current = new Map()
+    narratorRef.current = null
+    setCommentary([])
     setDailyDate(null)
     setNotice('')
     clearFeedback()
@@ -155,10 +212,15 @@ export function useRoguelike(): RoguelikeController {
 
   const present = useCallback(
     (run: RunState, events: GridEvent[]) => {
-      const feedback = toCombatFeedback(
-        events.filter((event) => isEventVisible(event, run.level.visible)),
-        run.player.id
+      const visible = events.filter((event) =>
+        isEventVisible(event, run.level.visible)
       )
+      const feedback = toCombatFeedback(visible, run.player.id)
+      const narrated = narratorRef.current?.next(visible, run) ?? []
+      if (narrated.length > 0) {
+        const items = narrated.map((line) => ({ line, id: nextId.current++ }))
+        setCommentary((prev) => [...prev, ...items].slice(-COMMENTARY_LIMIT))
+      }
       facingsRef.current = nextFacings(facingsRef.current, events)
 
       if (feedback.lines.length > 0) {
@@ -233,7 +295,15 @@ export function useRoguelike(): RoguelikeController {
   const dispatch = useCallback(
     (command: Command) => {
       const run = runRef.current
-      if (!run || run.status !== 'playing') return
+      if (
+        !run ||
+        run.status !== 'playing' ||
+        playbackRef.current ||
+        isAutopilot(run)
+      ) {
+        return
+      }
+      recordingRef.current?.commands.push(command)
       present(run, applyCommand(run, command))
     },
     [present]
@@ -241,12 +311,28 @@ export function useRoguelike(): RoguelikeController {
 
   const autoStep = useCallback(() => {
     const run = runRef.current
-    if (!run || !isAutopilot(run) || !run.player.brain) return
+    if (!run) return
+    const playback = playbackRef.current
+    if (playback) {
+      const command = nextReplayCommand(run, playback.replay, playback.step)
+      if (!command) {
+        playback.ended = true
+        setNotice(
+          '기록이 끝났습니다. 규칙이 바뀌어 원본과 달라졌을 수 있습니다.'
+        )
+        bump()
+        return
+      }
+      playback.step++
+      present(run, applyCommand(run, command))
+      return
+    }
+    if (!isAutopilot(run) || !run.player.brain) return
     present(
       run,
       applyCommand(run, run.player.brain.decide(run.player, run, run.rng))
     )
-  }, [present])
+  }, [bump, present])
 
   const spectate = useCallback(() => {
     const run = runRef.current
@@ -303,6 +389,7 @@ export function useRoguelike(): RoguelikeController {
     notice,
     dailyDate,
     feed,
+    commentary,
     effects,
     motions,
     falls,
@@ -312,7 +399,16 @@ export function useRoguelike(): RoguelikeController {
     reset,
     dispatch,
     useAbility,
-    autoplaying: runRef.current ? isAutopilot(runRef.current) : false,
+    autoplaying: runRef.current
+      ? playbackRef.current !== null
+        ? runRef.current.status === 'playing' && !playbackRef.current.ended
+        : isAutopilot(runRef.current)
+      : false,
+    replaying: playbackRef.current !== null,
+    recording:
+      runRef.current && runRef.current.status !== 'playing'
+        ? recordingRef.current
+        : null,
     autoStep,
     spectating: runRef.current ? canSpectate(runRef.current) : false,
     spectate,

@@ -102,7 +102,11 @@ export {
 
 export { selectStrategicAIAction } from './engine/ai-strategy'
 
-export { createAIPlayer, type AIPlayerOptions } from './engine/ai-player'
+export {
+  createAIPlayer,
+  chooseAIAction,
+  type AIPlayerOptions,
+} from './engine/ai-player'
 
 export type {
   Player,

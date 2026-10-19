@@ -45,12 +45,15 @@ export function RoguelikeGame({
   onExit,
   exitLabel = '새 런',
   resultSlot,
+  feedSlot,
 }: {
   controller: RoguelikeController
   onExit: () => void
   /** 결과 화면 버튼 문구. */
   exitLabel?: string
   resultSlot?: React.ReactNode
+  /** 전투 로그 자리에 대신 놓을 내용. 없으면 기본 전투 로그. */
+  feedSlot?: React.ReactNode
 }): React.ReactNode {
   const {
     run,
@@ -68,6 +71,7 @@ export function RoguelikeGame({
     spectate,
     skipSpectate,
     autoplaying,
+    replaying,
     autoStep,
   } = controller
   const stageHostRef = useRef<HTMLDivElement>(null)
@@ -205,7 +209,7 @@ export function RoguelikeGame({
             {progressLabel(run)} · 턴 {run.turn}
           </span>
           {autoplaying ? (
-            <span>AI 대 AI 관전 중</span>
+            <span>{replaying ? '리플레이 재생 중' : 'AI 대 AI 관전 중'}</span>
           ) : (
             <span className="hidden sm:inline">
               이동 방향키·hjkl · 스킬 숫자 · 대기 .
@@ -278,7 +282,7 @@ export function RoguelikeGame({
               <button
                 key={action.id}
                 onClick={() => useAbility(i)}
-                disabled={cd > 0 || run.status !== 'playing'}
+                disabled={cd > 0 || run.status !== 'playing' || autoplaying}
                 className="flex flex-col items-start rounded border border-white/10 bg-white/[0.02] px-2 py-1 text-left text-[11px] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
               >
                 <span className="font-medium">
@@ -302,7 +306,7 @@ export function RoguelikeGame({
           </div>
         )}
 
-        <CombatFeed lines={feed} />
+        {feedSlot ?? <CombatFeed lines={feed} />}
       </div>
     </div>
   )

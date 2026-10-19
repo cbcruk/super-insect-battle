@@ -10,6 +10,7 @@ import type {
   BattleReplay,
 } from '@super-insect-battle/engine'
 import { BattleCommentary } from '../components/battle-commentary/battle-commentary.tsx'
+import { GridReplayList } from '../components/grid-replay-list/grid-replay-list.tsx'
 import { Button } from '../components/ui/button.tsx'
 import { DataTable } from '../components/ui/data-table.tsx'
 import type { Column } from '../components/ui/data-table.tsx'
@@ -229,6 +230,8 @@ export function ReplayPage(): React.ReactNode {
           )}
         </>
       )}
+
+      <GridReplayList />
     </div>
   )
 }

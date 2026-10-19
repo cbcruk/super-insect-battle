@@ -25,4 +25,8 @@ export type GridEvent =
       text: string
       /** 메시지를 만든 액터의 위치. 없으면 시야와 무관하게 항상 보인다. */
       pos?: Vec2
+      /** 메시지의 주체 액터 (행동 불능·혼란·독 해소·자기 대상 기술). */
+      actorId?: string
+      /** 자기 대상 기술이면 그 기술 id. */
+      actionId?: string
     }

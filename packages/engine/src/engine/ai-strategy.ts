@@ -139,15 +139,23 @@ function selectBest(scoredActions: ScoredAction[]): Action {
   return best.action
 }
 
+/**
+ * 상성·체력·상태이상을 점수로 매겨 공격자의 다음 기술을 고른다.
+ *
+ * @param deterministic 참이면 최고점 기술, 거짓이면 점수 가중 무작위.
+ * @param candidates 고를 기술 후보. 생략하면 쿨다운이 안 걸린 모든 기술.
+ */
 export function selectStrategicAIAction(
   attacker: BattleArthropod,
   defender: BattleArthropod,
   personality: AIPersonality = 'balanced',
   deterministic = false,
-  rng: Rng = defaultRng
+  rng: Rng = defaultRng,
+  candidates?: Action[]
 ): Action {
   const allActions = getActionsByIds(attacker.actions)
-  const availableActions = getAvailableActions(allActions, attacker)
+  const availableActions =
+    candidates ?? getAvailableActions(allActions, attacker)
 
   if (availableActions.length === 0) {
     if (allActions.length === 0) {

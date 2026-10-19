@@ -1,5 +1,6 @@
 import {
   createRng,
+  type AIPlayerOptions,
   type Arthropod,
   type Environment,
 } from '@super-insect-battle/engine'
@@ -30,6 +31,8 @@ export interface DuelOptions {
    * 보인다. 기본은 플레이어가 직접 조종한다.
    */
   autopilot?: boolean
+  /** 상대 AI의 기술 선택 난이도·성격. 기본은 보통·균형. */
+  opponentAI?: AIPlayerOptions
 }
 
 /**
@@ -77,7 +80,7 @@ export function createDuelRun(opts: DuelOptions): RunState {
   const species = opts.opponentSpecies
   const opponent = createActor('opponent', species, opponentSpot, 'opponent', {
     glyph: HOSTILE_GLYPHS[species.id] ?? species.name[0].toUpperCase(),
-    brain: createSmartBrain({ hunt: true }),
+    brain: createSmartBrain({ hunt: true, ...opts.opponentAI }),
   })
 
   const level: Level = {
