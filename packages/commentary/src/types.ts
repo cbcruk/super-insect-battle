@@ -43,7 +43,11 @@ export interface MissEvent {
   attackerName: string
   defenderName: string
   move: string
-  /** 상대를 노리지 않는 자기 대상 기술이 실패했다. "피했다"류 대신 실패로 중계한다. */
+  /**
+   * 상대를 노리지 않는 자기 대상 기술이 실패했다. "피했다"류 대신 실패로 중계한다.
+   *
+   * 지금 엔진은 자기 대상 기술에 명중 판정을 하지 않으므로 예전 로그에서만 나온다.
+   */
   selfTarget?: boolean
 }
 

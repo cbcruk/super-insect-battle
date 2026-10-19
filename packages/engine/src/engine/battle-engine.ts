@@ -197,6 +197,15 @@ export function getHitChance(
   return Math.max(10, Math.min(95, hitChance))
 }
 
+/**
+ * 상대를 노리지 않고 자기에게만 효과를 거는 기술인지 판정한다.
+ *
+ * 위력 0이고 효과 대상이 자기인 기술이다. 상대 회피와 상관없으므로 명중 판정을 하지 않는다.
+ */
+export function isSelfMove(action: Action): boolean {
+  return action.power === 0 && action.effect?.target === 'self'
+}
+
 export function checkAccuracy(
   action: Action,
   defender: BattleArthropod,
@@ -378,6 +387,7 @@ export function executeTurn(
     }
 
     if (
+      !isSelfMove(action) &&
       !checkAccuracy(action, defender, attacker.base.physical.lengthMm, rng)
     ) {
       logEntry.action += ' 그러나 빗나갔다!'

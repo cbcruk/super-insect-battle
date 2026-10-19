@@ -2,6 +2,7 @@ import {
   getActionById,
   statusConditionNames,
   formatEnvironment,
+  isSelfMove,
   type BattleState,
 } from '@super-insect-battle/engine'
 import type { Action, BattleLogEntry } from '@super-insect-battle/engine'
@@ -175,8 +176,7 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
           attackerName: name[actor],
           defenderName: name[defender],
           move,
-          ...(action.power === 0 &&
-            action.effect?.target === 'self' && { selfTarget: true }),
+          ...(isSelfMove(action) && { selfTarget: true }),
         })
       } else {
         events.push({
