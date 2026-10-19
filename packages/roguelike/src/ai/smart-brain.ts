@@ -45,6 +45,10 @@ const FLEE_HP_RATIO: Record<AIPersonality, number> = {
   defensive: 0.4,
 }
 
+// 강화 기술은 대상 능력치가 이 단계에 이르면 더 쓰지 않는다. 엔진 점수는 단계 상한을
+// 모르므로, 막지 않으면 인접한 채 강화만 되풀이한다.
+const SELF_BUFF_STAGE_CAP = 2
+
 // 배틀 모드 전용이라 격자에서는 효과가 없다. 도주는 이동으로 대신한다.
 const GRID_INERT_ACTIONS = new Set(['flee', 'brace'])
 
@@ -54,6 +58,7 @@ const GRID_INERT_ACTIONS = new Set(['flee', 'brace'])
  *
  * 기술 후보는 지금 위치에서 쓸 수 있는 것으로 거른다: 사거리·시야선이 닿는 공격과
  * 자기 대상 기술. 닿는 공격이 하나도 없으면 자기 강화만 하며 서 있지 않고 다가간다.
+ * 강화 기술은 대상 능력치가 2단계에 이르면 후보에서 빠진다.
  *
  * 적을 시야(반경 {@linkcode SIGHT_RADIUS}·시선)에서 처음 발견하기 전까지는
  * 제자리에 머문다. 한 번 발견한 적은 시야에서 사라져도 계속 추적하고, 시야 안에
@@ -143,7 +148,12 @@ function pickSkill(
   )
   if (reaching.length === 0) return null
 
-  const self = usable.filter((a) => getActionTargeting(a) === 'self')
+  const self = usable.filter(
+    (a) =>
+      getActionTargeting(a) === 'self' &&
+      (!a.effect?.statChange ||
+        actor.combat.statStages[a.effect.statChange.stat] < SELF_BUFF_STAGE_CAP)
+  )
   const action = chooseAIAction(
     actor.combat,
     foe.combat,

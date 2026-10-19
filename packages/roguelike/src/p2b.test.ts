@@ -260,4 +260,29 @@ describe('smart-brain skill choice', () => {
     expect(decide('defensive')).toEqual({ type: 'move', dir: 'e' })
     expect(decide('aggressive')).toEqual({ type: 'move', dir: 'w' })
   })
+  it('stops buffing once the stat is raised and goes back to attacking', () => {
+    const map = corridor(6)
+    const player = createActor('p', species('mantis'), { x: 1, y: 1 }, 'player')
+    const enemy = createActor('e', species('cockroach'), { x: 2, y: 1 }, 'e')
+    const level: Level = {
+      depth: 1,
+      map,
+      actors: [player, enemy],
+      environment: ENV,
+      exit: null,
+    }
+    const run = createRun({ player, level, seed: 1 })
+    enemy.combat.statStages = { strength: 2, defense: 2, evasion: 2 }
+
+    for (const personality of ['balanced', 'defensive'] as const) {
+      const command = createSmartBrain({
+        difficulty: 'hard',
+        personality,
+      }).decide(enemy, run, run.rng)
+      expect(command.type).toBe('ability')
+      if (command.type === 'ability') {
+        expect(getActionTargeting(action(command.actionId))).not.toBe('self')
+      }
+    }
+  })
 })

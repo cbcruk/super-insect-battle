@@ -82,4 +82,10 @@ describe('chooseAIAction', () => {
       }
     }
   })
+  it('rejects an empty candidate list', () => {
+    const { self, opponent } = createTestContext()
+    expect(() =>
+      chooseAIAction(self, opponent, [], { difficulty: 'easy' })
+    ).toThrow()
+  })
 })
