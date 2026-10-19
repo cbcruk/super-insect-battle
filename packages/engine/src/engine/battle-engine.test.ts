@@ -12,6 +12,7 @@ import {
 import { arthropods } from '../data/arthropods'
 import { actions } from '../data/actions'
 import { createAIPlayer } from './ai-player'
+import { createRng } from './rng'
 
 describe('BattleEngine', () => {
   describe('createBattleArthropod', () => {
@@ -147,6 +148,29 @@ describe('BattleEngine', () => {
       expect(checkAccuracy(strike, scorpion, length, () => chance / 100)).toBe(
         false
       )
+    })
+  })
+
+  describe('miss logging', () => {
+    it('flags misses on the log entry and records no damage', () => {
+      let misses = 0
+      for (let seed = 1; seed <= 20; seed++) {
+        const state = simulateBattle(
+          arthropods.mantis,
+          arthropods.scorpion,
+          undefined,
+          createRng(seed)
+        )
+        for (const entry of state.log) {
+          const missed = entry.action.includes('그러나 빗나갔다')
+          expect(entry.missed ?? false).toBe(missed)
+          if (missed) {
+            misses++
+            expect(entry.damage).toBeUndefined()
+          }
+        }
+      }
+      expect(misses).toBeGreaterThan(0)
     })
   })
 

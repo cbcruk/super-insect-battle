@@ -10,6 +10,7 @@ import {
   LOW_HP_LINES,
   STATUS_APPLIED_LINES,
   MISS_LINES,
+  FIZZLE_LINES,
   MOVE_LINES,
   NOTE_LINES,
   STREAK_LINES,
@@ -122,11 +123,13 @@ function narrateEvent(event: BattleEvent, r: Rotation): CommentaryLine[] {
     case 'miss':
       return [
         {
-          text: r.pick('miss', MISS_LINES)(
-            event.attackerName,
-            event.move,
-            event.defenderName
-          ),
+          text: event.selfTarget
+            ? r.pick('fizzle', FIZZLE_LINES)(event.attackerName, event.move)
+            : r.pick('miss', MISS_LINES)(
+                event.attackerName,
+                event.move,
+                event.defenderName
+              ),
           emphasis: 'normal',
           actor: event.attacker,
           turn: event.turn,

@@ -4,7 +4,7 @@ import {
   formatEnvironment,
   type BattleState,
 } from '@super-insect-battle/engine'
-import type { Action } from '@super-insect-battle/engine'
+import type { Action, BattleLogEntry } from '@super-insect-battle/engine'
 import type {
   BattleEvent,
   Magnitude,
@@ -51,6 +51,11 @@ export function moveIntentOf(action: Action): MoveIntent {
     return 'ensnare'
   }
   return 'guard'
+}
+
+// missed 필드가 생기기 전의 로그는 엔진 문구로 판단한다
+function isMiss(entry: BattleLogEntry): boolean {
+  return entry.missed ?? entry.action.includes('그러나 빗나갔다')
 }
 
 function other(side: Side): Side {
@@ -162,7 +167,7 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
             sort: 'streak',
           })
         }
-      } else if (action.category === 'attack') {
+      } else if (isMiss(entry) || action.category === 'attack') {
         events.push({
           kind: 'miss',
           turn: entry.turn,
@@ -170,6 +175,8 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
           attackerName: name[actor],
           defenderName: name[defender],
           move,
+          ...(action.power === 0 &&
+            action.effect?.target === 'self' && { selfTarget: true }),
         })
       } else {
         events.push({

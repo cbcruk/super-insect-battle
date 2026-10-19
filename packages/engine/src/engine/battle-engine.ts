@@ -45,6 +45,8 @@ export interface BattleLogEntry {
   critical?: boolean
   factors?: DamageFactors
   remainingHp?: { player: number; opponent: number }
+  /** 명중 판정에 실패해 피해·효과가 모두 없었다. */
+  missed?: boolean
 }
 
 export interface BattleState {
@@ -379,6 +381,7 @@ export function executeTurn(
       !checkAccuracy(action, defender, attacker.base.physical.lengthMm, rng)
     ) {
       logEntry.action += ' 그러나 빗나갔다!'
+      logEntry.missed = true
       startCooldown(attacker, action)
       newState.log.push(logEntry)
       continue
