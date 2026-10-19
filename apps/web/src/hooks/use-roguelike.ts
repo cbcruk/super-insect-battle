@@ -20,6 +20,7 @@ import {
   getActionTargeting,
   getActionRange,
   isActionOnCooldown,
+  type AIPlayerOptions,
 } from '@super-insect-battle/engine'
 import {
   createGridNarrator,
@@ -54,6 +55,8 @@ export interface NewRunOptions {
   opponentId?: string
   /** 격자 매치업에서 플레이어 쪽도 AI가 조종한다 (AI 대 AI). */
   autopilot?: boolean
+  /** 격자 매치업 상대 AI의 난이도·성격. */
+  opponentAI?: AIPlayerOptions
 }
 
 export interface RoguelikeController {
@@ -137,6 +140,7 @@ export function useRoguelike(): RoguelikeController {
               opponentSpecies: opponent,
               seed: opts.seed,
               autopilot: opts.autopilot,
+              opponentAI: opts.opponentAI,
             })
           : opts.mode === 'showdown'
             ? createShowdownRun({ playerSpecies: species, seed: opts.seed })
