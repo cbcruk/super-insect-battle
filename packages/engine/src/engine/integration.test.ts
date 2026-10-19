@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   createBattleArthropod,
   executeTurn,
+  getHitChance,
   runInteractiveBattle,
   type BattleState,
 } from './battle-engine'
@@ -35,6 +36,49 @@ function createBattleState(
 describe('Integration Tests', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  describe('self moves', () => {
+    it('land regardless of the opponent evasion', () => {
+      const state = createBattleState('dung_beetle', 'mantis')
+      state.opponent.statStages.evasion = 6
+      const roll = 0.5
+      // 공격이라면 빗나갈 난수다
+      expect(
+        getHitChance(
+          actions.shell_guard,
+          state.opponent,
+          state.player.base.physical.lengthMm
+        )
+      ).toBeLessThan(roll * 100)
+
+      const next = executeTurn(
+        state,
+        actions.shell_guard,
+        actions.scythe_strike,
+        () => roll
+      )
+
+      const guard = next.log.find(
+        (e) => e.actor === 'player' && e.actionId === 'shell_guard'
+      )
+      expect(guard?.missed).toBeUndefined()
+      expect(next.player.statStages.defense).toBeGreaterThan(0)
+    })
+
+    it('still roll accuracy for attacks', () => {
+      const state = createBattleState('dung_beetle', 'mantis')
+      const next = executeTurn(
+        state,
+        actions.grapple,
+        actions.scythe_strike,
+        () => 0.999
+      )
+      const grapple = next.log.find(
+        (e) => e.actor === 'player' && e.actionId === 'grapple'
+      )
+      expect(grapple?.missed).toBe(true)
+    })
   })
 
   describe('cooldown + battle flow', () => {

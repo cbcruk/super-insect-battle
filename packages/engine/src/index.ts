@@ -56,6 +56,7 @@ export {
   calculateDamage,
   checkAccuracy,
   getHitChance,
+  isSelfMove,
   determineFirstAttacker,
   applyActionEffect,
   executeTurn,
