@@ -6,6 +6,7 @@ import {
   type BattleState,
 } from '@super-insect-battle/engine'
 import { buildFeed, deriveEvents, narrate } from './index'
+import type { BattleLogEntry } from '@super-insect-battle/engine'
 
 const SEEDS = [1, 7, 42, 2024, 99999]
 
@@ -90,5 +91,47 @@ describe('buildFeed', () => {
       if (state.winner === 'player') expect(final.opponent).toBe(0)
       if (state.winner === 'opponent') expect(final.player).toBe(0)
     }
+  })
+})
+
+describe('misses', () => {
+  function withLog(log: BattleLogEntry[]): BattleState {
+    return { ...battles()[0], log, winner: null }
+  }
+
+  function entry(actionId: string, missed: boolean): BattleLogEntry {
+    return {
+      turn: 1,
+      actor: 'player',
+      action: missed ? '... 그러나 빗나갔다!' : '...',
+      actionId,
+      ...(missed && { missed: true }),
+    }
+  }
+
+  it('narrates a missed non-attack move as a miss, not as the move landing', () => {
+    for (const id of ['shell_roll', 'web_trap', 'shell_guard']) {
+      const kinds = deriveEvents(withLog([entry(id, true)])).map((e) => e.kind)
+      expect(kinds).toContain('miss')
+      expect(kinds).not.toContain('move')
+    }
+  })
+
+  it('still narrates a landed self buff as the move', () => {
+    const kinds = deriveEvents(withLog([entry('shell_guard', false)])).map(
+      (e) => e.kind
+    )
+    expect(kinds).toContain('move')
+  })
+
+  it('says a failed self buff fizzled rather than being dodged', () => {
+    const events = deriveEvents(withLog([entry('shell_guard', true)]))
+    const miss = events.find((e) => e.kind === 'miss')
+    expect(miss).toMatchObject({ selfTarget: true })
+    const text = narrate(events)
+      .map((l) => l.text)
+      .join('\n')
+    expect(text).toMatch(/실패했다|뜻대로 되지 않는다/)
+    expect(text).not.toMatch(/피해낸다|헛스윙/)
   })
 })

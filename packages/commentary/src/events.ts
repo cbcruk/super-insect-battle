@@ -162,7 +162,7 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
             sort: 'streak',
           })
         }
-      } else if (action.category === 'attack') {
+      } else if (entry.missed || action.category === 'attack') {
         events.push({
           kind: 'miss',
           turn: entry.turn,
@@ -170,6 +170,8 @@ export function deriveEvents(state: BattleState): BattleEvent[] {
           attackerName: name[actor],
           defenderName: name[defender],
           move,
+          ...(action.power === 0 &&
+            action.effect?.target === 'self' && { selfTarget: true }),
         })
       } else {
         events.push({
