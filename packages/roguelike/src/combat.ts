@@ -7,6 +7,7 @@ import type {
 import {
   calculateDamage,
   checkAccuracy,
+  getHitChance,
   applyActionEffect,
   statusConditionNames,
 } from '@super-insect-battle/engine'
@@ -113,6 +114,50 @@ export function resolveAttack(
     statusApplied,
     note,
   }
+}
+
+/**
+ * 격자에서 공격이 명중할 확률(0~1)을 계산한다. 수풀 은신의 추가 회피까지 반영한다.
+ */
+export function hitProbability(
+  attacker: Actor,
+  defender: Actor,
+  action: Action,
+  level: Level
+): number {
+  const base =
+    getHitChance(action, defender.combat, attacker.species.physical.lengthMm) /
+    100
+  const tile = tileAt(level.map, defender.pos.x, defender.pos.y)
+  const evasionMod = tile ? TERRAIN[tile.terrain].evasionMod : 1
+  return evasionMod > 1 ? base * (2 - evasionMod) : base
+}
+
+/**
+ * 명중했을 때의 피해를 급소 없이 추정한다.
+ *
+ * 실제 공격과 달리 런의 RNG를 쓰지 않으므로 AI가 판을 바꾸지 않고 미리 계산할 수 있다.
+ *
+ * @param roll 피해 난수 폭(0.85~1.0) 안의 위치. 0이면 최소, 기본 0.5는 중간값.
+ */
+export function estimateDamage(
+  attacker: Actor,
+  defender: Actor,
+  action: Action,
+  level: Level,
+  roll = 0.5
+): number {
+  if (action.power <= 0) return 0
+  // 엔진은 급소 판정, 피해 난수 순으로 rng를 부른다. 0.5는 급소가 나지 않는 값이다
+  let calls = 0
+  const fixed: Rng = () => (calls++ === 0 ? 0.5 : roll)
+  return calculateDamage(
+    attacker.combat,
+    defender.combat,
+    action,
+    level.environment,
+    fixed
+  ).damage
 }
 
 /** 엔진 명중 판정 + 지형 은신 추가 회피. */

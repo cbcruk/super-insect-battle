@@ -3,6 +3,8 @@ import {
   createBattleArthropod,
   calculateDamage,
   determineFirstAttacker,
+  checkAccuracy,
+  getHitChance,
   simulateBattle,
   simulateMultipleBattles,
   runInteractiveBattle,
@@ -129,6 +131,23 @@ describe('BattleEngine', () => {
       )
 
       expect(result.log.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('getHitChance', () => {
+    it('is the threshold checkAccuracy rolls against, clamped to 10~95', () => {
+      const mantis = createBattleArthropod(arthropods.mantis)
+      const scorpion = createBattleArthropod(arthropods.scorpion)
+      const strike = actions.scythe_strike
+      const length = mantis.base.physical.lengthMm
+      const chance = getHitChance(strike, scorpion, length)
+      expect(chance).toBeGreaterThanOrEqual(10)
+      expect(chance).toBeLessThanOrEqual(95)
+      const below = chance / 100 - 0.001
+      expect(checkAccuracy(strike, scorpion, length, () => below)).toBe(true)
+      expect(checkAccuracy(strike, scorpion, length, () => chance / 100)).toBe(
+        false
+      )
     })
   })
 

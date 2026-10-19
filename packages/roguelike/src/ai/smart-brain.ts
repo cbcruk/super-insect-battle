@@ -20,6 +20,7 @@ import {
   nearestVisibleCube,
 } from '../targeting'
 import { isInGas } from '../zone'
+import { pickHardAction } from './hard-choice'
 
 /** {@linkcode createSmartBrain} 옵션. */
 export interface SmartBrainOptions {
@@ -31,11 +32,18 @@ export interface SmartBrainOptions {
   hunt?: boolean
   /** `hunt`가 찾아 나설 적의 최대 거리 (체비셰프). 기본은 제한 없음. */
   huntRadius?: number
-  /** 기술 선택 난이도. 기본 `'medium'`. */
+  /**
+   * 기술 선택 난이도. 기본 `'medium'`.
+   *
+   * - 쉬움: 지금 닿는지 따지지 않고 기술을 무작위로 고르고(닿지 않으면 다가간다),
+   *   독가스를 피해 움직이지 않는다.
+   * - 보통: 엔진 전략 AI의 점수 가중 무작위.
+   * - 어려움: 격자 기대 이득(명중 × 피해, 처치·상태이상·강화 가치)이 가장 큰 기술.
+   */
   difficulty?: AIDifficulty
   /**
    * 기술 선택과 도주 성향. 공격적이면 끝까지 버티고, 방어적이면 일찍 물러난다.
-   * 기본 `'balanced'`.
+   * 어려움은 기술을 기대 이득으로만 고르므로 도주 성향에만 쓰인다. 기본 `'balanced'`.
    */
   personality?: AIPersonality
 }
@@ -94,9 +102,13 @@ export function createSmartBrain(options: SmartBrainOptions = {}): ActorBrain {
         return dir ? { type: 'move', dir } : { type: 'wait' }
       }
 
-      // 다음 턴에 독가스가 덮칠 자리면 중심으로 피한다
+      // 다음 턴에 독가스가 덮칠 자리면 중심으로 피한다. 쉬움은 피하지 않는다
       const { zone } = run.level
-      if (zone && isInGas(zone, actor.pos, run.turn + 1)) {
+      if (
+        zone &&
+        options.difficulty !== 'easy' &&
+        isInGas(zone, actor.pos, run.turn + 1)
+      ) {
         const escape = stepTo(zone.center)
         if (escape) return escape
       }
@@ -150,14 +162,25 @@ function pickSkill(
   )
   if (reaching.length === 0) return null
 
+  if (options.difficulty === 'easy') {
+    // 쉬움은 지금 닿는지 따지지 않고 고른다. 닿지 않는 공격을 고르면 그냥 다가간다
+    const pick = usable[Math.floor(run.rng() * usable.length)]
+    if (getActionTargeting(pick) !== 'self' && !reaching.includes(pick)) {
+      return null
+    }
+    return abilityCommand(actor, foe, pick)
+  }
+
   const self = usable.filter((a) => getActionTargeting(a) === 'self')
-  const action = chooseAIAction(
-    actor.combat,
-    foe.combat,
-    [...reaching, ...self],
-    options,
-    run.rng
-  )
+  const candidates = [...reaching, ...self]
+  const action =
+    options.difficulty === 'hard'
+      ? pickHardAction(actor, foe, candidates, run.level)
+      : chooseAIAction(actor.combat, foe.combat, candidates, options, run.rng)
+  return abilityCommand(actor, foe, action)
+}
+
+function abilityCommand(actor: Actor, foe: Actor, action: Action): Command {
   const at = getActionTargeting(action) === 'self' ? actor.pos : foe.pos
   return { type: 'ability', actionId: action.id, target: { ...at } }
 }

@@ -174,12 +174,18 @@ export function calculateDamage(
   }
 }
 
-export function checkAccuracy(
+/**
+ * 기술이 방어자에게 명중할 확률(%)을 계산한다.
+ *
+ * 방어자 회피(단계·도주 보정 포함)와 몸길이 차이를 반영한다.
+ *
+ * @returns 10~95 사이의 백분율.
+ */
+export function getHitChance(
   action: Action,
   defender: BattleArthropod,
-  attackerLength: number,
-  rng: Rng = defaultRng
-): boolean {
+  attackerLength: number
+): number {
   const evasionMultiplier = getStatMultiplier(defender.statStages.evasion)
   const defenderEvasion = defender.base.defense.evasion * evasionMultiplier
   const fleeBonus = getFleeEvasionBonus(defender)
@@ -188,9 +194,16 @@ export function checkAccuracy(
 
   const hitChance =
     action.accuracy - (defenderEvasion + fleeBonus) * 0.7 + lengthBonus
-  const finalHitChance = Math.max(10, Math.min(95, hitChance))
+  return Math.max(10, Math.min(95, hitChance))
+}
 
-  return rng() * 100 < finalHitChance
+export function checkAccuracy(
+  action: Action,
+  defender: BattleArthropod,
+  attackerLength: number,
+  rng: Rng = defaultRng
+): boolean {
+  return rng() * 100 < getHitChance(action, defender, attackerLength)
 }
 
 export function determineFirstAttacker(
