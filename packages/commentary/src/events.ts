@@ -15,7 +15,7 @@ import type {
 } from './types'
 import { eunNeun } from './particles'
 
-function classifyNote(text: string): NoteCause {
+export function classifyNote(text: string): NoteCause {
   if (text.includes('속박에서 벗어났') || text.includes('잠에서 깨어났')) {
     return text.includes('속박') ? 'freed' : 'wake'
   }
@@ -28,7 +28,7 @@ function classifyNote(text: string): NoteCause {
   return 'other'
 }
 
-function moveIntentOf(action: Action): MoveIntent {
+export function moveIntentOf(action: Action): MoveIntent {
   if (action.id === 'flee') return 'flee'
   if (action.id === 'brace') return 'brace'
 
@@ -57,7 +57,7 @@ function other(side: Side): Side {
 
 const PLACEHOLDER = '은(는)'
 
-function fixSubjectParticle(text: string, subject: string): string {
+export function fixSubjectParticle(text: string, subject: string): string {
   const prefix = `${subject}${PLACEHOLDER}`
   if (text.startsWith(prefix)) {
     return `${subject}${eunNeun(subject)}${text.slice(prefix.length)}`
@@ -65,7 +65,7 @@ function fixSubjectParticle(text: string, subject: string): string {
   return text
 }
 
-function magnitudeOf(damage: number, maxHp: number): Magnitude {
+export function magnitudeOf(damage: number, maxHp: number): Magnitude {
   const ratio = maxHp > 0 ? damage / maxHp : 0
   if (ratio < 0.06) return 'glance'
   if (ratio < 0.13) return 'solid'
@@ -73,7 +73,7 @@ function magnitudeOf(damage: number, maxHp: number): Magnitude {
   return 'crushing'
 }
 
-function matchupOf(styleMatchup: number | undefined): Matchup {
+export function matchupOf(styleMatchup: number | undefined): Matchup {
   if (styleMatchup === undefined) return 'neutral'
   if (styleMatchup > 1) return 'up'
   if (styleMatchup < 1) return 'down'

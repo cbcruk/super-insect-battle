@@ -305,6 +305,8 @@ function resolveAbility(
       type: 'message',
       text: `${actor.species.nameKo}: ${action.nameKo}`,
       pos: { ...actor.pos },
+      actorId: actor.id,
+      actionId: action.id,
     })
     return
   }

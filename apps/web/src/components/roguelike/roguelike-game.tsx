@@ -45,12 +45,15 @@ export function RoguelikeGame({
   onExit,
   exitLabel = '새 런',
   resultSlot,
+  feedSlot,
 }: {
   controller: RoguelikeController
   onExit: () => void
   /** 결과 화면 버튼 문구. */
   exitLabel?: string
   resultSlot?: React.ReactNode
+  /** 전투 로그 자리에 대신 놓을 내용. 없으면 기본 전투 로그. */
+  feedSlot?: React.ReactNode
 }): React.ReactNode {
   const {
     run,
@@ -302,7 +305,7 @@ export function RoguelikeGame({
           </div>
         )}
 
-        <CombatFeed lines={feed} />
+        {feedSlot ?? <CombatFeed lines={feed} />}
       </div>
     </div>
   )

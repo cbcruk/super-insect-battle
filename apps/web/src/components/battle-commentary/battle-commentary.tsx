@@ -3,11 +3,11 @@ import { formatEnvironment } from '@super-insect-battle/engine'
 import {
   narrateLog,
   type CommentaryLine,
-  type Emphasis,
 } from '@super-insect-battle/commentary'
 import { Button } from '../ui/button.tsx'
 import { cn } from '../../lib/utils.ts'
 import type { BattleCommentaryProps } from './battle-commentary.types.ts'
+import { commentaryLineClass } from './battle-commentary.utils.ts'
 
 export const PLAYBACK_SPEEDS = [
   { label: '느리게', mult: 1.8 },
@@ -19,23 +19,6 @@ function hpColor(ratio: number): string {
   if (ratio > 0.5) return 'bg-green-500'
   if (ratio > 0.25) return 'bg-yellow-500'
   return 'bg-red-500'
-}
-
-function lineClass(line: CommentaryLine): string {
-  const actorColor =
-    line.actor === 'player'
-      ? 'text-cyan-300'
-      : line.actor === 'opponent'
-        ? 'text-fuchsia-300'
-        : 'text-foreground'
-  const byEmphasis: Record<Emphasis, string> = {
-    header: 'text-yellow-400 font-bold',
-    critical: 'text-red-400 font-bold',
-    strong: cn(actorColor, 'font-semibold'),
-    system: 'text-muted-foreground',
-    normal: actorColor,
-  }
-  return byEmphasis[line.emphasis]
 }
 
 function HpRow({
@@ -153,7 +136,7 @@ export function BattleCommentary({
         className="bg-card flex-1 space-y-1 overflow-y-auto rounded-lg border p-4 font-mono text-sm leading-relaxed"
       >
         {lines.map((line, index) => (
-          <p key={index} className={lineClass(line)}>
+          <p key={index} className={commentaryLineClass(line)}>
             {line.text}
           </p>
         ))}

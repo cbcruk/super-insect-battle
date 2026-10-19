@@ -4,11 +4,13 @@ import { getArthropodById } from '@super-insect-battle/engine'
 import { useRoguelike } from '../hooks/use-roguelike.ts'
 import { RoguelikeGame } from '../components/roguelike/roguelike-game.tsx'
 import { DuelResult } from '../components/roguelike/duel-result.tsx'
+import { GridCommentary } from '../components/roguelike/grid-commentary.tsx'
 import { Button } from '../components/ui/button.tsx'
 
 /**
  * 격자 매치업 화면. 매치업 설정에서 고른 두 곤충을 로그라이크 규칙의 작은 아레나에
  * 세운다. `mode=ai-vs-ai`면 양쪽 모두 AI가 싸우고, 아니면 플레이어가 1P를 조종한다.
+ * 전투 로그 자리에는 CM3식 중계가 나온다.
  */
 export function ArenaPage(): React.ReactNode {
   const navigate = useNavigate()
@@ -51,6 +53,7 @@ export function ArenaPage(): React.ReactNode {
       onExit={() => navigate('/matchup')}
       exitLabel="매치업으로"
       resultSlot={<DuelResult run={controller.run} />}
+      feedSlot={<GridCommentary lines={controller.commentary} />}
     />
   )
 }
